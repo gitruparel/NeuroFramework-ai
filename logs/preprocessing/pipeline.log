@@ -2010,3 +2010,131 @@
 [2026-06-27 03:56:52,816] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Previews Generation' in 0.0001s
 [2026-06-27 03:56:52,816] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Quality Assessment'
 [2026-06-27 03:56:52,817] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Quality Assessment' in 0.0004s
+[2026-06-27 04:33:19,284] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Volume Reading'
+[2026-06-27 04:33:19,286] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Volume Reading' in 0.0016s
+[2026-06-27 04:33:19,286] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Metadata Extraction'
+[2026-06-27 04:33:19,286] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Metadata Extraction' in 0.0001s
+[2026-06-27 04:33:19,286] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Statistics Calculation'
+[2026-06-27 04:33:19,287] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Statistics Calculation' in 0.0001s
+[2026-06-27 04:33:19,287] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Pipeline Validation'
+[2026-06-27 04:33:19,287] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Pipeline Validation' in 0.0002s
+[2026-06-27 04:33:19,288] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Previews Generation'
+[2026-06-27 04:33:19,288] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Previews Generation' in 0.0001s
+[2026-06-27 04:33:19,288] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Quality Assessment'
+[2026-06-27 04:33:19,298] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Quality Assessment' in 0.0100s
+[2026-06-27 04:33:19,306] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Volume Reading'
+[2026-06-27 04:33:19,308] [ERROR] [engine.steps] [decorators.py:40]: Pipeline Step: Failed 'Volume Reading' after 0.0016s. Error: NiftiReader failed loading NIfTI from C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-35\test_dataset_auditor0\ADNI_Mock\AD\sub-02\broken_scan.nii.gz: Not a gzipped file (b'Co')
+[2026-06-27 04:33:19,748] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Volume Reading'
+[2026-06-27 04:33:19,749] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Volume Reading' in 0.0014s
+[2026-06-27 04:33:19,750] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Metadata Extraction'
+[2026-06-27 04:33:19,750] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Metadata Extraction' in 0.0001s
+[2026-06-27 04:33:19,750] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Statistics Calculation'
+[2026-06-27 04:33:19,750] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Statistics Calculation' in 0.0001s
+[2026-06-27 04:33:19,750] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Pipeline Validation'
+[2026-06-27 04:33:19,750] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Pipeline Validation' in 0.0002s
+[2026-06-27 04:33:19,750] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Previews Generation'
+[2026-06-27 04:33:19,751] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Previews Generation' in 0.0001s
+[2026-06-27 04:33:19,751] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Quality Assessment'
+[2026-06-27 04:33:19,751] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Quality Assessment' in 0.0007s
+[2026-06-27 04:33:19,767] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Volume Reading'
+[2026-06-27 04:33:19,771] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Volume Reading' in 0.0039s
+[2026-06-27 04:33:19,772] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Metadata Extraction'
+[2026-06-27 04:33:19,772] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Metadata Extraction' in 0.0001s
+[2026-06-27 04:33:19,772] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Statistics Calculation'
+[2026-06-27 04:33:19,772] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Statistics Calculation' in 0.0004s
+[2026-06-27 04:33:19,772] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Pipeline Validation'
+[2026-06-27 04:33:19,773] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Pipeline Validation' in 0.0002s
+[2026-06-27 04:33:19,773] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Previews Generation'
+[2026-06-27 04:33:19,773] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Previews Generation' in 0.0003s
+[2026-06-27 04:33:19,773] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Quality Assessment'
+[2026-06-27 04:33:19,774] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Quality Assessment' in 0.0005s
+[2026-06-27 04:33:19,791] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Volume Reading'
+[2026-06-27 04:33:19,795] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Volume Reading' in 0.0036s
+[2026-06-27 04:33:19,795] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Metadata Extraction'
+[2026-06-27 04:33:19,795] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Metadata Extraction' in 0.0000s
+[2026-06-27 04:33:19,795] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Statistics Calculation'
+[2026-06-27 04:33:19,795] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Statistics Calculation' in 0.0002s
+[2026-06-27 04:33:19,795] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Pipeline Validation'
+[2026-06-27 04:33:19,795] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Pipeline Validation' in 0.0001s
+[2026-06-27 04:33:19,796] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Previews Generation'
+[2026-06-27 04:33:19,796] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Previews Generation' in 0.0001s
+[2026-06-27 04:33:19,796] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Quality Assessment'
+[2026-06-27 04:33:19,796] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Quality Assessment' in 0.0004s
+[2026-06-27 04:33:19,798] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Volume Reading'
+[2026-06-27 04:33:19,798] [ERROR] [engine.steps] [decorators.py:40]: Pipeline Step: Failed 'Volume Reading' after 0.0001s. Error: Path does not exist: nonexistent_scan.nii.gz
+[2026-06-27 04:33:19,814] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Volume Reading'
+[2026-06-27 04:33:19,814] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Volume Reading' in 0.0006s
+[2026-06-27 04:33:19,815] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Metadata Extraction'
+[2026-06-27 04:33:19,815] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Metadata Extraction' in 0.0000s
+[2026-06-27 04:33:19,815] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Statistics Calculation'
+[2026-06-27 04:33:19,815] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Statistics Calculation' in 0.0002s
+[2026-06-27 04:33:19,815] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Pipeline Validation'
+[2026-06-27 04:33:19,815] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Pipeline Validation' in 0.0001s
+[2026-06-27 04:33:19,815] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Previews Generation'
+[2026-06-27 04:33:19,816] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Previews Generation' in 0.0001s
+[2026-06-27 04:33:19,816] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Quality Assessment'
+[2026-06-27 04:33:19,816] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Quality Assessment' in 0.0004s
+[2026-06-27 04:34:40,755] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Volume Reading'
+[2026-06-27 04:34:40,757] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Volume Reading' in 0.0018s
+[2026-06-27 04:34:40,757] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Metadata Extraction'
+[2026-06-27 04:34:40,757] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Metadata Extraction' in 0.0001s
+[2026-06-27 04:34:40,757] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Statistics Calculation'
+[2026-06-27 04:34:40,758] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Statistics Calculation' in 0.0002s
+[2026-06-27 04:34:40,758] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Pipeline Validation'
+[2026-06-27 04:34:40,759] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Pipeline Validation' in 0.0002s
+[2026-06-27 04:34:40,759] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Previews Generation'
+[2026-06-27 04:34:40,759] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Previews Generation' in 0.0001s
+[2026-06-27 04:34:40,759] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Quality Assessment'
+[2026-06-27 04:34:40,760] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Quality Assessment' in 0.0007s
+[2026-06-27 04:34:40,761] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Volume Reading'
+[2026-06-27 04:34:40,762] [ERROR] [engine.steps] [decorators.py:40]: Pipeline Step: Failed 'Volume Reading' after 0.0011s. Error: NiftiReader failed loading NIfTI from C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-36\test_dataset_auditor0\ADNI_Mock\AD\sub-02\broken_scan.nii.gz: Not a gzipped file (b'Co')
+[2026-06-27 04:34:41,148] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Volume Reading'
+[2026-06-27 04:34:41,150] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Volume Reading' in 0.0014s
+[2026-06-27 04:34:41,150] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Metadata Extraction'
+[2026-06-27 04:34:41,150] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Metadata Extraction' in 0.0001s
+[2026-06-27 04:34:41,150] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Statistics Calculation'
+[2026-06-27 04:34:41,150] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Statistics Calculation' in 0.0001s
+[2026-06-27 04:34:41,150] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Pipeline Validation'
+[2026-06-27 04:34:41,151] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Pipeline Validation' in 0.0002s
+[2026-06-27 04:34:41,151] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Previews Generation'
+[2026-06-27 04:34:41,151] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Previews Generation' in 0.0001s
+[2026-06-27 04:34:41,151] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Quality Assessment'
+[2026-06-27 04:34:41,152] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Quality Assessment' in 0.0006s
+[2026-06-27 04:34:41,170] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Volume Reading'
+[2026-06-27 04:34:41,175] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Volume Reading' in 0.0042s
+[2026-06-27 04:34:41,175] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Metadata Extraction'
+[2026-06-27 04:34:41,175] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Metadata Extraction' in 0.0001s
+[2026-06-27 04:34:41,175] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Statistics Calculation'
+[2026-06-27 04:34:41,175] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Statistics Calculation' in 0.0001s
+[2026-06-27 04:34:41,175] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Pipeline Validation'
+[2026-06-27 04:34:41,175] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Pipeline Validation' in 0.0002s
+[2026-06-27 04:34:41,175] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Previews Generation'
+[2026-06-27 04:34:41,176] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Previews Generation' in 0.0001s
+[2026-06-27 04:34:41,176] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Quality Assessment'
+[2026-06-27 04:34:41,176] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Quality Assessment' in 0.0005s
+[2026-06-27 04:34:41,193] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Volume Reading'
+[2026-06-27 04:34:41,194] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Volume Reading' in 0.0006s
+[2026-06-27 04:34:41,194] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Metadata Extraction'
+[2026-06-27 04:34:41,194] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Metadata Extraction' in 0.0000s
+[2026-06-27 04:34:41,194] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Statistics Calculation'
+[2026-06-27 04:34:41,195] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Statistics Calculation' in 0.0002s
+[2026-06-27 04:34:41,195] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Pipeline Validation'
+[2026-06-27 04:34:41,195] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Pipeline Validation' in 0.0001s
+[2026-06-27 04:34:41,195] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Previews Generation'
+[2026-06-27 04:34:41,195] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Previews Generation' in 0.0001s
+[2026-06-27 04:34:41,195] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Quality Assessment'
+[2026-06-27 04:34:41,196] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Quality Assessment' in 0.0004s
+[2026-06-27 04:34:41,197] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Volume Reading'
+[2026-06-27 04:34:41,198] [ERROR] [engine.steps] [decorators.py:40]: Pipeline Step: Failed 'Volume Reading' after 0.0001s. Error: Path does not exist: nonexistent_scan.nii.gz
+[2026-06-27 04:34:41,214] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Volume Reading'
+[2026-06-27 04:34:41,215] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Volume Reading' in 0.0004s
+[2026-06-27 04:34:41,215] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Metadata Extraction'
+[2026-06-27 04:34:41,215] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Metadata Extraction' in 0.0000s
+[2026-06-27 04:34:41,215] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Statistics Calculation'
+[2026-06-27 04:34:41,215] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Statistics Calculation' in 0.0001s
+[2026-06-27 04:34:41,215] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Pipeline Validation'
+[2026-06-27 04:34:41,216] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Pipeline Validation' in 0.0002s
+[2026-06-27 04:34:41,216] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Previews Generation'
+[2026-06-27 04:34:41,216] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Previews Generation' in 0.0001s
+[2026-06-27 04:34:41,216] [INFO] [engine.steps] [decorators.py:17]: Pipeline Step: Started 'Quality Assessment'
+[2026-06-27 04:34:41,217] [INFO] [engine.steps] [decorators.py:22]: Pipeline Step: Finished 'Quality Assessment' in 0.0005s

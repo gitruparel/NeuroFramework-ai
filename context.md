@@ -130,6 +130,14 @@ brain-ai/
   - **SSD Local Caching Support:** Parameterized the pipeline with a custom `--raw-dir` path resolver (`resolve_raw_path`) and training output copy helper (`--copy-outputs-to`) to support local SSD staging and training loop execution decoupling on cloud environments (like Google Colab).
   - **Transform Telemetry Profiling:** Collected execution duration of each pipeline step and logged progress breakdowns (e.g. `Reorient`, `BiasFieldCorrector`) to monitor CPU bottlenecks.
 
+### 11. Spatial Resize & Cache Validation
+- **Problem:** Dynamic size variation across subject MRIs causes shape mismatch collation failures during batch training. Caches need to be cleared and segmented to avoid stale configuration incompatibilities.
+- **Decision:**
+  - **Resize Transform:** Implemented a new `Resize` transform utilizing SimpleITK's linear/nearest/bspline resampling to map voxel sizes to uniform coordinate dimensions. Added exact reverse resampling reconstruction mapping inside the inversion engine.
+  - **Cache Versioning (`cache_version: "v2"`):** Introduced config-driven routing (writing and reading from a subdirectory named after the cache version) to prevent mixing incompatible cached tensors.
+  - **Dynamic Shape Validator:** Enforces dynamic shape assertions (e.g., checking that the preprocessed volume matches the final spatial transform target size `(1, 128, 128, 128)`) before saving `.pt` caches.
+  - **Cache Clearing:** Implemented a `--clear-cache` CLI flag in the preprocessor executable script to safely wipe active version folders.
+
 ## Pipeline Development Status
 
 - **Stage 0 (Architecture Foundation):** Completed

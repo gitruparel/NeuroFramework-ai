@@ -50,14 +50,23 @@ def run_training_experiment(
     """Orchestrates full train/validation, checkpointers, and classification plots reports."""
     index_path = Path(index_file)
     split_path = Path(split_file)
-    preprocessed_path = Path(preprocessed_dir)
     config_path = Path(config_yaml)
+    
+    # Load cache version dynamically
+    if config_path.exists():
+        with open(config_path, encoding="utf-8") as f:
+            cfg = yaml.safe_load(f) or {}
+        cache_version = str(cfg.get("cache_version", "v1"))
+    else:
+        cache_version = "v1"
+        
+    preprocessed_path = Path(preprocessed_dir) / cache_version
     exp_dir = Path(experiment_dir)
     exp_dir.mkdir(parents=True, exist_ok=True)
     
     # 1. Offline Preprocessing run
     if not skip_preprocess:
-        preprocess_abide_dataset(index_path, preprocessed_path, config_path, raw_dir=data_root)
+        preprocess_abide_dataset(index_path, Path(preprocessed_dir), config_path, raw_dir=data_root)
     else:
         logger.info("Skipping offline dataset preprocessing as requested.")
     
@@ -218,7 +227,9 @@ def run_training_experiment(
     # 7. ONNX Model Auto-Export
     try:
         onnx_path = exp_dir / "best_model.onnx"
-        dummy_input = torch.randn(1, 1, 32, 32, 32).to(device)
+        sample_shape = train_dataset[0].image.shape # e.g. (1, 128, 128, 128)
+        dummy_shape = (1,) + tuple(sample_shape)
+        dummy_input = torch.randn(dummy_shape).to(device)
         logger.info(f"Auto-exporting best checkpoint model to ONNX: {onnx_path}")
         
         # Export

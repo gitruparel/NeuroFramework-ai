@@ -297,4 +297,56 @@ def reverse_preprocessing(mri_data: MRIData) -> MRIData:
                 current.affine = new_affine
                 current.metadata.image.dimensions = list(orig_shape)
                 
+        elif step_name == "Resize":
+            orig_size_str = params.get("original_size")
+            orig_spacing_str = params.get("original_spacing")
+            if orig_size_str and orig_spacing_str:
+                orig_size = ast.literal_eval(orig_size_str)
+                orig_spacing = ast.literal_eval(orig_spacing_str)
+                
+                # Re-create SimpleITK image from current.image spatial part
+                tensor_3d = current.image[0] if len(current.image.shape) == 4 else current.image
+                sitk_img = sitk.GetImageFromArray(np.transpose(tensor_3d, (2, 1, 0)))
+                
+                origin = [float(x) for x in current.affine[:3, 3]]
+                spacing = [float(np.linalg.norm(current.affine[:3, i])) for i in range(3)]
+                dir_matrix = np.zeros((3, 3))
+                for i in range(3):
+                    if spacing[i] > 0:
+                        dir_matrix[:, i] = current.affine[:3, i] / spacing[i]
+                    else:
+                        dir_matrix[:, i] = current.affine[:3, i]
+                        
+                sitk_img.SetOrigin(origin)
+                sitk_img.SetSpacing(spacing)
+                sitk_img.SetDirection(dir_matrix.flatten().tolist())
+                
+                resample = sitk.ResampleImageFilter()
+                resample.SetInterpolator(sitk.sitkLinear)
+                resample.SetOutputSpacing(orig_spacing)
+                resample.SetSize(orig_size)
+                resample.SetOutputDirection(sitk_img.GetDirection())
+                resample.SetOutputOrigin(sitk_img.GetOrigin())
+                resample.SetTransform(sitk.Transform())
+                
+                resampled_img = resample.Execute(sitk_img)
+                
+                arr = sitk.GetArrayFromImage(resampled_img)
+                resampled_tensor_3d = np.transpose(arr, (2, 1, 0))
+                
+                if len(current.image.shape) == 4:
+                    new_tensor = np.expand_dims(resampled_tensor_3d, axis=0)
+                else:
+                    new_tensor = resampled_tensor_3d
+                    
+                new_dir_matrix = np.array(resampled_img.GetDirection()).reshape(3, 3)
+                new_affine = np.eye(4)
+                new_affine[:3, :3] = new_dir_matrix * np.array(orig_spacing)
+                new_affine[:3, 3] = resampled_img.GetOrigin()
+                
+                current.image = new_tensor
+                current.affine = new_affine
+                current.metadata.image.voxel_dims = list(orig_spacing)
+                current.metadata.image.dimensions = list(new_tensor.shape)
+                
     return current

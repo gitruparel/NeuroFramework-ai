@@ -16,7 +16,7 @@ from preprocessing.normalize import IntensityNormalizer
 from preprocessing.resample import Resampler
 from preprocessing.bias import BiasFieldCorrector
 from preprocessing.skull_strip import SkullStripper
-from preprocessing.spatial import ForegroundCropper, Pad, CenterCrop
+from preprocessing.spatial import ForegroundCropper, Pad, CenterCrop, Resize
 from preprocessing.pipeline import reverse_preprocessing
 
 
@@ -236,3 +236,20 @@ def test_skull_stripper_strategies(mock_mri_data, execution_context):
     stripper_fast = SkullStripper(strategy="fastsurfer")
     res_fast = stripper_fast.process(mock_mri_data, execution_context)
     assert res_fast.brain_mask is not None
+    
+    
+def test_resize_transform(mock_mri_data, execution_context):
+    """Verify Resize shifts grid size and maps to/from SimpleITK correctly and is reversible."""
+    mock_mri_data.image = np.ones((10, 12, 14), dtype=np.float32) * 50.0
+    mock_mri_data.affine = mock_mri_data.raw.affine.copy()
+    mock_mri_data.metadata.image.dimensions = [10, 12, 14]
+    
+    resize = Resize(target_shape=[16, 18, 20])
+    res = resize.process(mock_mri_data, execution_context)
+    
+    assert res.image.shape == (16, 18, 20)
+    
+    # Test inverse shape restoration
+    reversed_data = reverse_preprocessing(res)
+    assert reversed_data.image.shape == (10, 12, 14)
+    assert np.allclose(reversed_data.image, mock_mri_data.image, atol=1e-2)

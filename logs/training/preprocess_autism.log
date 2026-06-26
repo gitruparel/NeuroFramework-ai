@@ -167,3 +167,835 @@
 [2026-06-27 04:17:14,901] [INFO] [preprocess_autism] [preprocess_autism.py:206]: Offline dataset preprocessing completed. Successfully preprocessed: 20/20
 [2026-06-27 04:17:32,639] [INFO] [preprocess_autism] [preprocess_autism.py:130]: Starting offline dataset preprocessing...
 [2026-06-27 04:17:32,641] [INFO] [preprocess_autism] [preprocess_autism.py:150]: All subjects already preprocessed. Nothing to do.
+[2026-06-27 04:27:19,768] [INFO] [preprocess_autism] [preprocess_autism.py:146]: Target preprocessed cache directory: C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-32\test_autism_training_smoke_tes0\processed\v2\v2
+[2026-06-27 04:27:19,769] [INFO] [preprocess_autism] [preprocess_autism.py:171]: Shape validation enabled: asserting shape (1, 128, 128, 128) for all preprocessed tensors.
+[2026-06-27 04:27:19,777] [INFO] [preprocess_autism] [preprocess_autism.py:193]: Submitting 20 subjects for preprocessing (using default workers)...
+[2026-06-27 04:27:32,630] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [1/20] Subject: sub-ab11 | Time: 5.7s | Average: 12.9s | ETA: 4m 4s
+[2026-06-27 04:27:32,630] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:27:32,631] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   2.2 s
+[2026-06-27 04:27:32,631] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:27:32,631] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:27:32,631] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:27:32,631] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:27:32,631] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.1 s
+[2026-06-27 04:27:32,631] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [2/20] Subject: sub-ab05 | Time: 5.2s | Average: 6.4s | ETA: 1m 55s
+[2026-06-27 04:27:32,631] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:27:32,631] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.9 s
+[2026-06-27 04:27:32,631] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:27:32,632] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:27:32,632] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:27:32,632] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:27:32,632] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.1 s
+[2026-06-27 04:27:32,632] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [3/20] Subject: sub-ab06 | Time: 5.8s | Average: 4.3s | ETA: 1m 12s
+[2026-06-27 04:27:32,632] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:27:32,632] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   2.1 s
+[2026-06-27 04:27:32,632] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:27:32,632] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:27:32,632] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:27:32,632] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:27:32,633] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.1 s
+[2026-06-27 04:27:32,633] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [4/20] Subject: sub-ab03 | Time: 4.6s | Average: 3.2s | ETA: 51s
+[2026-06-27 04:27:32,633] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:27:32,633] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.6 s
+[2026-06-27 04:27:32,633] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:27:32,633] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:27:32,633] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:27:32,633] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:27:32,633] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.1 s
+[2026-06-27 04:27:32,633] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [5/20] Subject: sub-ab01 | Time: 3.8s | Average: 2.6s | ETA: 38s
+[2026-06-27 04:27:32,633] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:27:32,634] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.4 s
+[2026-06-27 04:27:32,634] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:27:32,634] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:27:32,634] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:27:32,634] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:27:32,634] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:27:32,634] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [6/20] Subject: sub-ab04 | Time: 4.7s | Average: 2.1s | ETA: 29s
+[2026-06-27 04:27:32,634] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:27:32,634] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.6 s
+[2026-06-27 04:27:32,634] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:27:32,634] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:27:32,634] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:27:32,634] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:27:32,635] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.1 s
+[2026-06-27 04:27:32,635] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [7/20] Subject: sub-ab02 | Time: 4.3s | Average: 1.8s | ETA: 23s
+[2026-06-27 04:27:32,635] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:27:32,635] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.6 s
+[2026-06-27 04:27:32,635] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:27:32,635] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:27:32,635] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:27:32,635] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:27:32,635] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:27:33,395] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [8/20] Subject: sub-ab12 | Time: 6.0s | Average: 1.7s | ETA: 20s
+[2026-06-27 04:27:33,395] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:27:33,395] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   2.4 s
+[2026-06-27 04:27:33,395] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:27:33,396] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:27:33,396] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:27:33,396] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:27:33,396] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.1 s
+[2026-06-27 04:27:33,485] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [9/20] Subject: sub-ab07 | Time: 5.9s | Average: 1.5s | ETA: 16s
+[2026-06-27 04:27:33,485] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:27:33,485] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   2.4 s
+[2026-06-27 04:27:33,485] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:27:33,486] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:27:33,486] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:27:33,486] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:27:33,486] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.1 s
+[2026-06-27 04:27:34,675] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [10/20] Subject: sub-ab14 | Time: 6.2s | Average: 1.5s | ETA: 14s
+[2026-06-27 04:27:34,676] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:27:34,676] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   2.8 s
+[2026-06-27 04:27:34,676] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:27:34,676] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:27:34,676] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:27:34,676] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:27:34,676] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.1 s
+[2026-06-27 04:27:35,060] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [11/20] Subject: sub-ab08 | Time: 6.2s | Average: 1.4s | ETA: 12s
+[2026-06-27 04:27:35,060] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:27:35,060] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   2.9 s
+[2026-06-27 04:27:35,060] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:27:35,060] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:27:35,060] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:27:35,061] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:27:35,061] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.1 s
+[2026-06-27 04:27:35,631] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [12/20] Subject: sub-ab16 | Time: 6.3s | Average: 1.3s | ETA: 10s
+[2026-06-27 04:27:35,631] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:27:35,632] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   3.2 s
+[2026-06-27 04:27:35,632] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:27:35,632] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:27:35,632] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:27:35,632] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:27:35,632] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.1 s
+[2026-06-27 04:27:36,302] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [13/20] Subject: sub-ab18 | Time: 5.7s | Average: 1.3s | ETA: 8s
+[2026-06-27 04:27:36,302] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:27:36,302] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   2.7 s
+[2026-06-27 04:27:36,302] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:27:36,302] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:27:36,302] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:27:36,302] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:27:36,303] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:27:36,416] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [14/20] Subject: sub-ab09 | Time: 5.5s | Average: 1.2s | ETA: 7s
+[2026-06-27 04:27:36,416] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:27:36,416] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   2.7 s
+[2026-06-27 04:27:36,416] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:27:36,416] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:27:36,417] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:27:36,417] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:27:36,417] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:27:36,817] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [15/20] Subject: sub-ab20 | Time: 4.7s | Average: 1.1s | ETA: 5s
+[2026-06-27 04:27:36,817] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:27:36,817] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   2.0 s
+[2026-06-27 04:27:36,817] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:27:36,817] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:27:36,818] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:27:36,818] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:27:36,818] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:27:36,826] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [16/20] Subject: sub-ab10 | Time: 4.7s | Average: 1.1s | ETA: 4s
+[2026-06-27 04:27:36,826] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:27:36,826] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   2.0 s
+[2026-06-27 04:27:36,826] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:27:36,826] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:27:36,826] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:27:36,826] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:27:36,827] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:27:37,280] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [17/20] Subject: sub-ab13 | Time: 4.0s | Average: 1.0s | ETA: 3s
+[2026-06-27 04:27:37,281] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:27:37,281] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.7 s
+[2026-06-27 04:27:37,281] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:27:37,281] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:27:37,281] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:27:37,281] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:27:37,281] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:27:37,799] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [18/20] Subject: sub-ab15 | Time: 3.0s | Average: 1.0s | ETA: 2s
+[2026-06-27 04:27:37,799] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:27:37,800] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.2 s
+[2026-06-27 04:27:37,800] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:27:37,800] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:27:37,800] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:27:37,800] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:27:37,800] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:27:38,647] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [19/20] Subject: sub-ab17 | Time: 2.1s | Average: 1.0s | ETA: 0s
+[2026-06-27 04:27:38,648] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:27:38,648] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   0.9 s
+[2026-06-27 04:27:38,648] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:27:38,648] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:27:38,648] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:27:38,648] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:27:38,648] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:27:38,724] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [20/20] Subject: sub-ab19 | Time: 2.1s | Average: 0.9s | ETA: 0s
+[2026-06-27 04:27:38,724] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:27:38,724] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   0.9 s
+[2026-06-27 04:27:38,724] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:27:38,724] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:27:38,725] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:27:38,725] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:27:38,725] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:27:40,100] [INFO] [preprocess_autism] [preprocess_autism.py:247]: Offline dataset preprocessing completed. Successfully preprocessed: 20/20
+[2026-06-27 04:28:33,520] [INFO] [preprocess_autism] [preprocess_autism.py:146]: Target preprocessed cache directory: C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-33\test_autism_training_smoke_tes0\processed\v2
+[2026-06-27 04:28:33,521] [INFO] [preprocess_autism] [preprocess_autism.py:171]: Shape validation enabled: asserting shape (1, 128, 128, 128) for all preprocessed tensors.
+[2026-06-27 04:28:33,531] [INFO] [preprocess_autism] [preprocess_autism.py:193]: Submitting 20 subjects for preprocessing (using default workers)...
+[2026-06-27 04:28:43,857] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [1/20] Subject: sub-ab11 | Time: 4.5s | Average: 10.3s | ETA: 3m 16s
+[2026-06-27 04:28:43,858] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:28:43,858] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.5 s
+[2026-06-27 04:28:43,858] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:28:43,859] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:28:43,859] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:28:43,859] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:28:43,859] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.1 s
+[2026-06-27 04:28:43,859] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [2/20] Subject: sub-ab05 | Time: 4.1s | Average: 5.2s | ETA: 1m 32s
+[2026-06-27 04:28:43,859] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:28:43,859] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.4 s
+[2026-06-27 04:28:43,859] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:28:43,859] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:28:43,859] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:28:43,860] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:28:43,860] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.1 s
+[2026-06-27 04:28:43,860] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [3/20] Subject: sub-ab02 | Time: 3.4s | Average: 3.4s | ETA: 58s
+[2026-06-27 04:28:43,861] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:28:43,861] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.2 s
+[2026-06-27 04:28:43,861] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:28:43,861] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:28:43,861] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:28:43,861] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:28:43,861] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:28:43,862] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [4/20] Subject: sub-ab01 | Time: 3.1s | Average: 2.6s | ETA: 41s
+[2026-06-27 04:28:43,862] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:28:43,862] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.1 s
+[2026-06-27 04:28:43,862] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:28:43,862] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:28:43,862] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:28:43,862] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:28:43,862] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:28:43,863] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [5/20] Subject: sub-ab04 | Time: 4.0s | Average: 2.1s | ETA: 30s
+[2026-06-27 04:28:43,863] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:28:43,863] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.3 s
+[2026-06-27 04:28:43,863] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:28:43,863] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:28:43,863] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:28:43,863] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:28:43,863] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.1 s
+[2026-06-27 04:28:43,863] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [6/20] Subject: sub-ab03 | Time: 3.6s | Average: 1.7s | ETA: 24s
+[2026-06-27 04:28:43,863] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:28:43,864] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.2 s
+[2026-06-27 04:28:43,864] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:28:43,864] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:28:43,864] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:28:43,864] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:28:43,864] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:28:43,980] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [7/20] Subject: sub-ab06 | Time: 4.6s | Average: 1.5s | ETA: 19s
+[2026-06-27 04:28:43,981] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:28:43,981] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.6 s
+[2026-06-27 04:28:43,981] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:28:43,981] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:28:43,981] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:28:43,981] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:28:43,981] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.1 s
+[2026-06-27 04:28:44,926] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [8/20] Subject: sub-ab12 | Time: 4.9s | Average: 1.4s | ETA: 17s
+[2026-06-27 04:28:44,927] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:28:44,927] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.7 s
+[2026-06-27 04:28:44,927] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:28:44,927] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:28:44,927] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:28:44,927] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:28:44,927] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:28:45,287] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [9/20] Subject: sub-ab07 | Time: 5.0s | Average: 1.3s | ETA: 14s
+[2026-06-27 04:28:45,287] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:28:45,287] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.8 s
+[2026-06-27 04:28:45,288] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:28:45,288] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:28:45,288] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:28:45,288] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:28:45,288] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.1 s
+[2026-06-27 04:28:45,741] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [10/20] Subject: sub-ab14 | Time: 5.0s | Average: 1.2s | ETA: 12s
+[2026-06-27 04:28:45,741] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:28:45,741] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.9 s
+[2026-06-27 04:28:45,741] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:28:45,741] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:28:45,741] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:28:45,741] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:28:45,742] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:28:46,339] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [11/20] Subject: sub-ab08 | Time: 5.0s | Average: 1.2s | ETA: 10s
+[2026-06-27 04:28:46,340] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:28:46,340] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   2.0 s
+[2026-06-27 04:28:46,340] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:28:46,340] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:28:46,340] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:28:46,340] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:28:46,341] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:28:46,629] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [12/20] Subject: sub-ab16 | Time: 4.8s | Average: 1.1s | ETA: 8s
+[2026-06-27 04:28:46,629] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:28:46,629] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   2.0 s
+[2026-06-27 04:28:46,630] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:28:46,630] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:28:46,630] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:28:46,630] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:28:46,630] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:28:47,127] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [13/20] Subject: sub-ab09 | Time: 4.6s | Average: 1.0s | ETA: 7s
+[2026-06-27 04:28:47,127] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:28:47,127] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.9 s
+[2026-06-27 04:28:47,127] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:28:47,128] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:28:47,128] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:28:47,128] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:28:47,128] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:28:47,265] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [14/20] Subject: sub-ab18 | Time: 4.6s | Average: 1.0s | ETA: 5s
+[2026-06-27 04:28:47,265] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:28:47,266] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.9 s
+[2026-06-27 04:28:47,266] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:28:47,266] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:28:47,266] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:28:47,266] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:28:47,266] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:28:47,706] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [15/20] Subject: sub-ab10 | Time: 4.0s | Average: 0.9s | ETA: 4s
+[2026-06-27 04:28:47,706] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:28:47,706] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.5 s
+[2026-06-27 04:28:47,706] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:28:47,706] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:28:47,706] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:28:47,706] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:28:47,707] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:28:47,784] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [16/20] Subject: sub-ab19 | Time: 3.9s | Average: 0.9s | ETA: 3s
+[2026-06-27 04:28:47,785] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:28:47,785] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.5 s
+[2026-06-27 04:28:47,785] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:28:47,785] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:28:47,785] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:28:47,785] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:28:47,785] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:28:47,838] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [17/20] Subject: sub-ab20 | Time: 3.9s | Average: 0.8s | ETA: 2s
+[2026-06-27 04:28:47,838] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:28:47,838] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.5 s
+[2026-06-27 04:28:47,838] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:28:47,838] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:28:47,838] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:28:47,838] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:28:47,839] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:28:48,147] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [18/20] Subject: sub-ab13 | Time: 3.2s | Average: 0.8s | ETA: 1s
+[2026-06-27 04:28:48,147] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:28:48,147] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.2 s
+[2026-06-27 04:28:48,147] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:28:48,148] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:28:48,148] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:28:48,148] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:28:48,148] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:28:48,635] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [19/20] Subject: sub-ab15 | Time: 2.3s | Average: 0.8s | ETA: 0s
+[2026-06-27 04:28:48,635] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:28:48,635] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   0.9 s
+[2026-06-27 04:28:48,635] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:28:48,635] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:28:48,635] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:28:48,636] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:28:48,636] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:28:49,125] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [20/20] Subject: sub-ab17 | Time: 2.0s | Average: 0.8s | ETA: 0s
+[2026-06-27 04:28:49,126] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:28:49,126] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   0.8 s
+[2026-06-27 04:28:49,126] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:28:49,126] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:28:49,126] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:28:49,126] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:28:49,126] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:28:50,971] [INFO] [preprocess_autism] [preprocess_autism.py:247]: Offline dataset preprocessing completed. Successfully preprocessed: 20/20
+[2026-06-27 04:30:47,008] [INFO] [preprocess_autism] [preprocess_autism.py:146]: Target preprocessed cache directory: C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-33\test_autism_training_smoke_tes0\processed\v2
+[2026-06-27 04:30:47,009] [INFO] [preprocess_autism] [preprocess_autism.py:171]: Shape validation enabled: asserting shape (1, 128, 128, 128) for all preprocessed tensors.
+[2026-06-27 04:30:47,010] [INFO] [preprocess_autism] [preprocess_autism.py:190]: All subjects already preprocessed. Nothing to do.
+[2026-06-27 04:32:11,757] [INFO] [preprocess_autism] [preprocess_autism.py:146]: Target preprocessed cache directory: C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-34\test_autism_training_smoke_tes0\processed\v2
+[2026-06-27 04:32:11,758] [INFO] [preprocess_autism] [preprocess_autism.py:171]: Shape validation enabled: asserting shape (1, 32, 32, 32) for all preprocessed tensors.
+[2026-06-27 04:32:11,767] [INFO] [preprocess_autism] [preprocess_autism.py:193]: Submitting 20 subjects for preprocessing (using default workers)...
+[2026-06-27 04:32:23,187] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [1/20] Subject: sub-ab11 | Time: 4.4s | Average: 11.4s | ETA: 3m 36s
+[2026-06-27 04:32:23,188] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:32:23,188] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.6 s
+[2026-06-27 04:32:23,188] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:32:23,188] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:32:23,188] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:32:23,188] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:32:23,188] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:32:23,189] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [2/20] Subject: sub-ab07 | Time: 4.8s | Average: 5.7s | ETA: 1m 42s
+[2026-06-27 04:32:23,189] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:32:23,189] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.7 s
+[2026-06-27 04:32:23,189] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:32:23,189] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:32:23,189] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:32:23,189] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:32:23,189] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:32:23,189] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [3/20] Subject: sub-ab02 | Time: 3.4s | Average: 3.8s | ETA: 1m 4s
+[2026-06-27 04:32:23,189] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:32:23,189] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.2 s
+[2026-06-27 04:32:23,189] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:32:23,189] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:32:23,190] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:32:23,190] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:32:23,190] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:32:23,190] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [4/20] Subject: sub-ab01 | Time: 3.1s | Average: 2.9s | ETA: 45s
+[2026-06-27 04:32:23,190] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:32:23,190] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.1 s
+[2026-06-27 04:32:23,190] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:32:23,190] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:32:23,190] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:32:23,190] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:32:23,190] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:32:23,191] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [5/20] Subject: sub-ab04 | Time: 3.8s | Average: 2.3s | ETA: 34s
+[2026-06-27 04:32:23,191] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:32:23,191] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.3 s
+[2026-06-27 04:32:23,191] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:32:23,191] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:32:23,191] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:32:23,191] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:32:23,191] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:32:23,191] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [6/20] Subject: sub-ab06 | Time: 4.4s | Average: 1.9s | ETA: 26s
+[2026-06-27 04:32:23,191] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:32:23,191] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.5 s
+[2026-06-27 04:32:23,191] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:32:23,191] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:32:23,192] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:32:23,192] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:32:23,192] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:32:23,192] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [7/20] Subject: sub-ab12 | Time: 4.7s | Average: 1.6s | ETA: 21s
+[2026-06-27 04:32:23,192] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:32:23,192] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.7 s
+[2026-06-27 04:32:23,192] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:32:23,192] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:32:23,192] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:32:23,192] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:32:23,192] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:32:23,192] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [8/20] Subject: sub-ab05 | Time: 4.1s | Average: 1.4s | ETA: 17s
+[2026-06-27 04:32:23,192] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:32:23,193] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.4 s
+[2026-06-27 04:32:23,193] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:32:23,193] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:32:23,193] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:32:23,193] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:32:23,193] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:32:23,193] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [9/20] Subject: sub-ab03 | Time: 3.5s | Average: 1.3s | ETA: 13s
+[2026-06-27 04:32:23,193] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:32:23,193] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.2 s
+[2026-06-27 04:32:23,193] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:32:23,193] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:32:23,194] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:32:23,194] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:32:23,194] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:32:23,948] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [10/20] Subject: sub-ab14 | Time: 4.9s | Average: 1.2s | ETA: 12s
+[2026-06-27 04:32:23,948] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:32:23,948] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.9 s
+[2026-06-27 04:32:23,949] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:32:23,949] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:32:23,949] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:32:23,949] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:32:23,949] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:32:24,108] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [11/20] Subject: sub-ab08 | Time: 4.9s | Average: 1.1s | ETA: 10s
+[2026-06-27 04:32:24,108] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:32:24,109] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   2.0 s
+[2026-06-27 04:32:24,109] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:32:24,109] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:32:24,109] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:32:24,109] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:32:24,109] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:32:24,417] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [12/20] Subject: sub-ab16 | Time: 4.7s | Average: 1.1s | ETA: 8s
+[2026-06-27 04:32:24,417] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:32:24,418] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.9 s
+[2026-06-27 04:32:24,418] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:32:24,418] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:32:24,418] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:32:24,418] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:32:24,418] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:32:24,840] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [13/20] Subject: sub-ab09 | Time: 4.5s | Average: 1.0s | ETA: 7s
+[2026-06-27 04:32:24,840] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:32:24,840] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.9 s
+[2026-06-27 04:32:24,840] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:32:24,840] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:32:24,840] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:32:24,840] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:32:24,841] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:32:25,146] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [14/20] Subject: sub-ab18 | Time: 4.3s | Average: 1.0s | ETA: 5s
+[2026-06-27 04:32:25,146] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:32:25,146] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   2.0 s
+[2026-06-27 04:32:25,146] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:32:25,146] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:32:25,146] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:32:25,147] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:32:25,147] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:32:25,499] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [15/20] Subject: sub-ab10 | Time: 4.0s | Average: 0.9s | ETA: 4s
+[2026-06-27 04:32:25,499] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:32:25,499] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.9 s
+[2026-06-27 04:32:25,499] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:32:25,499] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:32:25,499] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:32:25,499] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:32:25,499] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:32:25,583] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [16/20] Subject: sub-ab19 | Time: 3.8s | Average: 0.9s | ETA: 3s
+[2026-06-27 04:32:25,583] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:32:25,583] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.8 s
+[2026-06-27 04:32:25,583] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:32:25,583] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:32:25,583] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:32:25,583] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:32:25,583] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:32:25,601] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [17/20] Subject: sub-ab20 | Time: 3.8s | Average: 0.8s | ETA: 2s
+[2026-06-27 04:32:25,601] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:32:25,601] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.8 s
+[2026-06-27 04:32:25,601] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:32:25,601] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:32:25,601] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:32:25,601] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:32:25,601] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:32:25,869] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [18/20] Subject: sub-ab13 | Time: 3.0s | Average: 0.8s | ETA: 1s
+[2026-06-27 04:32:25,869] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:32:25,869] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.2 s
+[2026-06-27 04:32:25,869] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:32:25,869] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:32:25,869] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:32:25,869] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:32:25,869] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:32:26,442] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [19/20] Subject: sub-ab15 | Time: 2.1s | Average: 0.8s | ETA: 0s
+[2026-06-27 04:32:26,442] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:32:26,442] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   0.9 s
+[2026-06-27 04:32:26,443] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:32:26,443] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:32:26,443] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:32:26,443] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:32:26,443] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:32:26,881] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [20/20] Subject: sub-ab17 | Time: 1.9s | Average: 0.8s | ETA: 0s
+[2026-06-27 04:32:26,881] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:32:26,881] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   0.8 s
+[2026-06-27 04:32:26,881] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:32:26,881] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:32:26,881] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:32:26,881] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:32:26,881] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:32:28,125] [INFO] [preprocess_autism] [preprocess_autism.py:247]: Offline dataset preprocessing completed. Successfully preprocessed: 20/20
+[2026-06-27 04:32:44,993] [INFO] [preprocess_autism] [preprocess_autism.py:146]: Target preprocessed cache directory: C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-34\test_autism_training_smoke_tes0\processed\v2
+[2026-06-27 04:32:44,993] [INFO] [preprocess_autism] [preprocess_autism.py:171]: Shape validation enabled: asserting shape (1, 32, 32, 32) for all preprocessed tensors.
+[2026-06-27 04:32:44,995] [INFO] [preprocess_autism] [preprocess_autism.py:190]: All subjects already preprocessed. Nothing to do.
+[2026-06-27 04:33:27,490] [INFO] [preprocess_autism] [preprocess_autism.py:146]: Target preprocessed cache directory: C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-35\test_autism_training_smoke_tes0\processed\v2
+[2026-06-27 04:33:27,491] [INFO] [preprocess_autism] [preprocess_autism.py:171]: Shape validation enabled: asserting shape (1, 32, 32, 32) for all preprocessed tensors.
+[2026-06-27 04:33:27,499] [INFO] [preprocess_autism] [preprocess_autism.py:193]: Submitting 20 subjects for preprocessing (using default workers)...
+[2026-06-27 04:33:37,820] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [1/20] Subject: sub-ab05 | Time: 4.1s | Average: 10.3s | ETA: 3m 16s
+[2026-06-27 04:33:37,820] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:33:37,820] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.5 s
+[2026-06-27 04:33:37,821] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:33:37,821] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:33:37,821] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:33:37,821] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:33:37,822] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:33:37,822] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [2/20] Subject: sub-ab06 | Time: 4.4s | Average: 5.2s | ETA: 1m 32s
+[2026-06-27 04:33:37,822] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:33:37,822] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.6 s
+[2026-06-27 04:33:37,822] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:33:37,822] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:33:37,822] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:33:37,822] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:33:37,822] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:33:37,823] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [3/20] Subject: sub-ab01 | Time: 3.2s | Average: 3.4s | ETA: 58s
+[2026-06-27 04:33:37,823] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:33:37,823] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.2 s
+[2026-06-27 04:33:37,823] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:33:37,823] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:33:37,823] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:33:37,823] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:33:37,823] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:33:37,824] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [4/20] Subject: sub-ab02 | Time: 3.4s | Average: 2.6s | ETA: 41s
+[2026-06-27 04:33:37,824] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:33:37,824] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.3 s
+[2026-06-27 04:33:37,824] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:33:37,824] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:33:37,824] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:33:37,824] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:33:37,824] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:33:37,824] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [5/20] Subject: sub-ab11 | Time: 4.4s | Average: 2.1s | ETA: 30s
+[2026-06-27 04:33:37,824] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:33:37,824] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.7 s
+[2026-06-27 04:33:37,824] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:33:37,825] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:33:37,825] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:33:37,825] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:33:37,825] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:33:37,825] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [6/20] Subject: sub-ab04 | Time: 3.8s | Average: 1.7s | ETA: 24s
+[2026-06-27 04:33:37,825] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:33:37,825] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.3 s
+[2026-06-27 04:33:37,825] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:33:37,825] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:33:37,825] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:33:37,826] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:33:37,826] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:33:37,826] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [7/20] Subject: sub-ab03 | Time: 3.5s | Average: 1.5s | ETA: 19s
+[2026-06-27 04:33:37,826] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:33:37,826] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.2 s
+[2026-06-27 04:33:37,826] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:33:37,826] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:33:37,826] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:33:37,826] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:33:37,826] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:33:38,591] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [8/20] Subject: sub-ab12 | Time: 4.6s | Average: 1.4s | ETA: 16s
+[2026-06-27 04:33:38,591] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:33:38,591] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.8 s
+[2026-06-27 04:33:38,591] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:33:38,591] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:33:38,591] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:33:38,591] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:33:38,592] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:33:38,794] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [9/20] Subject: sub-ab07 | Time: 4.7s | Average: 1.3s | ETA: 13s
+[2026-06-27 04:33:38,795] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:33:38,795] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.9 s
+[2026-06-27 04:33:38,795] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:33:38,795] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:33:38,795] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:33:38,795] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:33:38,795] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:33:39,210] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [10/20] Subject: sub-ab14 | Time: 4.8s | Average: 1.2s | ETA: 11s
+[2026-06-27 04:33:39,210] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:33:39,210] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.9 s
+[2026-06-27 04:33:39,210] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:33:39,210] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:33:39,210] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:33:39,210] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:33:39,211] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:33:39,847] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [11/20] Subject: sub-ab08 | Time: 4.7s | Average: 1.1s | ETA: 10s
+[2026-06-27 04:33:39,848] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:33:39,848] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.9 s
+[2026-06-27 04:33:39,848] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:33:39,848] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:33:39,848] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:33:39,848] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:33:39,848] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:33:40,134] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [12/20] Subject: sub-ab16 | Time: 4.6s | Average: 1.1s | ETA: 8s
+[2026-06-27 04:33:40,135] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:33:40,135] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   2.0 s
+[2026-06-27 04:33:40,135] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:33:40,135] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:33:40,135] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:33:40,135] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:33:40,135] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:33:40,735] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [13/20] Subject: sub-ab09 | Time: 4.2s | Average: 1.0s | ETA: 7s
+[2026-06-27 04:33:40,735] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:33:40,735] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.9 s
+[2026-06-27 04:33:40,735] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:33:40,735] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:33:40,735] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:33:40,735] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:33:40,735] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:33:40,751] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [14/20] Subject: sub-ab17 | Time: 4.2s | Average: 0.9s | ETA: 5s
+[2026-06-27 04:33:40,751] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:33:40,751] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.9 s
+[2026-06-27 04:33:40,751] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:33:40,751] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:33:40,751] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:33:40,751] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:33:40,752] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:33:41,267] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [15/20] Subject: sub-ab10 | Time: 3.6s | Average: 0.9s | ETA: 4s
+[2026-06-27 04:33:41,268] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:33:41,268] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.4 s
+[2026-06-27 04:33:41,268] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:33:41,268] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:33:41,268] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:33:41,268] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:33:41,268] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:33:41,294] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [16/20] Subject: sub-ab20 | Time: 3.5s | Average: 0.9s | ETA: 3s
+[2026-06-27 04:33:41,294] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:33:41,294] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.4 s
+[2026-06-27 04:33:41,294] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:33:41,294] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:33:41,295] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:33:41,295] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:33:41,295] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:33:41,301] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [17/20] Subject: sub-ab19 | Time: 3.5s | Average: 0.8s | ETA: 2s
+[2026-06-27 04:33:41,301] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:33:41,301] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.4 s
+[2026-06-27 04:33:41,301] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:33:41,301] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:33:41,301] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:33:41,302] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:33:41,302] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:33:41,644] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [18/20] Subject: sub-ab13 | Time: 2.8s | Average: 0.8s | ETA: 1s
+[2026-06-27 04:33:41,644] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:33:41,644] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.1 s
+[2026-06-27 04:33:41,644] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:33:41,644] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:33:41,644] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:33:41,644] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:33:41,644] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:33:42,082] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [19/20] Subject: sub-ab15 | Time: 2.1s | Average: 0.8s | ETA: 0s
+[2026-06-27 04:33:42,083] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:33:42,083] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   0.9 s
+[2026-06-27 04:33:42,083] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:33:42,083] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:33:42,083] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:33:42,083] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:33:42,083] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:33:42,742] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [20/20] Subject: sub-ab18 | Time: 1.8s | Average: 0.8s | ETA: 0s
+[2026-06-27 04:33:42,742] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:33:42,742] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   0.8 s
+[2026-06-27 04:33:42,742] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:33:42,742] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:33:42,742] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:33:42,742] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:33:42,742] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:33:44,130] [INFO] [preprocess_autism] [preprocess_autism.py:247]: Offline dataset preprocessing completed. Successfully preprocessed: 20/20
+[2026-06-27 04:34:00,609] [INFO] [preprocess_autism] [preprocess_autism.py:146]: Target preprocessed cache directory: C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-35\test_autism_training_smoke_tes0\processed\v2
+[2026-06-27 04:34:00,609] [INFO] [preprocess_autism] [preprocess_autism.py:171]: Shape validation enabled: asserting shape (1, 32, 32, 32) for all preprocessed tensors.
+[2026-06-27 04:34:00,611] [INFO] [preprocess_autism] [preprocess_autism.py:190]: All subjects already preprocessed. Nothing to do.
+[2026-06-27 04:34:49,010] [INFO] [preprocess_autism] [preprocess_autism.py:146]: Target preprocessed cache directory: C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-36\test_autism_training_smoke_tes0\processed\v2
+[2026-06-27 04:34:49,011] [INFO] [preprocess_autism] [preprocess_autism.py:171]: Shape validation enabled: asserting shape (1, 32, 32, 32) for all preprocessed tensors.
+[2026-06-27 04:34:49,020] [INFO] [preprocess_autism] [preprocess_autism.py:193]: Submitting 20 subjects for preprocessing (using default workers)...
+[2026-06-27 04:35:00,963] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [1/20] Subject: sub-ab03 | Time: 4.0s | Average: 11.9s | ETA: 3m 46s
+[2026-06-27 04:35:00,964] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:35:00,964] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.5 s
+[2026-06-27 04:35:00,964] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:35:00,964] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:35:00,964] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:35:00,964] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:35:00,964] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:35:00,964] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [2/20] Subject: sub-ab05 | Time: 4.1s | Average: 6.0s | ETA: 1m 47s
+[2026-06-27 04:35:00,965] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:35:00,965] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.4 s
+[2026-06-27 04:35:00,965] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:35:00,965] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:35:00,965] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:35:00,965] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:35:00,965] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:35:00,965] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [3/20] Subject: sub-ab12 | Time: 4.7s | Average: 4.0s | ETA: 1m 7s
+[2026-06-27 04:35:00,965] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:35:00,965] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.8 s
+[2026-06-27 04:35:00,966] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:35:00,966] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:35:00,966] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:35:00,966] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:35:00,966] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:35:00,966] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [4/20] Subject: sub-ab06 | Time: 4.4s | Average: 3.0s | ETA: 47s
+[2026-06-27 04:35:00,966] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:35:00,966] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.6 s
+[2026-06-27 04:35:00,966] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:35:00,966] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:35:00,967] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:35:00,967] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:35:00,967] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:35:00,967] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [5/20] Subject: sub-ab02 | Time: 3.7s | Average: 2.4s | ETA: 35s
+[2026-06-27 04:35:00,967] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:35:00,967] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.5 s
+[2026-06-27 04:35:00,967] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:35:00,967] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:35:00,968] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:35:00,968] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:35:00,968] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:35:00,968] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [6/20] Subject: sub-ab07 | Time: 4.8s | Average: 2.0s | ETA: 27s
+[2026-06-27 04:35:00,968] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:35:00,968] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.9 s
+[2026-06-27 04:35:00,968] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:35:00,968] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:35:00,968] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:35:00,968] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:35:00,969] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:35:00,969] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [7/20] Subject: sub-ab11 | Time: 4.4s | Average: 1.7s | ETA: 22s
+[2026-06-27 04:35:00,969] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:35:00,969] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.6 s
+[2026-06-27 04:35:00,969] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:35:00,969] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:35:00,969] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:35:00,969] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:35:00,970] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:35:00,970] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [8/20] Subject: sub-ab01 | Time: 3.4s | Average: 1.5s | ETA: 17s
+[2026-06-27 04:35:00,970] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:35:00,970] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.2 s
+[2026-06-27 04:35:00,970] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:35:00,970] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:35:00,970] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:35:00,970] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:35:00,970] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:35:00,970] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [9/20] Subject: sub-ab04 | Time: 4.1s | Average: 1.3s | ETA: 14s
+[2026-06-27 04:35:00,971] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:35:00,971] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.4 s
+[2026-06-27 04:35:00,971] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:35:00,971] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:35:00,971] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:35:00,971] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:35:00,971] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:35:01,681] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [10/20] Subject: sub-ab14 | Time: 5.0s | Average: 1.3s | ETA: 12s
+[2026-06-27 04:35:01,681] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:35:01,681] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   2.0 s
+[2026-06-27 04:35:01,682] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:35:01,682] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:35:01,682] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:35:01,682] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:35:01,682] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:35:01,828] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [11/20] Subject: sub-ab08 | Time: 5.0s | Average: 1.2s | ETA: 10s
+[2026-06-27 04:35:01,829] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:35:01,829] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   2.0 s
+[2026-06-27 04:35:01,829] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:35:01,829] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:35:01,829] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:35:01,829] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:35:01,829] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:35:02,372] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [12/20] Subject: sub-ab16 | Time: 4.9s | Average: 1.1s | ETA: 8s
+[2026-06-27 04:35:02,372] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:35:02,372] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   2.0 s
+[2026-06-27 04:35:02,373] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:35:02,373] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:35:02,373] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:35:02,373] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:35:02,373] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:35:02,814] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [13/20] Subject: sub-ab09 | Time: 4.7s | Average: 1.1s | ETA: 7s
+[2026-06-27 04:35:02,815] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:35:02,815] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   2.0 s
+[2026-06-27 04:35:02,815] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:35:02,815] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:35:02,815] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:35:02,815] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:35:02,815] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:35:02,894] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [14/20] Subject: sub-ab18 | Time: 4.7s | Average: 1.0s | ETA: 5s
+[2026-06-27 04:35:02,894] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:35:02,894] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   2.0 s
+[2026-06-27 04:35:02,895] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.1 s
+[2026-06-27 04:35:02,895] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:35:02,895] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:35:02,895] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:35:02,895] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:35:03,417] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [15/20] Subject: sub-ab19 | Time: 4.1s | Average: 1.0s | ETA: 4s
+[2026-06-27 04:35:03,417] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:35:03,417] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.8 s
+[2026-06-27 04:35:03,417] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:35:03,417] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:35:03,417] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:35:03,417] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:35:03,417] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:35:03,421] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [16/20] Subject: sub-ab20 | Time: 4.0s | Average: 0.9s | ETA: 3s
+[2026-06-27 04:35:03,421] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:35:03,421] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.8 s
+[2026-06-27 04:35:03,421] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:35:03,421] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:35:03,422] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:35:03,422] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:35:03,422] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:35:03,428] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [17/20] Subject: sub-ab10 | Time: 4.1s | Average: 0.8s | ETA: 2s
+[2026-06-27 04:35:03,428] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:35:03,428] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.8 s
+[2026-06-27 04:35:03,428] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:35:03,429] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:35:03,429] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:35:03,429] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:35:03,429] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:35:03,802] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [18/20] Subject: sub-ab13 | Time: 3.2s | Average: 0.8s | ETA: 1s
+[2026-06-27 04:35:03,802] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:35:03,802] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.3 s
+[2026-06-27 04:35:03,802] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:35:03,802] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:35:03,802] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:35:03,802] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:35:03,802] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:35:04,279] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [19/20] Subject: sub-ab15 | Time: 2.3s | Average: 0.8s | ETA: 0s
+[2026-06-27 04:35:04,279] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:35:04,280] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   1.0 s
+[2026-06-27 04:35:04,280] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:35:04,280] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:35:04,280] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:35:04,280] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:35:04,280] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:35:04,836] [INFO] [preprocess_autism] [preprocess_autism.py:237]: [20/20] Subject: sub-ab17 | Time: 1.9s | Average: 0.8s | ETA: 0s
+[2026-06-27 04:35:04,837] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Reorient             0.0 s
+[2026-06-27 04:35:04,837] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   BiasFieldCorrector   0.8 s
+[2026-06-27 04:35:04,837] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   SkullStripper        0.0 s
+[2026-06-27 04:35:04,837] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   IntensityNormalizer   0.0 s
+[2026-06-27 04:35:04,837] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   ForegroundCropper    0.0 s
+[2026-06-27 04:35:04,837] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resampler            0.0 s
+[2026-06-27 04:35:04,837] [INFO] [preprocess_autism] [preprocess_autism.py:243]:   Resize               0.0 s
+[2026-06-27 04:35:06,834] [INFO] [preprocess_autism] [preprocess_autism.py:247]: Offline dataset preprocessing completed. Successfully preprocessed: 20/20
+[2026-06-27 04:35:22,910] [INFO] [preprocess_autism] [preprocess_autism.py:146]: Target preprocessed cache directory: C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-36\test_autism_training_smoke_tes0\processed\v2
+[2026-06-27 04:35:22,910] [INFO] [preprocess_autism] [preprocess_autism.py:171]: Shape validation enabled: asserting shape (1, 32, 32, 32) for all preprocessed tensors.
+[2026-06-27 04:35:22,911] [INFO] [preprocess_autism] [preprocess_autism.py:190]: All subjects already preprocessed. Nothing to do.

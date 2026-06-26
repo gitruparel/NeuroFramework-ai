@@ -3,6 +3,8 @@
 import json
 from pathlib import Path
 from typing import Any, Dict
+import matplotlib
+matplotlib.use("Agg")
 from core.interfaces import BaseCallback
 from core.logging import setup_logger
 

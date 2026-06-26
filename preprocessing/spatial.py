@@ -2,7 +2,7 @@
 
 import numpy as np
 from typing import Any, Dict, List
-from preprocessing.base import BaseTransform, TransformRegistry
+from preprocessing.base import BaseTransform, TransformRegistry, mri_data_to_sitk, sitk_to_mri_data
 from preprocessing.decorators import trace_transform
 from schemas.mri import MRIData, ScanStatistics
 from schemas.processing import ExecutionContext
@@ -173,4 +173,70 @@ class CenterCrop(BaseTransform):
             dtype=str(new_tensor.dtype)
         )
         
+        return mri_copy
+
+
+@TransformRegistry.register("resize")
+class Resize(BaseTransform):
+    """Resizes MRI volumes to target spatial dimensions (X, Y, Z)."""
+
+    def __init__(self, target_shape: List[int], interpolator: str = "linear", **kwargs: Any):
+        super().__init__(target_shape=target_shape, interpolator=interpolator, **kwargs)
+
+    @trace_transform
+    def process(self, mri_data: MRIData, context: ExecutionContext) -> MRIData:
+        import SimpleITK as sitk
+        target_shape = self.params.get("target_shape")
+        interpolator_str = self.params.get("interpolator", "linear").lower()
+
+        sitk_img = mri_data_to_sitk(mri_data)
+        original_size = sitk_img.GetSize()
+        original_spacing = sitk_img.GetSpacing()
+
+        if list(original_size) == list(target_shape):
+            context.logger.info("Resize: Size is already at target shape. Skipping.")
+            return mri_data.model_copy(deep=True)
+
+        # Compute new spacing to keep the physical size constant
+        new_spacing = [
+            (original_spacing[i] * original_size[i]) / target_shape[i]
+            for i in range(3)
+        ]
+
+        # Select interpolator
+        if interpolator_str == "nearest":
+            interpolator = sitk.sitkNearestNeighbor
+        elif interpolator_str == "bspline":
+            interpolator = sitk.sitkBSpline
+        else:
+            interpolator = sitk.sitkLinear
+
+        # Configure SimpleITK Resampler for resizing
+        resample = sitk.ResampleImageFilter()
+        resample.SetInterpolator(interpolator)
+        resample.SetOutputSpacing(new_spacing)
+        resample.SetSize(target_shape)
+        resample.SetOutputDirection(sitk_img.GetDirection())
+        resample.SetOutputOrigin(sitk_img.GetOrigin())
+        resample.SetTransform(sitk.Transform())
+
+        resized_img = resample.Execute(sitk_img)
+
+        # Store inverse details in params
+        self.params["original_size"] = str(list(original_size))
+        self.params["original_spacing"] = str(list(original_spacing))
+
+        mri_copy = sitk_to_mri_data(resized_img, mri_data)
+
+        # Recalculate statistics
+        new_tensor = mri_copy.image
+        mri_copy.statistics = ScanStatistics(
+            min=float(np.min(new_tensor)),
+            max=float(np.max(new_tensor)),
+            mean=float(np.mean(new_tensor)),
+            std=float(np.std(new_tensor)),
+            shape=list(new_tensor.shape),
+            dtype=str(new_tensor.dtype)
+        )
+
         return mri_copy

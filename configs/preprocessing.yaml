@@ -1,3 +1,5 @@
+cache_version: "v2"
+
 profiles:
   autism:
     - transform: reorient
@@ -8,6 +10,13 @@ profiles:
       params: { strategy: "threshold" }
     - transform: normalize
       params: { mode: "z_score" }
+    - transform: crop_foreground
+      params: {}
+    - transform: resample
+      params: { spacing: [1.0, 1.0, 1.0] }
+    - transform: resize
+      params: { target_shape: [128, 128, 128] }
+
   alzheimer:
     - transform: reorient
       params: { target: "RAS" }
@@ -17,12 +26,19 @@ profiles:
       params: { strategy: "threshold" }
     - transform: crop_foreground
       params: {}
+    - transform: resample
+      params: { spacing: [1.0, 1.0, 1.0] }
+    - transform: resize
+      params: { target_shape: [128, 128, 128] }
     - transform: normalize
       params: { mode: "z_score" }
+
   tumor:
     - transform: reorient
       params: { target: "RAS" }
     - transform: resample
       params: { spacing: [1.0, 1.0, 1.0] }
+    - transform: resize
+      params: { target_shape: [128, 128, 128] }
     - transform: normalize
       params: { mode: "min_max" }

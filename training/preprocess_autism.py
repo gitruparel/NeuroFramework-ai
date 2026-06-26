@@ -74,6 +74,7 @@ def process_single_subject(
     preprocessed_dir: Path,
     config_yaml: Path,
     raw_dir: Path | None = None,
+    expected_shape: tuple[int, ...] | None = None,
 ) -> tuple[bool, float, list[tuple[str, float]]]:
     """Worker function to preprocess a single subject and write its cached .pt file."""
     import time
@@ -104,6 +105,12 @@ def process_single_subject(
         for record in processed.history:
             step_timings.append((record.step_name, record.duration))
 
+        # Assert shape validator
+        if expected_shape is not None and tuple(processed.image.shape) != tuple(expected_shape):
+            raise RuntimeError(
+                f"Invalid tensor shape {processed.image.shape}, expected {expected_shape}"
+            )
+
         # Save preprocessed outputs
         torch.save({
             "image": processed.image,
@@ -124,11 +131,44 @@ def preprocess_abide_dataset(
     raw_dir: Path | None = None,
     max_workers: int | None = None,
     limit: int | None = None,
+    clear_cache: bool = False,
 ) -> None:
     """Preprocesses all raw ABIDE scans in parallel and caches outputs to disk."""
     import time
-    logger.info("Starting offline dataset preprocessing...")
-    preprocessed_dir.mkdir(parents=True, exist_ok=True)
+    import yaml
+    
+    # 1. Resolve cache version and expected shape
+    with open(config_yaml, encoding="utf-8") as f:
+        cfg = yaml.safe_load(f) or {}
+    cache_version = str(cfg.get("cache_version", "v1"))
+    
+    preprocessed_dir = preprocessed_dir / cache_version
+    logger.info(f"Target preprocessed cache directory: {preprocessed_dir}")
+    
+    # 2. Clear cache if requested
+    if clear_cache:
+        if preprocessed_dir.exists():
+            logger.info(f"Clearing cache directory: {preprocessed_dir}")
+            import shutil
+            try:
+                shutil.rmtree(preprocessed_dir)
+            except Exception as e:
+                logger.error(f"Failed to clear cache: {e}")
+        preprocessed_dir.mkdir(parents=True, exist_ok=True)
+    else:
+        preprocessed_dir.mkdir(parents=True, exist_ok=True)
+        
+    # 3. Read profile steps to extract expected target shape
+    steps = cfg.get("profiles", {}).get("autism", [])
+    target_shape = [128, 128, 128] # Default baseline fallback
+    for step in reversed(steps):
+        if step.get("transform") in ("resize", "pad", "center_crop"):
+            params = step.get("params", {})
+            if "target_shape" in params:
+                target_shape = params["target_shape"]
+                break
+    expected_shape = (1,) + tuple(target_shape)
+    logger.info(f"Shape validation enabled: asserting shape {expected_shape} for all preprocessed tensors.")
 
     with open(index_file, encoding="utf-8") as f:
         items = json.load(f)
@@ -163,7 +203,8 @@ def preprocess_abide_dataset(
                 item["path"],
                 preprocessed_dir,
                 config_yaml,
-                raw_dir
+                raw_dir,
+                expected_shape
             ): item["subject_id"]
             for item in todo_items
         }
@@ -214,6 +255,7 @@ if __name__ == "__main__":
     parser.add_argument("--config", default="configs/preprocessing.yaml", help="Path to preprocessing configuration file")
     parser.add_argument("--workers", type=int, default=None, help="Number of worker processes (defaults to CPU count)")
     parser.add_argument("--limit", type=int, default=None, help="Limit preprocessing to first N subjects")
+    parser.add_argument("--clear-cache", action="store_true", help="Clear the active preprocessed cache directory before starting")
 
     args = parser.parse_args()
 
@@ -223,5 +265,6 @@ if __name__ == "__main__":
         config_yaml=Path(args.config),
         raw_dir=Path(args.raw_dir) if args.raw_dir else None,
         max_workers=args.workers,
-        limit=args.limit
+        limit=args.limit,
+        clear_cache=args.clear_cache
     )

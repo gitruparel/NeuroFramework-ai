@@ -64,9 +64,28 @@ def test_autism_training_smoke_test(tmp_path):
     with open(split_file, "w", encoding="utf-8") as f:
         json.dump(splits_data, f, indent=4)
         
-    # 4. Use existing configs/preprocessing.yaml
-    config_yaml = Path("configs/preprocessing.yaml")
-    assert config_yaml.exists(), "configs/preprocessing.yaml must exist"
+    # 4. Write custom test preprocessor config limiting resize shape to 32x32x32 for fast CPU testing
+    config_yaml = tmp_path / "test_preprocessing.yaml"
+    with open(config_yaml, "w", encoding="utf-8") as f:
+        f.write("""
+cache_version: "v2"
+profiles:
+  autism:
+    - transform: reorient
+      params: { target: "RAS" }
+    - transform: bias_correction
+      params: { strategy: "n4", mode: "fast", convergence_threshold: 0.000001 }
+    - transform: skull_strip
+      params: { strategy: "threshold" }
+    - transform: normalize
+      params: { mode: "z_score" }
+    - transform: crop_foreground
+      params: {}
+    - transform: resample
+      params: { spacing: [1.0, 1.0, 1.0] }
+    - transform: resize
+      params: { target_shape: [32, 32, 32] }
+""")
     
     # 5. Run the training experiment for 2 epochs
     run_training_experiment(
@@ -84,7 +103,7 @@ def test_autism_training_smoke_test(tmp_path):
     
     # 6. Verify cached preprocessing files exist and are valid torch tensors
     for sub_id in subjects:
-        cache_file = processed_dir / f"{sub_id}.pt"
+        cache_file = processed_dir / "v2" / f"{sub_id}.pt"
         assert cache_file.exists(), f"Preprocessed cache file {cache_file} should exist"
         
         # Load and verify content structure
