@@ -68,3 +68,34 @@ logs/*
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Model artifacts
+*.pt
+*.pth
+*.ckpt
+*.onnx
+
+# WandB
+wandb/
+
+# TensorBoard
+runs/
+
+# VS Code
+.vscode/
+
+# IDEs
+.idea/
+
+# Coverage
+.coverage
+
+# Jupyter
+*.ipynb_checkpoints
+
+# Python caches
+*.pyo
+
+# Temporary files
+*.tmp
+*.temp
