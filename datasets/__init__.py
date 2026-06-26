@@ -5,6 +5,8 @@ from datasets.abide import ABIDEDataset
 from datasets.adni import ADNIDataset
 from datasets.brats import BraTSDataset
 from datasets.manager import DatasetManager, SplitManager
+from datasets.base_compiler import DatasetCompiler
+from datasets.compiler import get_compiler, compile_dataset
 
 __all__ = [
     "MRIDataset",
@@ -14,4 +16,8 @@ __all__ = [
     "BraTSDataset",
     "DatasetManager",
     "SplitManager",
+    "DatasetCompiler",
+    "get_compiler",
+    "compile_dataset",
 ]
+

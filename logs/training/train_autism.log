@@ -1969,3 +1969,255 @@
 [2026-06-27 01:44:33,334] [INFO] [train_autism] [train_autism.py:200]: Loading best model weights for final evaluation...
 [2026-06-27 01:44:34,091] [INFO] [train_autism] [train_autism.py:283]: Auto-exporting best checkpoint model to ONNX: C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-23\test_autism_training_smoke_tes0\experiment_resume\best_model.onnx
 [2026-06-27 01:44:40,096] [INFO] [train_autism] [train_autism.py:296]: ONNX auto-export completed successfully.
+[2026-06-27 03:02:03,128] [INFO] [train_autism] [train_autism.py:59]: Starting one-time offline dataset preprocessing...
+[2026-06-27 03:02:03,138] [INFO] [train_autism] [train_autism.py:88]: [1/20] Preprocessing subject: sub-ab01
+[2026-06-27 03:02:03,146] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'Reorient'
+[2026-06-27 03:02:03,284] [INFO] [train_autism] [orientation.py:35]: Reorient: Coordinate space is already aligned to 'RAS'. Skipping.
+[2026-06-27 03:02:03,420] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'Reorient' in 0.0007s
+[2026-06-27 03:02:03,421] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'BiasFieldCorrector'
+[2026-06-27 03:02:03,560] [INFO] [train_autism] [bias.py:50]: BiasFieldCorrector: Running standard unmasked N4 correction.
+[2026-06-27 03:02:03,828] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'BiasFieldCorrector' in 0.1390s
+[2026-06-27 03:02:03,828] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'SkullStripper'
+[2026-06-27 03:02:03,962] [INFO] [train_autism] [skull_strip.py:21]: SkullStripper [ThresholdStrategy]: Segmenting using Otsu thresholding.
+[2026-06-27 03:02:04,126] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'SkullStripper' in 0.0331s
+[2026-06-27 03:02:04,127] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'IntensityNormalizer'
+[2026-06-27 03:02:04,468] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'IntensityNormalizer' in 0.0009s
+[2026-06-27 03:02:04,484] [INFO] [train_autism] [train_autism.py:88]: [2/20] Preprocessing subject: sub-ab02
+[2026-06-27 03:02:04,491] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'Reorient'
+[2026-06-27 03:02:04,620] [INFO] [train_autism] [orientation.py:35]: Reorient: Coordinate space is already aligned to 'RAS'. Skipping.
+[2026-06-27 03:02:04,747] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'Reorient' in 0.0007s
+[2026-06-27 03:02:04,747] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'BiasFieldCorrector'
+[2026-06-27 03:02:04,881] [INFO] [train_autism] [bias.py:50]: BiasFieldCorrector: Running standard unmasked N4 correction.
+[2026-06-27 03:02:05,147] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'BiasFieldCorrector' in 0.1395s
+[2026-06-27 03:02:05,147] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'SkullStripper'
+[2026-06-27 03:02:05,278] [INFO] [train_autism] [skull_strip.py:21]: SkullStripper [ThresholdStrategy]: Segmenting using Otsu thresholding.
+[2026-06-27 03:02:05,442] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'SkullStripper' in 0.0300s
+[2026-06-27 03:02:05,443] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'IntensityNormalizer'
+[2026-06-27 03:02:05,714] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'IntensityNormalizer' in 0.0006s
+[2026-06-27 03:02:05,717] [INFO] [train_autism] [train_autism.py:88]: [3/20] Preprocessing subject: sub-ab03
+[2026-06-27 03:02:05,725] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'Reorient'
+[2026-06-27 03:02:05,854] [INFO] [train_autism] [orientation.py:35]: Reorient: Coordinate space is already aligned to 'RAS'. Skipping.
+[2026-06-27 03:02:06,007] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'Reorient' in 0.0007s
+[2026-06-27 03:02:06,008] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'BiasFieldCorrector'
+[2026-06-27 03:02:06,168] [INFO] [train_autism] [bias.py:50]: BiasFieldCorrector: Running standard unmasked N4 correction.
+[2026-06-27 03:02:06,448] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'BiasFieldCorrector' in 0.1523s
+[2026-06-27 03:02:06,448] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'SkullStripper'
+[2026-06-27 03:02:06,576] [INFO] [train_autism] [skull_strip.py:21]: SkullStripper [ThresholdStrategy]: Segmenting using Otsu thresholding.
+[2026-06-27 03:02:06,736] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'SkullStripper' in 0.0300s
+[2026-06-27 03:02:06,737] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'IntensityNormalizer'
+[2026-06-27 03:02:06,997] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'IntensityNormalizer' in 0.0005s
+[2026-06-27 03:02:07,000] [INFO] [train_autism] [train_autism.py:88]: [4/20] Preprocessing subject: sub-ab04
+[2026-06-27 03:02:07,009] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'Reorient'
+[2026-06-27 03:02:07,149] [INFO] [train_autism] [orientation.py:35]: Reorient: Coordinate space is already aligned to 'RAS'. Skipping.
+[2026-06-27 03:02:07,305] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'Reorient' in 0.0008s
+[2026-06-27 03:02:07,306] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'BiasFieldCorrector'
+[2026-06-27 03:02:07,535] [INFO] [train_autism] [bias.py:50]: BiasFieldCorrector: Running standard unmasked N4 correction.
+[2026-06-27 03:02:07,859] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'BiasFieldCorrector' in 0.1772s
+[2026-06-27 03:02:07,859] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'SkullStripper'
+[2026-06-27 03:02:08,001] [INFO] [train_autism] [skull_strip.py:21]: SkullStripper [ThresholdStrategy]: Segmenting using Otsu thresholding.
+[2026-06-27 03:02:08,162] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'SkullStripper' in 0.0301s
+[2026-06-27 03:02:08,163] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'IntensityNormalizer'
+[2026-06-27 03:02:08,429] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'IntensityNormalizer' in 0.0006s
+[2026-06-27 03:02:08,432] [INFO] [train_autism] [train_autism.py:88]: [5/20] Preprocessing subject: sub-ab05
+[2026-06-27 03:02:08,440] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'Reorient'
+[2026-06-27 03:02:08,578] [INFO] [train_autism] [orientation.py:35]: Reorient: Coordinate space is already aligned to 'RAS'. Skipping.
+[2026-06-27 03:02:08,717] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'Reorient' in 0.0009s
+[2026-06-27 03:02:08,717] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'BiasFieldCorrector'
+[2026-06-27 03:02:08,860] [INFO] [train_autism] [bias.py:50]: BiasFieldCorrector: Running standard unmasked N4 correction.
+[2026-06-27 03:02:09,202] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'BiasFieldCorrector' in 0.1846s
+[2026-06-27 03:02:09,202] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'SkullStripper'
+[2026-06-27 03:02:09,338] [INFO] [train_autism] [skull_strip.py:21]: SkullStripper [ThresholdStrategy]: Segmenting using Otsu thresholding.
+[2026-06-27 03:02:09,502] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'SkullStripper' in 0.0299s
+[2026-06-27 03:02:09,502] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'IntensityNormalizer'
+[2026-06-27 03:02:09,772] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'IntensityNormalizer' in 0.0005s
+[2026-06-27 03:02:09,775] [INFO] [train_autism] [train_autism.py:88]: [6/20] Preprocessing subject: sub-ab06
+[2026-06-27 03:02:09,784] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'Reorient'
+[2026-06-27 03:02:09,925] [INFO] [train_autism] [orientation.py:35]: Reorient: Coordinate space is already aligned to 'RAS'. Skipping.
+[2026-06-27 03:02:10,061] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'Reorient' in 0.0007s
+[2026-06-27 03:02:10,061] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'BiasFieldCorrector'
+[2026-06-27 03:02:10,201] [INFO] [train_autism] [bias.py:50]: BiasFieldCorrector: Running standard unmasked N4 correction.
+[2026-06-27 03:02:10,478] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'BiasFieldCorrector' in 0.1475s
+[2026-06-27 03:02:10,479] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'SkullStripper'
+[2026-06-27 03:02:10,614] [INFO] [train_autism] [skull_strip.py:21]: SkullStripper [ThresholdStrategy]: Segmenting using Otsu thresholding.
+[2026-06-27 03:02:10,778] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'SkullStripper' in 0.0314s
+[2026-06-27 03:02:10,778] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'IntensityNormalizer'
+[2026-06-27 03:02:11,041] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'IntensityNormalizer' in 0.0005s
+[2026-06-27 03:02:11,043] [INFO] [train_autism] [train_autism.py:88]: [7/20] Preprocessing subject: sub-ab07
+[2026-06-27 03:02:11,053] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'Reorient'
+[2026-06-27 03:02:11,187] [INFO] [train_autism] [orientation.py:35]: Reorient: Coordinate space is already aligned to 'RAS'. Skipping.
+[2026-06-27 03:02:11,318] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'Reorient' in 0.0007s
+[2026-06-27 03:02:11,319] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'BiasFieldCorrector'
+[2026-06-27 03:02:11,457] [INFO] [train_autism] [bias.py:50]: BiasFieldCorrector: Running standard unmasked N4 correction.
+[2026-06-27 03:02:11,725] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'BiasFieldCorrector' in 0.1401s
+[2026-06-27 03:02:11,725] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'SkullStripper'
+[2026-06-27 03:02:11,857] [INFO] [train_autism] [skull_strip.py:21]: SkullStripper [ThresholdStrategy]: Segmenting using Otsu thresholding.
+[2026-06-27 03:02:12,018] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'SkullStripper' in 0.0300s
+[2026-06-27 03:02:12,019] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'IntensityNormalizer'
+[2026-06-27 03:02:12,282] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'IntensityNormalizer' in 0.0005s
+[2026-06-27 03:02:12,284] [INFO] [train_autism] [train_autism.py:88]: [8/20] Preprocessing subject: sub-ab08
+[2026-06-27 03:02:12,293] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'Reorient'
+[2026-06-27 03:02:12,425] [INFO] [train_autism] [orientation.py:35]: Reorient: Coordinate space is already aligned to 'RAS'. Skipping.
+[2026-06-27 03:02:12,557] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'Reorient' in 0.0007s
+[2026-06-27 03:02:12,557] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'BiasFieldCorrector'
+[2026-06-27 03:02:12,694] [INFO] [train_autism] [bias.py:50]: BiasFieldCorrector: Running standard unmasked N4 correction.
+[2026-06-27 03:02:12,961] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'BiasFieldCorrector' in 0.1387s
+[2026-06-27 03:02:12,961] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'SkullStripper'
+[2026-06-27 03:02:13,094] [INFO] [train_autism] [skull_strip.py:21]: SkullStripper [ThresholdStrategy]: Segmenting using Otsu thresholding.
+[2026-06-27 03:02:13,257] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'SkullStripper' in 0.0302s
+[2026-06-27 03:02:13,257] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'IntensityNormalizer'
+[2026-06-27 03:02:13,522] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'IntensityNormalizer' in 0.0005s
+[2026-06-27 03:02:13,524] [INFO] [train_autism] [train_autism.py:88]: [9/20] Preprocessing subject: sub-ab09
+[2026-06-27 03:02:13,533] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'Reorient'
+[2026-06-27 03:02:13,667] [INFO] [train_autism] [orientation.py:35]: Reorient: Coordinate space is already aligned to 'RAS'. Skipping.
+[2026-06-27 03:02:13,801] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'Reorient' in 0.0007s
+[2026-06-27 03:02:13,802] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'BiasFieldCorrector'
+[2026-06-27 03:02:13,941] [INFO] [train_autism] [bias.py:50]: BiasFieldCorrector: Running standard unmasked N4 correction.
+[2026-06-27 03:02:14,207] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'BiasFieldCorrector' in 0.1399s
+[2026-06-27 03:02:14,208] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'SkullStripper'
+[2026-06-27 03:02:14,338] [INFO] [train_autism] [skull_strip.py:21]: SkullStripper [ThresholdStrategy]: Segmenting using Otsu thresholding.
+[2026-06-27 03:02:14,502] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'SkullStripper' in 0.0302s
+[2026-06-27 03:02:14,502] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'IntensityNormalizer'
+[2026-06-27 03:02:14,769] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'IntensityNormalizer' in 0.0005s
+[2026-06-27 03:02:14,772] [INFO] [train_autism] [train_autism.py:88]: [10/20] Preprocessing subject: sub-ab10
+[2026-06-27 03:02:14,781] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'Reorient'
+[2026-06-27 03:02:14,926] [INFO] [train_autism] [orientation.py:35]: Reorient: Coordinate space is already aligned to 'RAS'. Skipping.
+[2026-06-27 03:02:15,058] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'Reorient' in 0.0008s
+[2026-06-27 03:02:15,058] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'BiasFieldCorrector'
+[2026-06-27 03:02:15,198] [INFO] [train_autism] [bias.py:50]: BiasFieldCorrector: Running standard unmasked N4 correction.
+[2026-06-27 03:02:15,469] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'BiasFieldCorrector' in 0.1427s
+[2026-06-27 03:02:15,469] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'SkullStripper'
+[2026-06-27 03:02:15,621] [INFO] [train_autism] [skull_strip.py:21]: SkullStripper [ThresholdStrategy]: Segmenting using Otsu thresholding.
+[2026-06-27 03:02:15,827] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'SkullStripper' in 0.0385s
+[2026-06-27 03:02:15,827] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'IntensityNormalizer'
+[2026-06-27 03:02:16,091] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'IntensityNormalizer' in 0.0005s
+[2026-06-27 03:02:16,093] [INFO] [train_autism] [train_autism.py:88]: [11/20] Preprocessing subject: sub-ab11
+[2026-06-27 03:02:16,101] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'Reorient'
+[2026-06-27 03:02:16,236] [INFO] [train_autism] [orientation.py:35]: Reorient: Coordinate space is already aligned to 'RAS'. Skipping.
+[2026-06-27 03:02:16,370] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'Reorient' in 0.0007s
+[2026-06-27 03:02:16,370] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'BiasFieldCorrector'
+[2026-06-27 03:02:16,509] [INFO] [train_autism] [bias.py:50]: BiasFieldCorrector: Running standard unmasked N4 correction.
+[2026-06-27 03:02:16,775] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'BiasFieldCorrector' in 0.1385s
+[2026-06-27 03:02:16,776] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'SkullStripper'
+[2026-06-27 03:02:16,906] [INFO] [train_autism] [skull_strip.py:21]: SkullStripper [ThresholdStrategy]: Segmenting using Otsu thresholding.
+[2026-06-27 03:02:17,068] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'SkullStripper' in 0.0297s
+[2026-06-27 03:02:17,068] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'IntensityNormalizer'
+[2026-06-27 03:02:17,333] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'IntensityNormalizer' in 0.0005s
+[2026-06-27 03:02:17,335] [INFO] [train_autism] [train_autism.py:88]: [12/20] Preprocessing subject: sub-ab12
+[2026-06-27 03:02:17,344] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'Reorient'
+[2026-06-27 03:02:17,478] [INFO] [train_autism] [orientation.py:35]: Reorient: Coordinate space is already aligned to 'RAS'. Skipping.
+[2026-06-27 03:02:17,613] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'Reorient' in 0.0007s
+[2026-06-27 03:02:17,613] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'BiasFieldCorrector'
+[2026-06-27 03:02:17,753] [INFO] [train_autism] [bias.py:50]: BiasFieldCorrector: Running standard unmasked N4 correction.
+[2026-06-27 03:02:18,024] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'BiasFieldCorrector' in 0.1450s
+[2026-06-27 03:02:18,024] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'SkullStripper'
+[2026-06-27 03:02:18,157] [INFO] [train_autism] [skull_strip.py:21]: SkullStripper [ThresholdStrategy]: Segmenting using Otsu thresholding.
+[2026-06-27 03:02:18,322] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'SkullStripper' in 0.0302s
+[2026-06-27 03:02:18,322] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'IntensityNormalizer'
+[2026-06-27 03:02:18,592] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'IntensityNormalizer' in 0.0005s
+[2026-06-27 03:02:18,594] [INFO] [train_autism] [train_autism.py:88]: [13/20] Preprocessing subject: sub-ab13
+[2026-06-27 03:02:18,603] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'Reorient'
+[2026-06-27 03:02:18,735] [INFO] [train_autism] [orientation.py:35]: Reorient: Coordinate space is already aligned to 'RAS'. Skipping.
+[2026-06-27 03:02:18,867] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'Reorient' in 0.0007s
+[2026-06-27 03:02:18,867] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'BiasFieldCorrector'
+[2026-06-27 03:02:19,003] [INFO] [train_autism] [bias.py:50]: BiasFieldCorrector: Running standard unmasked N4 correction.
+[2026-06-27 03:02:19,275] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'BiasFieldCorrector' in 0.1412s
+[2026-06-27 03:02:19,275] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'SkullStripper'
+[2026-06-27 03:02:19,408] [INFO] [train_autism] [skull_strip.py:21]: SkullStripper [ThresholdStrategy]: Segmenting using Otsu thresholding.
+[2026-06-27 03:02:19,571] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'SkullStripper' in 0.0302s
+[2026-06-27 03:02:19,572] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'IntensityNormalizer'
+[2026-06-27 03:02:19,842] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'IntensityNormalizer' in 0.0005s
+[2026-06-27 03:02:19,844] [INFO] [train_autism] [train_autism.py:88]: [14/20] Preprocessing subject: sub-ab14
+[2026-06-27 03:02:19,854] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'Reorient'
+[2026-06-27 03:02:19,990] [INFO] [train_autism] [orientation.py:35]: Reorient: Coordinate space is already aligned to 'RAS'. Skipping.
+[2026-06-27 03:02:20,127] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'Reorient' in 0.0007s
+[2026-06-27 03:02:20,128] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'BiasFieldCorrector'
+[2026-06-27 03:02:20,268] [INFO] [train_autism] [bias.py:50]: BiasFieldCorrector: Running standard unmasked N4 correction.
+[2026-06-27 03:02:20,536] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'BiasFieldCorrector' in 0.1397s
+[2026-06-27 03:02:20,537] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'SkullStripper'
+[2026-06-27 03:02:20,671] [INFO] [train_autism] [skull_strip.py:21]: SkullStripper [ThresholdStrategy]: Segmenting using Otsu thresholding.
+[2026-06-27 03:02:20,837] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'SkullStripper' in 0.0311s
+[2026-06-27 03:02:20,837] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'IntensityNormalizer'
+[2026-06-27 03:02:21,108] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'IntensityNormalizer' in 0.0005s
+[2026-06-27 03:02:21,110] [INFO] [train_autism] [train_autism.py:88]: [15/20] Preprocessing subject: sub-ab15
+[2026-06-27 03:02:21,119] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'Reorient'
+[2026-06-27 03:02:21,250] [INFO] [train_autism] [orientation.py:35]: Reorient: Coordinate space is already aligned to 'RAS'. Skipping.
+[2026-06-27 03:02:21,383] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'Reorient' in 0.0007s
+[2026-06-27 03:02:21,383] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'BiasFieldCorrector'
+[2026-06-27 03:02:21,521] [INFO] [train_autism] [bias.py:50]: BiasFieldCorrector: Running standard unmasked N4 correction.
+[2026-06-27 03:02:21,788] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'BiasFieldCorrector' in 0.1386s
+[2026-06-27 03:02:21,789] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'SkullStripper'
+[2026-06-27 03:02:21,922] [INFO] [train_autism] [skull_strip.py:21]: SkullStripper [ThresholdStrategy]: Segmenting using Otsu thresholding.
+[2026-06-27 03:02:22,086] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'SkullStripper' in 0.0303s
+[2026-06-27 03:02:22,086] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'IntensityNormalizer'
+[2026-06-27 03:02:22,352] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'IntensityNormalizer' in 0.0006s
+[2026-06-27 03:02:22,354] [INFO] [train_autism] [train_autism.py:88]: [16/20] Preprocessing subject: sub-ab16
+[2026-06-27 03:02:22,362] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'Reorient'
+[2026-06-27 03:02:22,535] [INFO] [train_autism] [orientation.py:35]: Reorient: Coordinate space is already aligned to 'RAS'. Skipping.
+[2026-06-27 03:02:22,684] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'Reorient' in 0.0007s
+[2026-06-27 03:02:22,685] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'BiasFieldCorrector'
+[2026-06-27 03:02:22,820] [INFO] [train_autism] [bias.py:50]: BiasFieldCorrector: Running standard unmasked N4 correction.
+[2026-06-27 03:02:23,086] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'BiasFieldCorrector' in 0.1409s
+[2026-06-27 03:02:23,086] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'SkullStripper'
+[2026-06-27 03:02:23,215] [INFO] [train_autism] [skull_strip.py:21]: SkullStripper [ThresholdStrategy]: Segmenting using Otsu thresholding.
+[2026-06-27 03:02:23,371] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'SkullStripper' in 0.0296s
+[2026-06-27 03:02:23,371] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'IntensityNormalizer'
+[2026-06-27 03:02:23,629] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'IntensityNormalizer' in 0.0005s
+[2026-06-27 03:02:23,631] [INFO] [train_autism] [train_autism.py:88]: [17/20] Preprocessing subject: sub-ab17
+[2026-06-27 03:02:23,639] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'Reorient'
+[2026-06-27 03:02:23,776] [INFO] [train_autism] [orientation.py:35]: Reorient: Coordinate space is already aligned to 'RAS'. Skipping.
+[2026-06-27 03:02:23,910] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'Reorient' in 0.0007s
+[2026-06-27 03:02:23,910] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'BiasFieldCorrector'
+[2026-06-27 03:02:24,047] [INFO] [train_autism] [bias.py:50]: BiasFieldCorrector: Running standard unmasked N4 correction.
+[2026-06-27 03:02:24,358] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'BiasFieldCorrector' in 0.1713s
+[2026-06-27 03:02:24,359] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'SkullStripper'
+[2026-06-27 03:02:24,490] [INFO] [train_autism] [skull_strip.py:21]: SkullStripper [ThresholdStrategy]: Segmenting using Otsu thresholding.
+[2026-06-27 03:02:24,650] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'SkullStripper' in 0.0298s
+[2026-06-27 03:02:24,650] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'IntensityNormalizer'
+[2026-06-27 03:02:24,910] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'IntensityNormalizer' in 0.0005s
+[2026-06-27 03:02:24,912] [INFO] [train_autism] [train_autism.py:88]: [18/20] Preprocessing subject: sub-ab18
+[2026-06-27 03:02:24,920] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'Reorient'
+[2026-06-27 03:02:25,051] [INFO] [train_autism] [orientation.py:35]: Reorient: Coordinate space is already aligned to 'RAS'. Skipping.
+[2026-06-27 03:02:25,182] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'Reorient' in 0.0007s
+[2026-06-27 03:02:25,182] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'BiasFieldCorrector'
+[2026-06-27 03:02:25,318] [INFO] [train_autism] [bias.py:50]: BiasFieldCorrector: Running standard unmasked N4 correction.
+[2026-06-27 03:02:25,586] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'BiasFieldCorrector' in 0.1428s
+[2026-06-27 03:02:25,587] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'SkullStripper'
+[2026-06-27 03:02:25,733] [INFO] [train_autism] [skull_strip.py:21]: SkullStripper [ThresholdStrategy]: Segmenting using Otsu thresholding.
+[2026-06-27 03:02:25,927] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'SkullStripper' in 0.0353s
+[2026-06-27 03:02:25,928] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'IntensityNormalizer'
+[2026-06-27 03:02:26,194] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'IntensityNormalizer' in 0.0005s
+[2026-06-27 03:02:26,196] [INFO] [train_autism] [train_autism.py:88]: [19/20] Preprocessing subject: sub-ab19
+[2026-06-27 03:02:26,205] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'Reorient'
+[2026-06-27 03:02:26,339] [INFO] [train_autism] [orientation.py:35]: Reorient: Coordinate space is already aligned to 'RAS'. Skipping.
+[2026-06-27 03:02:26,472] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'Reorient' in 0.0007s
+[2026-06-27 03:02:26,472] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'BiasFieldCorrector'
+[2026-06-27 03:02:26,609] [INFO] [train_autism] [bias.py:50]: BiasFieldCorrector: Running standard unmasked N4 correction.
+[2026-06-27 03:02:26,878] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'BiasFieldCorrector' in 0.1395s
+[2026-06-27 03:02:26,878] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'SkullStripper'
+[2026-06-27 03:02:27,015] [INFO] [train_autism] [skull_strip.py:21]: SkullStripper [ThresholdStrategy]: Segmenting using Otsu thresholding.
+[2026-06-27 03:02:27,294] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'SkullStripper' in 0.0490s
+[2026-06-27 03:02:27,295] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'IntensityNormalizer'
+[2026-06-27 03:02:27,576] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'IntensityNormalizer' in 0.0005s
+[2026-06-27 03:02:27,578] [INFO] [train_autism] [train_autism.py:88]: [20/20] Preprocessing subject: sub-ab20
+[2026-06-27 03:02:27,586] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'Reorient'
+[2026-06-27 03:02:27,719] [INFO] [train_autism] [orientation.py:35]: Reorient: Coordinate space is already aligned to 'RAS'. Skipping.
+[2026-06-27 03:02:27,851] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'Reorient' in 0.0007s
+[2026-06-27 03:02:27,851] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'BiasFieldCorrector'
+[2026-06-27 03:02:27,994] [INFO] [train_autism] [bias.py:50]: BiasFieldCorrector: Running standard unmasked N4 correction.
+[2026-06-27 03:02:28,262] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'BiasFieldCorrector' in 0.1398s
+[2026-06-27 03:02:28,263] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'SkullStripper'
+[2026-06-27 03:02:28,401] [INFO] [train_autism] [skull_strip.py:21]: SkullStripper [ThresholdStrategy]: Segmenting using Otsu thresholding.
+[2026-06-27 03:02:28,583] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'SkullStripper' in 0.0309s
+[2026-06-27 03:02:28,583] [INFO] [train_autism] [decorators.py:57]: Preprocessing Step: Starting 'IntensityNormalizer'
+[2026-06-27 03:02:28,870] [INFO] [train_autism] [decorators.py:126]: Preprocessing Step: Finished 'IntensityNormalizer' in 0.0006s
+[2026-06-27 03:02:28,871] [INFO] [train_autism] [train_autism.py:107]: Offline dataset preprocessing completed successfully.
+[2026-06-27 03:02:28,873] [INFO] [train_autism] [train_autism.py:151]: Loaded train samples: 16, validation samples: 4
+[2026-06-27 03:02:37,733] [INFO] [train_autism] [train_autism.py:200]: Loading best model weights for final evaluation...
+[2026-06-27 03:02:38,511] [INFO] [train_autism] [train_autism.py:283]: Auto-exporting best checkpoint model to ONNX: C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-25\test_autism_training_smoke_tes0\experiment\best_model.onnx
+[2026-06-27 03:02:47,543] [INFO] [train_autism] [train_autism.py:296]: ONNX auto-export completed successfully.
+[2026-06-27 03:02:47,578] [INFO] [train_autism] [train_autism.py:59]: Starting one-time offline dataset preprocessing...
+[2026-06-27 03:02:47,582] [INFO] [train_autism] [train_autism.py:107]: Offline dataset preprocessing completed successfully.
+[2026-06-27 03:02:47,583] [INFO] [train_autism] [train_autism.py:151]: Loaded train samples: 16, validation samples: 4
+[2026-06-27 03:02:50,628] [INFO] [train_autism] [train_autism.py:200]: Loading best model weights for final evaluation...
+[2026-06-27 03:02:51,369] [INFO] [train_autism] [train_autism.py:283]: Auto-exporting best checkpoint model to ONNX: C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-25\test_autism_training_smoke_tes0\experiment_resume\best_model.onnx
+[2026-06-27 03:02:57,347] [INFO] [train_autism] [train_autism.py:296]: ONNX auto-export completed successfully.
