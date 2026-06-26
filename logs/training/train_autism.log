@@ -2221,3 +2221,16 @@
 [2026-06-27 03:02:50,628] [INFO] [train_autism] [train_autism.py:200]: Loading best model weights for final evaluation...
 [2026-06-27 03:02:51,369] [INFO] [train_autism] [train_autism.py:283]: Auto-exporting best checkpoint model to ONNX: C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-25\test_autism_training_smoke_tes0\experiment_resume\best_model.onnx
 [2026-06-27 03:02:57,347] [INFO] [train_autism] [train_autism.py:296]: ONNX auto-export completed successfully.
+[2026-06-27 03:35:24,554] [INFO] [train_autism] [train_autism.py:80]: Loaded train samples: 16, validation samples: 4
+[2026-06-27 03:35:32,185] [INFO] [train_autism] [train_autism.py:129]: Loading best model weights for final evaluation...
+[2026-06-27 03:35:33,045] [INFO] [train_autism] [train_autism.py:212]: Auto-exporting best checkpoint model to ONNX: C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-27\test_autism_training_smoke_tes0\experiment\best_model.onnx
+[2026-06-27 03:35:41,747] [INFO] [train_autism] [train_autism.py:225]: ONNX auto-export completed successfully.
+[2026-06-27 03:35:41,769] [INFO] [train_autism] [train_autism.py:80]: Loaded train samples: 16, validation samples: 4
+[2026-06-27 03:36:41,287] [INFO] [train_autism] [train_autism.py:80]: Loaded train samples: 16, validation samples: 4
+[2026-06-27 03:36:48,279] [INFO] [train_autism] [train_autism.py:129]: Loading best model weights for final evaluation...
+[2026-06-27 03:36:49,049] [INFO] [train_autism] [train_autism.py:212]: Auto-exporting best checkpoint model to ONNX: C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-28\test_autism_training_smoke_tes0\experiment\best_model.onnx
+[2026-06-27 03:36:57,294] [INFO] [train_autism] [train_autism.py:225]: ONNX auto-export completed successfully.
+[2026-06-27 03:36:57,313] [INFO] [train_autism] [train_autism.py:80]: Loaded train samples: 16, validation samples: 4
+[2026-06-27 03:37:00,098] [INFO] [train_autism] [train_autism.py:129]: Loading best model weights for final evaluation...
+[2026-06-27 03:37:00,835] [INFO] [train_autism] [train_autism.py:212]: Auto-exporting best checkpoint model to ONNX: C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-28\test_autism_training_smoke_tes0\experiment_resume\best_model.onnx
+[2026-06-27 03:37:06,618] [INFO] [train_autism] [train_autism.py:225]: ONNX auto-export completed successfully.

@@ -27,84 +27,9 @@ from training.checkpoint import Checkpointer
 from training.callbacks import EarlyStopping, HistoryTracker, WandbLogger
 from training.scheduler import get_scheduler
 
+from training.preprocess_autism import preprocess_abide_dataset, wrap_raw_mri
+
 logger = setup_logger("train_autism", "training/train_autism.log")
-
-
-def wrap_raw_mri(raw_mri: RawMRI) -> MRIData:
-    """Helper wrapping raw NIfTI scans into the MRIData schema without slow QA checks."""
-    metadata = MetadataExtractor().extract(raw_mri)
-    return MRIData(
-        raw=raw_mri,
-        metadata=metadata,
-        quality=QualityReport(
-            noise_score=0.0, blur_score=0.0, motion_score=0.0, contrast_score=0.0,
-            dynamic_range=0.0, resolution=1.0, slice_count=raw_mri.tensor.shape[-1], overall_score=1.0
-        ),
-        validation=ValidationReport(
-            file_validation=FileValidationReport(exists=True, readable=True, header_valid=True, corrupt=False),
-            mri_validation=MRIValidationReport(
-                voxel_spacing_valid=True, dimensions_valid=True, intensity_valid=True,
-                orientation_valid=True, metadata_complete=True, empty_slices_detected=False
-            ),
-            is_valid=True
-        ),
-        history=[],
-        preview=[],
-        statistics={"min": 0.0, "max": 1.0, "mean": 0.0, "std": 1.0, "shape": list(raw_mri.tensor.shape), "dtype": str(raw_mri.tensor.dtype)}
-    )
-
-
-def preprocess_abide_dataset(index_file: Path, preprocessed_dir: Path, config_yaml: Path) -> None:
-    """Preprocesses all raw ABIDE scans once and caches the outputs as .pt tensors to disk."""
-    logger.info("Starting one-time offline dataset preprocessing...")
-    preprocessed_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Load pipeline
-    pipeline = PreprocessingPipeline.from_yaml(config_yaml, "autism")
-    
-    # Context
-    ctx = ExecutionContext(
-        logger=logger,
-        cache=None,
-        config={},
-        seed=42,
-        device="cpu"
-    )
-    
-    with open(index_file, encoding="utf-8") as f:
-        items = json.load(f)
-        
-    from engine.readers.nifti import NiftiReader
-    reader = NiftiReader()
-    
-    for idx, item in enumerate(items):
-        subject_id = item["subject_id"]
-        path_str = item["path"]
-        
-        cache_path = preprocessed_dir / f"{subject_id}.pt"
-        if cache_path.exists():
-            continue
-            
-        logger.info(f"[{idx+1}/{len(items)}] Preprocessing subject: {subject_id}")
-        try:
-            # Fast raw read
-            raw_mri = reader.read(Path(path_str))
-            mri_data = wrap_raw_mri(raw_mri)
-            
-            # Execute pipeline
-            processed = pipeline.process(mri_data, ctx)
-            
-            # Save preprocessed outputs
-            torch.save({
-                "image": processed.image,
-                "affine": processed.affine,
-                "metadata": processed.metadata.model_dump()
-            }, cache_path)
-            
-        except Exception as e:
-            logger.error(f"Failed preprocessing for subject {subject_id}: {e}")
-            
-    logger.info("Offline dataset preprocessing completed successfully.")
 
 
 def run_training_experiment(
@@ -118,7 +43,8 @@ def run_training_experiment(
     batch_size: int = 4,
     device: str = "cpu",
     lr: float = 1e-3,
-    resume_from: str | Path | None = None
+    resume_from: str | Path | None = None,
+    skip_preprocess: bool = False,
 ) -> None:
     """Orchestrates full train/validation, checkpointers, and classification plots reports."""
     index_path = Path(index_file)
@@ -129,7 +55,10 @@ def run_training_experiment(
     exp_dir.mkdir(parents=True, exist_ok=True)
     
     # 1. Offline Preprocessing run
-    preprocess_abide_dataset(index_path, preprocessed_path, config_path)
+    if not skip_preprocess:
+        preprocess_abide_dataset(index_path, preprocessed_path, config_path)
+    else:
+        logger.info("Skipping offline dataset preprocessing as requested.")
     
     # 2. Build Datasets
     label_map = {"CONTROL": 0, "ASD": 1}
@@ -299,16 +228,35 @@ def run_training_experiment(
 
 
 if __name__ == "__main__":
-    # Setup baseline run params for Colab/Drive training
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Train 3D DenseNet model on Autism dataset.")
+    parser.add_argument("--data-root", default="/content/drive/MyDrive/NeuroFramework", help="Dataset root directory")
+    parser.add_argument("--index-file", default="data/abide_index.json", help="Index file JSON path")
+    parser.add_argument("--split-file", default="data/abide_splits.json", help="Split file JSON path")
+    parser.add_argument("--preprocessed-dir", default="/content/drive/MyDrive/NeuroFramework/cache/abide", help="Preprocessed cache directory")
+    parser.add_argument("--config-yaml", default="configs/preprocessing.yaml", help="Path to preprocessing configuration YAML")
+    parser.add_argument("--experiment-dir", default="/content/drive/MyDrive/NeuroFramework/experiments/autism_densenet", help="Experiment outputs directory")
+    parser.add_argument("--epochs", type=int, default=5, help="Number of training epochs")
+    parser.add_argument("--batch-size", type=int, default=2, help="Batch size for training")
+    parser.add_argument("--device", default="cuda", help="Target execution device (e.g. cpu, cuda)")
+    parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate")
+    parser.add_argument("--resume-from", default=None, help="Resume training checkpoint model path")
+    parser.add_argument("--skip-preprocess", action="store_true", help="Skip offline dataset preprocessing validation/run step")
+
+    args = parser.parse_args()
+
     run_training_experiment(
-        data_root="/content/drive/MyDrive/NeuroFramework",
-        index_file="data/abide_index.json",
-        split_file="data/abide_splits.json",
-        preprocessed_dir="/content/drive/MyDrive/NeuroFramework/cache/abide",
-        config_yaml="configs/preprocessing.yaml",
-        experiment_dir="/content/drive/MyDrive/NeuroFramework/experiments/autism_densenet",
-        epochs=5,
-        batch_size=2,
-        device="cuda",
-        lr=1e-3,
+        data_root=args.data_root,
+        index_file=args.index_file,
+        split_file=args.split_file,
+        preprocessed_dir=args.preprocessed_dir,
+        config_yaml=args.config_yaml,
+        experiment_dir=args.experiment_dir,
+        epochs=args.epochs,
+        batch_size=args.batch_size,
+        device=args.device,
+        lr=args.lr,
+        resume_from=args.resume_from,
+        skip_preprocess=args.skip_preprocess,
     )

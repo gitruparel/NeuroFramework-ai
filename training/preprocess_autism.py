@@ -1,0 +1,150 @@
+"""Standalone executable command-line script for offline preprocessing of the ABIDE dataset using multiprocessing."""
+
+import argparse
+import json
+import logging
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from pathlib import Path
+import torch
+import numpy as np
+
+from core.logging import setup_logger
+from preprocessing.pipeline import PreprocessingPipeline
+from schemas.mri import MRIData, RawMRI
+from schemas.quality import QualityReport
+from schemas.validation import ValidationReport, FileValidationReport, MRIValidationReport
+from engine.metadata import MetadataExtractor
+from schemas.processing import ExecutionContext
+from engine.readers.nifti import NiftiReader
+
+logger = setup_logger("preprocess_autism", "training/preprocess_autism.log")
+
+
+def wrap_raw_mri(raw_mri: RawMRI) -> MRIData:
+    """Helper wrapping raw NIfTI scans into the MRIData schema without slow QA checks."""
+    metadata = MetadataExtractor().extract(raw_mri)
+    return MRIData(
+        raw=raw_mri,
+        metadata=metadata,
+        quality=QualityReport(
+            noise_score=0.0, blur_score=0.0, motion_score=0.0, contrast_score=0.0,
+            dynamic_range=0.0, resolution=1.0, slice_count=raw_mri.tensor.shape[-1], overall_score=1.0
+        ),
+        validation=ValidationReport(
+            file_validation=FileValidationReport(exists=True, readable=True, header_valid=True, corrupt=False),
+            mri_validation=MRIValidationReport(
+                voxel_spacing_valid=True, dimensions_valid=True, intensity_valid=True,
+                orientation_valid=True, metadata_complete=True, empty_slices_detected=False
+            ),
+            is_valid=True
+        ),
+        history=[],
+        preview=[],
+        statistics={"min": 0.0, "max": 1.0, "mean": 0.0, "std": 1.0, "shape": list(raw_mri.tensor.shape), "dtype": str(raw_mri.tensor.dtype)}
+    )
+
+
+def process_single_subject(subject_id: str, path_str: str, preprocessed_dir: Path, config_yaml: Path) -> bool:
+    """Worker function to preprocess a single subject and write its cached .pt file."""
+    cache_path = preprocessed_dir / f"{subject_id}.pt"
+    if cache_path.exists():
+        return True
+
+    # Initialize a local reader and pipeline within process boundary
+    reader = NiftiReader()
+    pipeline = PreprocessingPipeline.from_yaml(config_yaml, "autism")
+    ctx = ExecutionContext(
+        logger=logging.getLogger("preprocess_worker"),
+        cache=None,
+        config={},
+        seed=42,
+        device="cpu"
+    )
+
+    try:
+        raw_mri = reader.read(Path(path_str))
+        mri_data = wrap_raw_mri(raw_mri)
+        processed = pipeline.process(mri_data, ctx)
+
+        # Save preprocessed outputs
+        torch.save({
+            "image": processed.image,
+            "affine": processed.affine,
+            "metadata": processed.metadata.model_dump()
+        }, cache_path)
+        return True
+    except Exception as e:
+        # Since it's in a subprocess, printing to stdout/stderr is safer
+        print(f"ERROR: Failed preprocessing for subject {subject_id}: {e}")
+        return False
+
+
+def preprocess_abide_dataset(
+    index_file: Path,
+    preprocessed_dir: Path,
+    config_yaml: Path,
+    max_workers: int | None = None,
+) -> None:
+    """Preprocesses all raw ABIDE scans in parallel and caches outputs to disk."""
+    logger.info("Starting offline dataset preprocessing...")
+    preprocessed_dir.mkdir(parents=True, exist_ok=True)
+
+    with open(index_file, encoding="utf-8") as f:
+        items = json.load(f)
+
+    # Filter out already preprocessed files first to avoid pool overhead
+    todo_items = []
+    for item in items:
+        subject_id = item["subject_id"]
+        cache_path = preprocessed_dir / f"{subject_id}.pt"
+        if not cache_path.exists():
+            todo_items.append(item)
+
+    if not todo_items:
+        logger.info("All subjects already preprocessed. Nothing to do.")
+        return
+
+    logger.info(f"Submitting {len(todo_items)} subjects for preprocessing (using {max_workers or 'default'} workers)...")
+
+    success_count = 0
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
+        futures = {
+            executor.submit(
+                process_single_subject,
+                item["subject_id"],
+                item["path"],
+                preprocessed_dir,
+                config_yaml
+            ): item["subject_id"]
+            for item in todo_items
+        }
+
+        for idx, future in enumerate(as_completed(futures)):
+            sub_id = futures[future]
+            try:
+                success = future.result()
+                if success:
+                    success_count += 1
+                if (idx + 1) % 10 == 0 or (idx + 1) == len(todo_items):
+                    logger.info(f"Progress: [{idx + 1}/{len(todo_items)}] processed. Success count: {success_count}")
+            except Exception as e:
+                logger.error(f"Worker generated exception for subject {sub_id}: {e}")
+
+    logger.info(f"Offline dataset preprocessing completed. Successfully preprocessed: {success_count}/{len(todo_items)}")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Run offline preprocessing for the Autism dataset in parallel.")
+    parser.add_argument("--index", default="data/abide_index.json", help="Path to index JSON file")
+    parser.add_argument("--output-dir", default="data/processed/abide", help="Directory to save preprocessed tensors")
+    parser.add_argument("--config", default="configs/preprocessing.yaml", help="Path to preprocessing configuration file")
+    parser.add_argument("--workers", type=int, default=None, help="Number of worker processes (defaults to CPU count)")
+
+    args = parser.parse_args()
+
+    preprocess_abide_dataset(
+        index_file=Path(args.index),
+        preprocessed_dir=Path(args.output_dir),
+        config_yaml=Path(args.config),
+        max_workers=args.workers
+    )
