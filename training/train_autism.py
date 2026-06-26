@@ -299,16 +299,16 @@ def run_training_experiment(
 
 
 if __name__ == "__main__":
-    # Setup baseline run params
+    # Setup baseline run params for Colab/Drive training
     run_training_experiment(
-        data_root="data",
+        data_root="/content/drive/MyDrive/NeuroFramework",
         index_file="data/abide_index.json",
         split_file="data/abide_splits.json",
-        preprocessed_dir="data/processed/abide",
+        preprocessed_dir="/content/drive/MyDrive/NeuroFramework/cache/abide",
         config_yaml="configs/preprocessing.yaml",
-        experiment_dir="experiments/autism_densenet",
-        epochs=10,
-        batch_size=4,
-        device="cpu",
-        lr=1e-3
+        experiment_dir="/content/drive/MyDrive/NeuroFramework/experiments/autism_densenet",
+        epochs=5,
+        batch_size=2,
+        device="cuda",
+        lr=1e-3,
     )
