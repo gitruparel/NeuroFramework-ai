@@ -44,13 +44,43 @@ def wrap_raw_mri(raw_mri: RawMRI) -> MRIData:
     )
 
 
-def process_single_subject(subject_id: str, path_str: str, preprocessed_dir: Path, config_yaml: Path) -> tuple[bool, float]:
+def resolve_raw_path(path_str: str, raw_dir: Path | None) -> Path:
+    """Resolves raw filepath relative to the new raw directory if provided."""
+    path = Path(path_str)
+    if raw_dir is None:
+        return path
+    
+    parts = list(path.parts)
+    # Find parts matching 'sub-*'
+    sub_idx = -1
+    for idx, part in enumerate(parts):
+        if part.startswith("sub-"):
+            sub_idx = idx
+            break
+            
+    if sub_idx != -1:
+        # Include site directory (one level above 'sub-')
+        start_idx = max(0, sub_idx - 1)
+        rel_path = Path(*parts[start_idx:])
+        return Path(raw_dir) / rel_path
+    
+    # Fallback to filename
+    return Path(raw_dir) / path.name
+
+
+def process_single_subject(
+    subject_id: str,
+    path_str: str,
+    preprocessed_dir: Path,
+    config_yaml: Path,
+    raw_dir: Path | None = None,
+) -> tuple[bool, float, list[tuple[str, float]]]:
     """Worker function to preprocess a single subject and write its cached .pt file."""
     import time
     start_t = time.time()
     cache_path = preprocessed_dir / f"{subject_id}.pt"
     if cache_path.exists():
-        return True, 0.0
+        return True, 0.0, []
 
     # Initialize a local reader and pipeline within process boundary
     reader = NiftiReader()
@@ -64,9 +94,15 @@ def process_single_subject(subject_id: str, path_str: str, preprocessed_dir: Pat
     )
 
     try:
-        raw_mri = reader.read(Path(path_str))
+        resolved_path = resolve_raw_path(path_str, raw_dir)
+        raw_mri = reader.read(resolved_path)
         mri_data = wrap_raw_mri(raw_mri)
         processed = pipeline.process(mri_data, ctx)
+
+        # Collect step timings from history
+        step_timings = []
+        for record in processed.history:
+            step_timings.append((record.step_name, record.duration))
 
         # Save preprocessed outputs
         torch.save({
@@ -74,17 +110,18 @@ def process_single_subject(subject_id: str, path_str: str, preprocessed_dir: Pat
             "affine": processed.affine,
             "metadata": processed.metadata.model_dump()
         }, cache_path)
-        return True, time.time() - start_t
+        return True, time.time() - start_t, step_timings
     except Exception as e:
         # Since it's in a subprocess, printing to stdout/stderr is safer
         print(f"ERROR: Failed preprocessing for subject {subject_id}: {e}")
-        return False, time.time() - start_t
+        return False, time.time() - start_t, []
 
 
 def preprocess_abide_dataset(
     index_file: Path,
     preprocessed_dir: Path,
     config_yaml: Path,
+    raw_dir: Path | None = None,
     max_workers: int | None = None,
     limit: int | None = None,
 ) -> None:
@@ -125,7 +162,8 @@ def preprocess_abide_dataset(
                 item["subject_id"],
                 item["path"],
                 preprocessed_dir,
-                config_yaml
+                config_yaml,
+                raw_dir
             ): item["subject_id"]
             for item in todo_items
         }
@@ -133,7 +171,7 @@ def preprocess_abide_dataset(
         for idx, future in enumerate(as_completed(futures)):
             sub_id = futures[future]
             try:
-                success, sub_time = future.result()
+                success, sub_time, step_timings = future.result()
                 if success:
                     success_count += 1
                 
@@ -159,6 +197,9 @@ def preprocess_abide_dataset(
                     f"[{idx + 1}/{len(todo_items)}] Subject: {sub_id} | "
                     f"Time: {sub_time:.1f}s | Average: {avg_time:.1f}s | ETA: {eta_str}"
                 )
+                if step_timings:
+                    for step_name, elapsed in step_timings:
+                        logger.info(f"  {step_name:<18} {elapsed:5.1f} s")
             except Exception as e:
                 logger.error(f"Worker generated exception for subject {sub_id}: {e}")
 
@@ -168,6 +209,7 @@ def preprocess_abide_dataset(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run offline preprocessing for the Autism dataset in parallel.")
     parser.add_argument("--index", default="data/abide_index.json", help="Path to index JSON file")
+    parser.add_argument("--raw-dir", default=None, help="Optional raw dataset root directory override")
     parser.add_argument("--output-dir", default="data/processed/abide", help="Directory to save preprocessed tensors")
     parser.add_argument("--config", default="configs/preprocessing.yaml", help="Path to preprocessing configuration file")
     parser.add_argument("--workers", type=int, default=None, help="Number of worker processes (defaults to CPU count)")
@@ -179,6 +221,7 @@ if __name__ == "__main__":
         index_file=Path(args.index),
         preprocessed_dir=Path(args.output_dir),
         config_yaml=Path(args.config),
+        raw_dir=Path(args.raw_dir) if args.raw_dir else None,
         max_workers=args.workers,
         limit=args.limit
     )

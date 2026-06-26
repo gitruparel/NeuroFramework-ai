@@ -8,13 +8,38 @@ from schemas.dataset import DatasetSample
 from engine.readers.nifti import NiftiReader
 
 
+def resolve_raw_path(path_str: str, raw_dir: Path | None) -> Path:
+    """Resolves raw filepath relative to the new raw directory if provided."""
+    path = Path(path_str)
+    if raw_dir is None:
+        return path
+    
+    parts = list(path.parts)
+    # Find parts matching 'sub-*'
+    sub_idx = -1
+    for idx, part in enumerate(parts):
+        if part.startswith("sub-"):
+            sub_idx = idx
+            break
+            
+    if sub_idx != -1:
+        # Include site directory (one level above 'sub-')
+        start_idx = max(0, sub_idx - 1)
+        rel_path = Path(*parts[start_idx:])
+        return Path(raw_dir) / rel_path
+    
+    # Fallback to filename
+    return Path(raw_dir) / path.name
+
+
 @DatasetRegistry.register("abide")
 class ABIDEDataset(MRIDataset):
     """PyTorch Dataset loader for ABIDE autism scans, supporting cached preprocessed volumes."""
 
-    def __init__(self, *args: Any, preprocessed_dir: str | Path | None = None, **kwargs: Any):
+    def __init__(self, *args: Any, preprocessed_dir: str | Path | None = None, raw_dir: str | Path | None = None, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.preprocessed_dir = Path(preprocessed_dir) if preprocessed_dir is not None else None
+        self.raw_dir = Path(raw_dir) if raw_dir is not None else None
         self.reader = NiftiReader()
 
     def __getitem__(self, index: int) -> DatasetSample:
@@ -53,7 +78,8 @@ class ABIDEDataset(MRIDataset):
                 )
 
         # 2. Fallback to raw NIfTI volume loader (slower)
-        raw_mri = self.reader.read(Path(path_str))
+        resolved_path = resolve_raw_path(path_str, self.raw_dir)
+        raw_mri = self.reader.read(resolved_path)
         tensor = torch.from_numpy(raw_mri.tensor).float()
         if len(tensor.shape) == 3:
             tensor = tensor.unsqueeze(0)

@@ -45,6 +45,7 @@ def run_training_experiment(
     lr: float = 1e-3,
     resume_from: str | Path | None = None,
     skip_preprocess: bool = False,
+    copy_outputs_to: str | Path | None = None,
 ) -> None:
     """Orchestrates full train/validation, checkpointers, and classification plots reports."""
     index_path = Path(index_file)
@@ -56,7 +57,7 @@ def run_training_experiment(
     
     # 1. Offline Preprocessing run
     if not skip_preprocess:
-        preprocess_abide_dataset(index_path, preprocessed_path, config_path)
+        preprocess_abide_dataset(index_path, preprocessed_path, config_path, raw_dir=data_root)
     else:
         logger.info("Skipping offline dataset preprocessing as requested.")
     
@@ -67,6 +68,7 @@ def run_training_experiment(
         split_file=split_path,
         split_name="train",
         preprocessed_dir=preprocessed_path,
+        raw_dir=data_root,
         label_map=label_map
     )
     val_dataset = ABIDEDataset(
@@ -74,6 +76,7 @@ def run_training_experiment(
         split_file=split_path,
         split_name="val",
         preprocessed_dir=preprocessed_path,
+        raw_dir=data_root,
         label_map=label_map
     )
     
@@ -92,7 +95,7 @@ def run_training_experiment(
         "epochs": epochs,
         "batch_size": batch_size,
         "device": device,
-        "amp": False, # disable amp on CPU to prevent test suite warnings
+        "amp": True,
         "grad_clip_max_norm": 1.0,
         "learning_rate": lr,
         "monitor": "val_loss",
@@ -134,7 +137,14 @@ def run_training_experiment(
     model.eval()
     
     from torch.utils.data import DataLoader
-    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_dataset_samples)
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=2 if device == "cuda" else 0,
+        pin_memory=device == "cuda",
+        collate_fn=collate_dataset_samples
+    )
     
     y_true = []
     y_pred = []
@@ -142,8 +152,8 @@ def run_training_experiment(
     
     with torch.no_grad():
         for batch in val_loader:
-            inputs = batch["image"].to(device)
-            targets = batch["label"].to(device)
+            inputs = batch["image"].to(device, non_blocking=True)
+            targets = batch["label"].to(device, non_blocking=True)
             outputs = model(inputs)
             
             probs = torch.softmax(outputs, dim=1)
@@ -225,6 +235,22 @@ def run_training_experiment(
         logger.info("ONNX auto-export completed successfully.")
     except Exception as e:
         logger.error(f"ONNX model export failed: {e}")
+        
+    # 8. Copy outputs back to destination (e.g. Google Drive) if requested
+    if copy_outputs_to is not None:
+        dest_dir = Path(copy_outputs_to)
+        logger.info(f"Copying final experiment outputs to destination: {dest_dir}")
+        try:
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            import shutil
+            for item in exp_dir.iterdir():
+                if item.is_file():
+                    shutil.copy(item, dest_dir / item.name)
+                elif item.is_dir():
+                    shutil.copytree(item, dest_dir / item.name, dirs_exist_ok=True)
+            logger.info("Successfully copied final experiment outputs.")
+        except Exception as e:
+            logger.error(f"Failed to copy final experiment outputs: {e}")
 
 
 if __name__ == "__main__":
@@ -243,6 +269,7 @@ if __name__ == "__main__":
     parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate")
     parser.add_argument("--resume-from", default=None, help="Resume training checkpoint model path")
     parser.add_argument("--skip-preprocess", action="store_true", help="Skip offline dataset preprocessing validation/run step")
+    parser.add_argument("--copy-outputs-to", default=None, help="Optional directory to copy final experiment outputs back to (e.g. on Google Drive)")
 
     args = parser.parse_args()
 
@@ -259,4 +286,5 @@ if __name__ == "__main__":
         lr=args.lr,
         resume_from=args.resume_from,
         skip_preprocess=args.skip_preprocess,
+        copy_outputs_to=args.copy_outputs_to,
     )

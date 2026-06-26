@@ -122,6 +122,14 @@ brain-ai/
 - **Problem:** Need a clean, reusable dataset parsing layer to convert BIDS-layout raw files and phenotypic CSV records into splits and index files without duplicating dataset management.
 - **Decision:** Implemented `DatasetCompiler` as an abstract class, creating `ABIDECompiler` to parse BIDS structures and phenotypic variables (clearing null placeholding integers, mapping diagnosis, extracting demographic metadata), generating stratified splits and stratified 5-fold cross-validation configs, while leaving placeholders for `ADNICompiler` and `BraTSCompiler`.
 
+### 10. Training Performance & Preprocessing Telemetry Optimizations
+- **Problem:** Need to maximize training throughput, reduce CPU-GPU data copy latency, support fast local SSD caching/output backups, and identify preprocessing performance bottlenecks.
+- **Decision:**
+  - **AMP & cudnn.benchmark:** Enabled PyTorch Automatic Mixed Precision (AMP) dynamically on CUDA devices to accelerate 3D model convolutions, and activated `torch.backends.cudnn.benchmark = True` for optimized fixed-shape input pipelines.
+  - **Multi-worker DataLoader:** Parameterized trainer DataLoaders with `num_workers=2`, `pin_memory=True`, and `persistent_workers=True` on CUDA.
+  - **SSD Local Caching Support:** Parameterized the pipeline with a custom `--raw-dir` path resolver (`resolve_raw_path`) and training output copy helper (`--copy-outputs-to`) to support local SSD staging and training loop execution decoupling on cloud environments (like Google Colab).
+  - **Transform Telemetry Profiling:** Collected execution duration of each pipeline step and logged progress breakdowns (e.g. `Reorient`, `BiasFieldCorrector`) to monitor CPU bottlenecks.
+
 ## Pipeline Development Status
 
 - **Stage 0 (Architecture Foundation):** Completed

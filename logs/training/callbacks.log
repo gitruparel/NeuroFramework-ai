@@ -74,3 +74,15 @@
 [2026-06-27 03:57:42,042] [INFO] [training.callbacks] [callbacks.py:47]: Early stopping triggered at epoch 3.
 [2026-06-27 03:57:42,042] [INFO] [training.callbacks] [callbacks.py:100]: Saved training history to C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-29\test_trainer_pipeline_and_call0\experiments\history.json
 [2026-06-27 03:57:42,491] [INFO] [training.callbacks] [callbacks.py:138]: Saved loss and accuracy visualization curves.
+[2026-06-27 04:15:45,087] [INFO] [training.callbacks] [callbacks.py:62]: Initializing WandB experiment logger...
+[2026-06-27 04:15:49,801] [INFO] [training.callbacks] [callbacks.py:100]: Saved training history to C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-30\test_autism_training_smoke_tes0\experiment\history.json
+[2026-06-27 04:15:50,407] [INFO] [training.callbacks] [callbacks.py:138]: Saved loss and accuracy visualization curves.
+[2026-06-27 04:15:59,904] [INFO] [training.callbacks] [callbacks.py:62]: Initializing WandB experiment logger...
+[2026-06-27 04:16:02,162] [INFO] [training.callbacks] [callbacks.py:100]: Saved training history to C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-30\test_autism_training_smoke_tes0\experiment_resume\history.json
+[2026-06-27 04:16:02,563] [INFO] [training.callbacks] [callbacks.py:138]: Saved loss and accuracy visualization curves.
+[2026-06-27 04:17:16,992] [INFO] [training.callbacks] [callbacks.py:62]: Initializing WandB experiment logger...
+[2026-06-27 04:17:22,348] [INFO] [training.callbacks] [callbacks.py:100]: Saved training history to C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-31\test_autism_training_smoke_tes0\experiment\history.json
+[2026-06-27 04:17:22,923] [INFO] [training.callbacks] [callbacks.py:138]: Saved loss and accuracy visualization curves.
+[2026-06-27 04:17:33,022] [INFO] [training.callbacks] [callbacks.py:62]: Initializing WandB experiment logger...
+[2026-06-27 04:17:35,515] [INFO] [training.callbacks] [callbacks.py:100]: Saved training history to C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-31\test_autism_training_smoke_tes0\experiment_resume\history.json
+[2026-06-27 04:17:35,951] [INFO] [training.callbacks] [callbacks.py:138]: Saved loss and accuracy visualization curves.

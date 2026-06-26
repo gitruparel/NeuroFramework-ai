@@ -78,12 +78,22 @@ class Trainer(BaseTrainer):
         self.model.to(self.device)
         self.stop_training = False
 
+        if "cuda" in self.device:
+            torch.backends.cudnn.benchmark = True
+
         batch_size = self.config.get("batch_size", 4)
+        num_workers = self.config.get("num_workers", 2 if "cuda" in self.device else 0)
+        pin_memory = self.config.get("pin_memory", "cuda" in self.device)
+        persistent_workers = self.config.get("persistent_workers", num_workers > 0) if num_workers > 0 else False
+
         train_loader = DataLoader(
             self.train_dataset,
             batch_size=batch_size,
             shuffle=True,
             drop_last=True,
+            num_workers=num_workers,
+            pin_memory=pin_memory,
+            persistent_workers=persistent_workers,
             collate_fn=collate_dataset_samples
         )
 
@@ -115,8 +125,8 @@ class Trainer(BaseTrainer):
             train_probs = []
 
             for batch in train_loader:
-                inputs = batch["image"].to(self.device)
-                targets = batch["label"].to(self.device)
+                inputs = batch["image"].to(self.device, non_blocking=True)
+                targets = batch["label"].to(self.device, non_blocking=True)
 
                 self.optimizer.zero_grad()
 
@@ -191,10 +201,17 @@ class Trainer(BaseTrainer):
     def validate(self) -> Dict[str, float]:
         """Runs validation loop and returns calculated metrics."""
         batch_size = self.config.get("batch_size", 4)
+        num_workers = self.config.get("num_workers", 2 if "cuda" in self.device else 0)
+        pin_memory = self.config.get("pin_memory", "cuda" in self.device)
+        persistent_workers = self.config.get("persistent_workers", num_workers > 0) if num_workers > 0 else False
+
         val_loader = DataLoader(
             self.val_dataset,
             batch_size=batch_size,
             shuffle=False,
+            num_workers=num_workers,
+            pin_memory=pin_memory,
+            persistent_workers=persistent_workers,
             collate_fn=collate_dataset_samples
         )
 
@@ -206,8 +223,8 @@ class Trainer(BaseTrainer):
 
         with torch.no_grad():
             for batch in val_loader:
-                inputs = batch["image"].to(self.device)
-                targets = batch["label"].to(self.device)
+                inputs = batch["image"].to(self.device, non_blocking=True)
+                targets = batch["label"].to(self.device, non_blocking=True)
 
                 outputs = self.model(inputs)
                 loss = self.loss_fn(outputs, targets)

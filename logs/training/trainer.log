@@ -187,3 +187,21 @@
 [2026-06-27 03:57:42,531] [INFO] [training.trainer] [trainer.py:108]: Trainer: Epoch 2/3
 [2026-06-27 03:57:42,545] [INFO] [training.trainer] [trainer.py:108]: Trainer: Epoch 3/3
 [2026-06-27 03:57:42,557] [INFO] [training.trainer] [trainer.py:189]: Trainer: Training run finished.
+[2026-06-27 04:15:45,084] [INFO] [training.trainer] [trainer.py:77]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 04:15:46,031] [INFO] [training.trainer] [trainer.py:108]: Trainer: Epoch 1/2
+[2026-06-27 04:15:48,103] [INFO] [training.trainer] [trainer.py:108]: Trainer: Epoch 2/2
+[2026-06-27 04:15:50,408] [INFO] [training.trainer] [trainer.py:189]: Trainer: Training run finished.
+[2026-06-27 04:15:59,751] [INFO] [training.trainer] [trainer.py:51]: Trainer: Resuming training run from checkpoint: C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-30\test_autism_training_smoke_tes0\experiment\latest_model.pt
+[2026-06-27 04:15:59,900] [INFO] [training.trainer] [trainer.py:62]: Trainer: Successfully resumed. Next epoch will start at 3.
+[2026-06-27 04:15:59,901] [INFO] [training.trainer] [trainer.py:77]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 04:16:00,029] [INFO] [training.trainer] [trainer.py:108]: Trainer: Epoch 3/3
+[2026-06-27 04:16:02,563] [INFO] [training.trainer] [trainer.py:189]: Trainer: Training run finished.
+[2026-06-27 04:17:16,988] [INFO] [training.trainer] [trainer.py:77]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 04:17:17,997] [INFO] [training.trainer] [trainer.py:118]: Trainer: Epoch 1/2
+[2026-06-27 04:17:20,337] [INFO] [training.trainer] [trainer.py:118]: Trainer: Epoch 2/2
+[2026-06-27 04:17:22,923] [INFO] [training.trainer] [trainer.py:199]: Trainer: Training run finished.
+[2026-06-27 04:17:32,822] [INFO] [training.trainer] [trainer.py:51]: Trainer: Resuming training run from checkpoint: C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-31\test_autism_training_smoke_tes0\experiment\latest_model.pt
+[2026-06-27 04:17:33,017] [INFO] [training.trainer] [trainer.py:62]: Trainer: Successfully resumed. Next epoch will start at 3.
+[2026-06-27 04:17:33,017] [INFO] [training.trainer] [trainer.py:77]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 04:17:33,176] [INFO] [training.trainer] [trainer.py:118]: Trainer: Epoch 3/3
+[2026-06-27 04:17:35,951] [INFO] [training.trainer] [trainer.py:199]: Trainer: Training run finished.
