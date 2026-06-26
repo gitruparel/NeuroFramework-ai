@@ -64,3 +64,13 @@
 [2026-06-27 03:37:06,637] [INFO] [training.callbacks] [callbacks.py:62]: Initializing WandB experiment logger...
 [2026-06-27 03:37:06,810] [INFO] [training.callbacks] [callbacks.py:100]: Saved training history to C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-28\test_trainer_pipeline_and_call0\experiments\history.json
 [2026-06-27 03:37:07,247] [INFO] [training.callbacks] [callbacks.py:138]: Saved loss and accuracy visualization curves.
+[2026-06-27 03:57:17,330] [INFO] [training.callbacks] [callbacks.py:62]: Initializing WandB experiment logger...
+[2026-06-27 03:57:22,877] [INFO] [training.callbacks] [callbacks.py:100]: Saved training history to C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-29\test_autism_training_smoke_tes0\experiment\history.json
+[2026-06-27 03:57:23,418] [INFO] [training.callbacks] [callbacks.py:138]: Saved loss and accuracy visualization curves.
+[2026-06-27 03:57:32,898] [INFO] [training.callbacks] [callbacks.py:62]: Initializing WandB experiment logger...
+[2026-06-27 03:57:34,924] [INFO] [training.callbacks] [callbacks.py:100]: Saved training history to C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-29\test_autism_training_smoke_tes0\experiment_resume\history.json
+[2026-06-27 03:57:35,336] [INFO] [training.callbacks] [callbacks.py:138]: Saved loss and accuracy visualization curves.
+[2026-06-27 03:57:41,876] [INFO] [training.callbacks] [callbacks.py:62]: Initializing WandB experiment logger...
+[2026-06-27 03:57:42,042] [INFO] [training.callbacks] [callbacks.py:47]: Early stopping triggered at epoch 3.
+[2026-06-27 03:57:42,042] [INFO] [training.callbacks] [callbacks.py:100]: Saved training history to C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-29\test_trainer_pipeline_and_call0\experiments\history.json
+[2026-06-27 03:57:42,491] [INFO] [training.callbacks] [callbacks.py:138]: Saved loss and accuracy visualization curves.

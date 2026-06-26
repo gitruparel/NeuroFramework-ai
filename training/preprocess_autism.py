@@ -44,11 +44,13 @@ def wrap_raw_mri(raw_mri: RawMRI) -> MRIData:
     )
 
 
-def process_single_subject(subject_id: str, path_str: str, preprocessed_dir: Path, config_yaml: Path) -> bool:
+def process_single_subject(subject_id: str, path_str: str, preprocessed_dir: Path, config_yaml: Path) -> tuple[bool, float]:
     """Worker function to preprocess a single subject and write its cached .pt file."""
+    import time
+    start_t = time.time()
     cache_path = preprocessed_dir / f"{subject_id}.pt"
     if cache_path.exists():
-        return True
+        return True, 0.0
 
     # Initialize a local reader and pipeline within process boundary
     reader = NiftiReader()
@@ -72,11 +74,11 @@ def process_single_subject(subject_id: str, path_str: str, preprocessed_dir: Pat
             "affine": processed.affine,
             "metadata": processed.metadata.model_dump()
         }, cache_path)
-        return True
+        return True, time.time() - start_t
     except Exception as e:
         # Since it's in a subprocess, printing to stdout/stderr is safer
         print(f"ERROR: Failed preprocessing for subject {subject_id}: {e}")
-        return False
+        return False, time.time() - start_t
 
 
 def preprocess_abide_dataset(
@@ -84,8 +86,10 @@ def preprocess_abide_dataset(
     preprocessed_dir: Path,
     config_yaml: Path,
     max_workers: int | None = None,
+    limit: int | None = None,
 ) -> None:
     """Preprocesses all raw ABIDE scans in parallel and caches outputs to disk."""
+    import time
     logger.info("Starting offline dataset preprocessing...")
     preprocessed_dir.mkdir(parents=True, exist_ok=True)
 
@@ -100,6 +104,11 @@ def preprocess_abide_dataset(
         if not cache_path.exists():
             todo_items.append(item)
 
+    # Apply limit argument if specified
+    if limit is not None:
+        logger.info(f"Limiting preprocessing to first {limit} subjects.")
+        todo_items = todo_items[:limit]
+
     if not todo_items:
         logger.info("All subjects already preprocessed. Nothing to do.")
         return
@@ -107,6 +116,8 @@ def preprocess_abide_dataset(
     logger.info(f"Submitting {len(todo_items)} subjects for preprocessing (using {max_workers or 'default'} workers)...")
 
     success_count = 0
+    run_start = time.time()
+
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
         futures = {
             executor.submit(
@@ -122,11 +133,32 @@ def preprocess_abide_dataset(
         for idx, future in enumerate(as_completed(futures)):
             sub_id = futures[future]
             try:
-                success = future.result()
+                success, sub_time = future.result()
                 if success:
                     success_count += 1
-                if (idx + 1) % 10 == 0 or (idx + 1) == len(todo_items):
-                    logger.info(f"Progress: [{idx + 1}/{len(todo_items)}] processed. Success count: {success_count}")
+                
+                # Performance reporting and ETA calculations
+                elapsed_total = time.time() - run_start
+                avg_time = elapsed_total / (idx + 1)
+                remaining = len(todo_items) - (idx + 1)
+                eta_seconds = remaining * avg_time
+
+                hours = int(eta_seconds // 3600)
+                minutes = int((eta_seconds % 3600) // 60)
+                seconds = int(eta_seconds % 60)
+                
+                if hours > 0:
+                    eta_str = f"{hours}h {minutes}m"
+                elif minutes > 0:
+                    eta_str = f"{minutes}m {seconds}s"
+                else:
+                    eta_str = f"{seconds}s"
+
+                # Log progress
+                logger.info(
+                    f"[{idx + 1}/{len(todo_items)}] Subject: {sub_id} | "
+                    f"Time: {sub_time:.1f}s | Average: {avg_time:.1f}s | ETA: {eta_str}"
+                )
             except Exception as e:
                 logger.error(f"Worker generated exception for subject {sub_id}: {e}")
 
@@ -139,6 +171,7 @@ if __name__ == "__main__":
     parser.add_argument("--output-dir", default="data/processed/abide", help="Directory to save preprocessed tensors")
     parser.add_argument("--config", default="configs/preprocessing.yaml", help="Path to preprocessing configuration file")
     parser.add_argument("--workers", type=int, default=None, help="Number of worker processes (defaults to CPU count)")
+    parser.add_argument("--limit", type=int, default=None, help="Limit preprocessing to first N subjects")
 
     args = parser.parse_args()
 
@@ -146,5 +179,6 @@ if __name__ == "__main__":
         index_file=Path(args.index),
         preprocessed_dir=Path(args.output_dir),
         config_yaml=Path(args.config),
-        max_workers=args.workers
+        max_workers=args.workers,
+        limit=args.limit
     )
