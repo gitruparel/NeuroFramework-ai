@@ -1,0 +1,236 @@
+"""Training execution loop implementation coordinating PyTorch modules, optimization steps, and callbacks."""
+
+from pathlib import Path
+from typing import Dict, Any, List
+import numpy as np
+import torch
+from torch.utils.data import DataLoader
+from schemas.dataset import collate_dataset_samples
+from core.interfaces import BaseTrainer, BaseCallback, BaseModel, BaseDataset
+from core.logging import setup_logger
+from training.metrics import MetricsManager
+
+logger = setup_logger("training.trainer", "training/trainer.log")
+
+
+class Trainer(BaseTrainer):
+    """Training engine managing dataloaders, optimization loops, AMP, grad clipping, and lifecycles."""
+
+    def __init__(
+        self,
+        model: BaseModel,
+        train_dataset: BaseDataset,
+        val_dataset: BaseDataset,
+        optimizer: torch.optim.Optimizer,
+        loss_fn: Any,
+        scheduler: Any = None,
+        callbacks: List[BaseCallback] | None = None,
+        config: Dict[str, Any] | None = None,
+    ):
+        self.model = model
+        self.train_dataset = train_dataset
+        self.val_dataset = val_dataset
+        self.optimizer = optimizer
+        self.loss_fn = loss_fn
+        self.scheduler = scheduler
+        self.callbacks = callbacks or []
+        self.config = config or {}
+        
+        self.device = self.config.get(
+            "device", "cuda" if torch.cuda.is_available() else "cpu"
+        )
+        self.current_epoch = 0
+        self.start_epoch = 0
+        self.stop_training = False
+
+    def fit(self, resume_from: str | Path | None = None) -> None:
+        """Loads weight checkpoints and optimizers state if provided, then executes the train loop."""
+        if resume_from is not None:
+            checkpoint_path = Path(resume_from)
+            if checkpoint_path.exists():
+                logger.info(f"Trainer: Resuming training run from checkpoint: {checkpoint_path}")
+                checkpoint = torch.load(checkpoint_path, map_location=self.device, weights_only=False)
+                
+                self.model.load_state_dict(checkpoint["model_state_dict"])
+                self.optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+                
+                if self.scheduler is not None and checkpoint.get("scheduler_state_dict") is not None:
+                    self.scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
+                    
+                self.start_epoch = checkpoint["epoch"] + 1
+                self.current_epoch = self.start_epoch
+                logger.info(f"Trainer: Successfully resumed. Next epoch will start at {self.start_epoch + 1}.")
+            else:
+                logger.warning(
+                    f"Trainer: Resuming path {checkpoint_path} not found. Starting from scratch."
+                )
+                self.start_epoch = 0
+                self.current_epoch = 0
+        else:
+            self.start_epoch = 0
+            self.current_epoch = 0
+
+        self.train()
+
+    def train(self) -> None:
+        """Starts model training execution loop."""
+        logger.info(f"Trainer: Initializing training run on device '{self.device}'...")
+        self.model.to(self.device)
+        self.stop_training = False
+
+        batch_size = self.config.get("batch_size", 4)
+        train_loader = DataLoader(
+            self.train_dataset,
+            batch_size=batch_size,
+            shuffle=True,
+            drop_last=True,
+            collate_fn=collate_dataset_samples
+        )
+
+        # Set up Mixed Precision Scaler
+        use_amp = self.config.get("amp", False) and "cuda" in self.device
+        device_type = "cuda" if "cuda" in self.device else "cpu"
+        scaler = torch.amp.GradScaler(device=device_type, enabled=use_amp)
+
+        epochs = self.config.get("epochs", 10)
+        start_epoch = getattr(self, "start_epoch", 0)
+
+        # 1. Trigger train start callbacks
+        for callback in self.callbacks:
+            callback.on_train_start(self)
+
+        for epoch in range(start_epoch, epochs):
+            if self.stop_training:
+                logger.info("Trainer: stop_training flag is active. Aborting epoch loop.")
+                break
+
+            self.current_epoch = epoch
+            logger.info(f"Trainer: Epoch {epoch + 1}/{epochs}")
+
+            # Training epoch
+            self.model.train()
+            train_loss = 0.0
+            train_preds = []
+            train_targets = []
+            train_probs = []
+
+            for batch in train_loader:
+                inputs = batch["image"].to(self.device)
+                targets = batch["label"].to(self.device)
+
+                self.optimizer.zero_grad()
+
+                # AMP Forward pass
+                with torch.amp.autocast(device_type=device_type, enabled=use_amp):
+                    outputs = self.model(inputs)
+                    loss = self.loss_fn(outputs, targets)
+
+                # Backward pass
+                scaler.scale(loss).backward()
+
+                # Gradient Clipping
+                grad_clip = self.config.get("grad_clip_max_norm")
+                if grad_clip is not None:
+                    scaler.unscale_(self.optimizer)
+                    torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=grad_clip)
+
+                # Optimizer step
+                scaler.step(self.optimizer)
+                scaler.update()
+
+                train_loss += loss.item() * inputs.size(0)
+
+                # Track predictions and targets
+                probs = torch.softmax(outputs, dim=1) if outputs.size(1) > 1 else torch.sigmoid(outputs)
+                preds = torch.argmax(outputs, dim=1) if outputs.size(1) > 1 else (outputs > 0).long()
+
+                train_preds.extend(preds.cpu().numpy())
+                train_targets.extend(targets.cpu().numpy())
+                train_probs.extend(probs.detach().cpu().numpy())
+
+            # Compile Train Metrics
+            train_loss = train_loss / len(self.train_dataset)
+            train_metrics = MetricsManager.calculate_classification_metrics(
+                np.array(train_targets),
+                np.array(train_preds),
+                np.array(train_probs)
+            )
+
+            # Validation epoch
+            val_metrics = self.validate()
+
+            # Step learning rate scheduler if present
+            if self.scheduler is not None:
+                if isinstance(self.scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
+                    self.scheduler.step(val_metrics["val_loss"])
+                else:
+                    self.scheduler.step()
+
+            # Consolidate epoch metrics
+            epoch_metrics = {
+                "train_loss": train_loss,
+                "val_loss": val_metrics["val_loss"]
+            }
+            for k, v in train_metrics.items():
+                epoch_metrics[f"train_{k}"] = v
+            for k, v in val_metrics.items():
+                if k != "val_loss":
+                    epoch_metrics[f"val_{k}"] = v
+
+            # 2. Trigger epoch end callbacks
+            for callback in self.callbacks:
+                callback.on_epoch_end(self, epoch, epoch_metrics)
+
+        # 3. Trigger train end callbacks
+        for callback in self.callbacks:
+            if hasattr(callback, "on_train_end"):
+                callback.on_train_end(self)
+
+        logger.info("Trainer: Training run finished.")
+
+    def validate(self) -> Dict[str, float]:
+        """Runs validation loop and returns calculated metrics."""
+        batch_size = self.config.get("batch_size", 4)
+        val_loader = DataLoader(
+            self.val_dataset,
+            batch_size=batch_size,
+            shuffle=False,
+            collate_fn=collate_dataset_samples
+        )
+
+        self.model.eval()
+        val_loss = 0.0
+        val_preds = []
+        val_targets = []
+        val_probs = []
+
+        with torch.no_grad():
+            for batch in val_loader:
+                inputs = batch["image"].to(self.device)
+                targets = batch["label"].to(self.device)
+
+                outputs = self.model(inputs)
+                loss = self.loss_fn(outputs, targets)
+
+                val_loss += loss.item() * inputs.size(0)
+
+                probs = torch.softmax(outputs, dim=1) if outputs.size(1) > 1 else torch.sigmoid(outputs)
+                preds = torch.argmax(outputs, dim=1) if outputs.size(1) > 1 else (outputs > 0).long()
+
+                val_preds.extend(preds.cpu().numpy())
+                val_targets.extend(targets.cpu().numpy())
+                val_probs.extend(probs.cpu().numpy())
+
+        val_loss = val_loss / len(self.val_dataset)
+        metrics = MetricsManager.calculate_classification_metrics(
+            np.array(val_targets),
+            np.array(val_preds),
+            np.array(val_probs)
+        )
+
+        # Assemble validation outputs
+        val_outputs = {"val_loss": val_loss}
+        for k, v in metrics.items():
+            val_outputs[f"val_{k}"] = v
+
+        return val_outputs

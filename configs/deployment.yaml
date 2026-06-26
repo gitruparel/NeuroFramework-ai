@@ -1,0 +1,13 @@
+deployment:
+  backend:
+    host: "0.0.0.0"
+    port: 8000
+    debug: false
+    workers: 2
+    cors_origins: ["*"]
+  frontend:
+    port: 8501
+    theme: "dark"
+  onnx_runtime:
+    providers: ["CUDAExecutionProvider", "CPUExecutionProvider"]
+    intra_op_num_threads: 4

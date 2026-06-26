@@ -1,0 +1,28 @@
+profiles:
+  autism:
+    - transform: reorient
+      params: { target: "RAS" }
+    - transform: bias_correction
+      params: { strategy: "n4" }
+    - transform: skull_strip
+      params: { strategy: "threshold" }
+    - transform: normalize
+      params: { mode: "z_score" }
+  alzheimer:
+    - transform: reorient
+      params: { target: "RAS" }
+    - transform: bias_correction
+      params: { strategy: "n4" }
+    - transform: skull_strip
+      params: { strategy: "threshold" }
+    - transform: crop_foreground
+      params: {}
+    - transform: normalize
+      params: { mode: "z_score" }
+  tumor:
+    - transform: reorient
+      params: { target: "RAS" }
+    - transform: resample
+      params: { spacing: [1.0, 1.0, 1.0] }
+    - transform: normalize
+      params: { mode: "min_max" }

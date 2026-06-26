@@ -1,0 +1,9 @@
+paths:
+  data:
+    raw: "data/raw"
+    processed: "data/processed"
+    interim: "data/interim"
+    external: "data/external"
+  experiments: "experiments"
+  logs: "logs"
+  reports: "reports/exports"

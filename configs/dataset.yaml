@@ -1,0 +1,18 @@
+dataset:
+  name: "StructuralMRI_Dataset"
+  modality: "T1w"
+  format: "nii.gz"
+  preprocessing:
+    target_spacing: [1.0, 1.0, 1.0]
+    bias_field_correction: true
+    skull_stripping: true
+    normalization: "z_score"
+    crop_foreground: true
+  split:
+    train: 0.8
+    val: 0.1
+    test: 0.1
+  loader:
+    batch_size: 4
+    num_workers: 4
+    pin_memory: true

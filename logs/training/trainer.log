@@ -1,0 +1,97 @@
+[2026-06-27 00:05:00,385] [INFO] [training.trainer] [trainer.py:76]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 00:05:01,539] [INFO] [training.trainer] [trainer.py:105]: Trainer: Epoch 1/3
+[2026-06-27 00:05:01,691] [INFO] [training.trainer] [trainer.py:105]: Trainer: Epoch 2/3
+[2026-06-27 00:05:01,712] [INFO] [training.trainer] [trainer.py:105]: Trainer: Epoch 3/3
+[2026-06-27 00:05:07,539] [INFO] [training.trainer] [trainer.py:183]: Trainer: Training run finished.
+[2026-06-27 00:05:07,552] [INFO] [training.trainer] [trainer.py:76]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 00:05:07,552] [INFO] [training.trainer] [trainer.py:105]: Trainer: Epoch 1/1
+[2026-06-27 00:05:07,574] [INFO] [training.trainer] [trainer.py:183]: Trainer: Training run finished.
+[2026-06-27 00:05:07,575] [INFO] [training.trainer] [trainer.py:50]: Trainer: Resuming training run from checkpoint: C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-13\test_training_resumption0\checkpoints\latest_model.pt
+[2026-06-27 00:05:07,588] [INFO] [training.trainer] [trainer.py:61]: Trainer: Successfully resumed. Next epoch will start at 2.
+[2026-06-27 00:05:07,588] [INFO] [training.trainer] [trainer.py:76]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 00:05:07,588] [INFO] [training.trainer] [trainer.py:105]: Trainer: Epoch 2/3
+[2026-06-27 00:05:07,603] [INFO] [training.trainer] [trainer.py:105]: Trainer: Epoch 3/3
+[2026-06-27 00:05:07,618] [INFO] [training.trainer] [trainer.py:183]: Trainer: Training run finished.
+[2026-06-27 00:06:23,142] [INFO] [training.trainer] [trainer.py:76]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 00:06:23,928] [INFO] [training.trainer] [trainer.py:106]: Trainer: Epoch 1/3
+[2026-06-27 00:06:23,978] [INFO] [training.trainer] [trainer.py:106]: Trainer: Epoch 2/3
+[2026-06-27 00:06:23,995] [INFO] [training.trainer] [trainer.py:106]: Trainer: Epoch 3/3
+[2026-06-27 00:06:25,011] [INFO] [training.trainer] [trainer.py:184]: Trainer: Training run finished.
+[2026-06-27 00:06:25,026] [INFO] [training.trainer] [trainer.py:76]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 00:06:25,026] [INFO] [training.trainer] [trainer.py:106]: Trainer: Epoch 1/1
+[2026-06-27 00:06:25,050] [INFO] [training.trainer] [trainer.py:184]: Trainer: Training run finished.
+[2026-06-27 00:06:25,051] [INFO] [training.trainer] [trainer.py:50]: Trainer: Resuming training run from checkpoint: C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-14\test_training_resumption0\checkpoints\latest_model.pt
+[2026-06-27 00:06:25,063] [INFO] [training.trainer] [trainer.py:61]: Trainer: Successfully resumed. Next epoch will start at 2.
+[2026-06-27 00:06:25,063] [INFO] [training.trainer] [trainer.py:76]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 00:06:25,063] [INFO] [training.trainer] [trainer.py:106]: Trainer: Epoch 2/3
+[2026-06-27 00:06:25,080] [INFO] [training.trainer] [trainer.py:106]: Trainer: Epoch 3/3
+[2026-06-27 00:06:25,095] [INFO] [training.trainer] [trainer.py:184]: Trainer: Training run finished.
+[2026-06-27 01:15:10,031] [INFO] [training.trainer] [trainer.py:76]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 01:15:11,111] [INFO] [training.trainer] [trainer.py:106]: Trainer: Epoch 1/3
+[2026-06-27 01:15:11,222] [INFO] [training.trainer] [trainer.py:106]: Trainer: Epoch 2/3
+[2026-06-27 01:15:11,239] [INFO] [training.trainer] [trainer.py:106]: Trainer: Epoch 3/3
+[2026-06-27 01:15:12,754] [INFO] [training.trainer] [trainer.py:187]: Trainer: Training run finished.
+[2026-06-27 01:15:12,767] [INFO] [training.trainer] [trainer.py:76]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 01:15:12,767] [INFO] [training.trainer] [trainer.py:106]: Trainer: Epoch 1/1
+[2026-06-27 01:15:12,786] [INFO] [training.trainer] [trainer.py:187]: Trainer: Training run finished.
+[2026-06-27 01:15:12,787] [INFO] [training.trainer] [trainer.py:50]: Trainer: Resuming training run from checkpoint: C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-15\test_training_resumption0\checkpoints\latest_model.pt
+[2026-06-27 01:15:12,798] [INFO] [training.trainer] [trainer.py:61]: Trainer: Successfully resumed. Next epoch will start at 2.
+[2026-06-27 01:15:12,798] [INFO] [training.trainer] [trainer.py:76]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 01:15:12,798] [INFO] [training.trainer] [trainer.py:106]: Trainer: Epoch 2/3
+[2026-06-27 01:15:12,811] [INFO] [training.trainer] [trainer.py:106]: Trainer: Epoch 3/3
+[2026-06-27 01:15:12,825] [INFO] [training.trainer] [trainer.py:187]: Trainer: Training run finished.
+[2026-06-27 01:16:51,477] [INFO] [training.trainer] [trainer.py:76]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 01:16:52,117] [INFO] [training.trainer] [trainer.py:106]: Trainer: Epoch 1/2
+[2026-06-27 01:30:25,116] [INFO] [training.trainer] [trainer.py:76]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 01:30:25,815] [INFO] [training.trainer] [trainer.py:106]: Trainer: Epoch 1/2
+[2026-06-27 01:33:25,903] [INFO] [training.trainer] [trainer.py:77]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 01:33:26,572] [INFO] [training.trainer] [trainer.py:108]: Trainer: Epoch 1/2
+[2026-06-27 01:36:12,542] [INFO] [training.trainer] [trainer.py:77]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 01:36:13,168] [INFO] [training.trainer] [trainer.py:108]: Trainer: Epoch 1/2
+[2026-06-27 01:37:10,174] [INFO] [training.trainer] [trainer.py:77]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 01:37:10,802] [INFO] [training.trainer] [trainer.py:108]: Trainer: Epoch 1/2
+[2026-06-27 01:41:23,899] [INFO] [training.trainer] [trainer.py:77]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 01:41:24,531] [INFO] [training.trainer] [trainer.py:108]: Trainer: Epoch 1/2
+[2026-06-27 01:41:26,873] [INFO] [training.trainer] [trainer.py:108]: Trainer: Epoch 2/2
+[2026-06-27 01:41:29,220] [INFO] [training.trainer] [trainer.py:189]: Trainer: Training run finished.
+[2026-06-27 01:41:38,129] [INFO] [training.trainer] [trainer.py:51]: Trainer: Resuming training run from checkpoint: C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-21\test_autism_training_smoke_tes0\experiment\latest_model.pt
+[2026-06-27 01:41:38,282] [INFO] [training.trainer] [trainer.py:62]: Trainer: Successfully resumed. Next epoch will start at 3.
+[2026-06-27 01:41:38,283] [INFO] [training.trainer] [trainer.py:77]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 01:41:38,289] [INFO] [training.trainer] [trainer.py:108]: Trainer: Epoch 3/3
+[2026-06-27 01:41:40,577] [INFO] [training.trainer] [trainer.py:189]: Trainer: Training run finished.
+[2026-06-27 01:42:49,218] [INFO] [training.trainer] [trainer.py:77]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 01:42:49,840] [INFO] [training.trainer] [trainer.py:108]: Trainer: Epoch 1/2
+[2026-06-27 01:42:52,157] [INFO] [training.trainer] [trainer.py:108]: Trainer: Epoch 2/2
+[2026-06-27 01:42:54,408] [INFO] [training.trainer] [trainer.py:189]: Trainer: Training run finished.
+[2026-06-27 01:43:03,455] [INFO] [training.trainer] [trainer.py:51]: Trainer: Resuming training run from checkpoint: C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-22\test_autism_training_smoke_tes0\experiment\latest_model.pt
+[2026-06-27 01:43:03,611] [INFO] [training.trainer] [trainer.py:62]: Trainer: Successfully resumed. Next epoch will start at 3.
+[2026-06-27 01:43:03,612] [INFO] [training.trainer] [trainer.py:77]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 01:43:03,617] [INFO] [training.trainer] [trainer.py:108]: Trainer: Epoch 3/3
+[2026-06-27 01:43:05,953] [INFO] [training.trainer] [trainer.py:189]: Trainer: Training run finished.
+[2026-06-27 01:43:12,315] [INFO] [training.trainer] [trainer.py:77]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 01:43:12,317] [INFO] [training.trainer] [trainer.py:108]: Trainer: Epoch 1/3
+[2026-06-27 01:43:12,398] [INFO] [training.trainer] [trainer.py:77]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 01:43:12,398] [INFO] [training.trainer] [trainer.py:108]: Trainer: Epoch 1/1
+[2026-06-27 01:44:15,747] [INFO] [training.trainer] [trainer.py:77]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 01:44:16,446] [INFO] [training.trainer] [trainer.py:108]: Trainer: Epoch 1/2
+[2026-06-27 01:44:18,972] [INFO] [training.trainer] [trainer.py:108]: Trainer: Epoch 2/2
+[2026-06-27 01:44:21,422] [INFO] [training.trainer] [trainer.py:189]: Trainer: Training run finished.
+[2026-06-27 01:44:30,730] [INFO] [training.trainer] [trainer.py:51]: Trainer: Resuming training run from checkpoint: C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-23\test_autism_training_smoke_tes0\experiment\latest_model.pt
+[2026-06-27 01:44:30,895] [INFO] [training.trainer] [trainer.py:62]: Trainer: Successfully resumed. Next epoch will start at 3.
+[2026-06-27 01:44:30,895] [INFO] [training.trainer] [trainer.py:77]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 01:44:30,902] [INFO] [training.trainer] [trainer.py:108]: Trainer: Epoch 3/3
+[2026-06-27 01:44:33,330] [INFO] [training.trainer] [trainer.py:189]: Trainer: Training run finished.
+[2026-06-27 01:44:40,115] [INFO] [training.trainer] [trainer.py:77]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 01:44:40,118] [INFO] [training.trainer] [trainer.py:108]: Trainer: Epoch 1/3
+[2026-06-27 01:44:40,153] [INFO] [training.trainer] [trainer.py:108]: Trainer: Epoch 2/3
+[2026-06-27 01:44:40,176] [INFO] [training.trainer] [trainer.py:108]: Trainer: Epoch 3/3
+[2026-06-27 01:44:40,699] [INFO] [training.trainer] [trainer.py:189]: Trainer: Training run finished.
+[2026-06-27 01:44:40,713] [INFO] [training.trainer] [trainer.py:77]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 01:44:40,713] [INFO] [training.trainer] [trainer.py:108]: Trainer: Epoch 1/1
+[2026-06-27 01:44:40,735] [INFO] [training.trainer] [trainer.py:189]: Trainer: Training run finished.
+[2026-06-27 01:44:40,735] [INFO] [training.trainer] [trainer.py:51]: Trainer: Resuming training run from checkpoint: C:\Users\Swayam\AppData\Local\Temp\pytest-of-Swayam\pytest-23\test_training_resumption0\checkpoints\latest_model.pt
+[2026-06-27 01:44:40,745] [INFO] [training.trainer] [trainer.py:62]: Trainer: Successfully resumed. Next epoch will start at 2.
+[2026-06-27 01:44:40,745] [INFO] [training.trainer] [trainer.py:77]: Trainer: Initializing training run on device 'cpu'...
+[2026-06-27 01:44:40,746] [INFO] [training.trainer] [trainer.py:108]: Trainer: Epoch 2/3
+[2026-06-27 01:44:40,761] [INFO] [training.trainer] [trainer.py:108]: Trainer: Epoch 3/3
+[2026-06-27 01:44:40,776] [INFO] [training.trainer] [trainer.py:189]: Trainer: Training run finished.
