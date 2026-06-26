@@ -108,6 +108,20 @@ brain-ai/
 - **Problem:** NiBabel's `load` method determines format solely from filename extensions. If a file is signature-detected as NIfTI but renamed to a non-standard extension (e.g. `.jpg`), `nib.load` raises an error.
 - **Decision:** Added a fallback mechanism inside `NiftiReader.read` using `nib.FileHolder` and `.from_file_map`, checking for Gzip magic bytes dynamically to decompress standard gzip-wrapped streams.
 
+## Key Design Decisions & Bug Fixes History (Continued)
+
+### 7. Custom Collation Fallback
+- **Problem:** When batching `DatasetSample` structures, PyTorch's default collator threw exceptions on non-tensor/nullable fields.
+- **Decision:** Implemented `collate_dataset_samples` to stack only tensor fields, package metadata dictionaries, and preserve list strings, with a dictionary fallback for compatibility.
+
+### 8. Trainer Scheduler Ordering
+- **Problem:** For learning rate schedulers like `ReduceLROnPlateau`, the scheduler step must be computed after evaluating validation loss, not before.
+- **Decision:** Ordered validation metric computation first before executing the scheduler step in the `Trainer.fit` loop.
+
+### 9. Dataset Compiler Framework (Stage 5B)
+- **Problem:** Need a clean, reusable dataset parsing layer to convert BIDS-layout raw files and phenotypic CSV records into splits and index files without duplicating dataset management.
+- **Decision:** Implemented `DatasetCompiler` as an abstract class, creating `ABIDECompiler` to parse BIDS structures and phenotypic variables (clearing null placeholding integers, mapping diagnosis, extracting demographic metadata), generating stratified splits and stratified 5-fold cross-validation configs, while leaving placeholders for `ADNICompiler` and `BraTSCompiler`.
+
 ## Pipeline Development Status
 
 - **Stage 0 (Architecture Foundation):** Completed
@@ -116,7 +130,7 @@ brain-ai/
 - **Stage 2 (Dataset Management Engine):** Completed & Verified (Indexing, parsing, patient splits for ABIDE, ADNI, BraTS)
 - **Stage 3 (Research Preprocessing Engine):** Completed & Verified (Orientation, Normalization, Resampling, Spatial cropping/padding, N4 Bias correction, Skull-stripping, and Inverse reconstruction framework)
 - **Stage 4 (Generic Training Framework & 4.5 Smoke Tests):** Completed & Verified (Trainer, Callbacks, Checkpointer, MetricsManager, EarlyStopping, Resumption, and ONNX model export validation)
-- **Stage 5 (Autism Model & Disease Modules):** Future (3D DenseNet121 on ABIDE, then ADNI and BraTS)
+- **Stage 5 (Autism Model & Disease Modules):** Completed & Verified (3D DenseNet121 model training, preprocessed cache, 5-fold stratification, and generic compiler framework)
 - **Stage 6 (Inference Engine):** Future (Standardized Prediction packaging)
 - **Stage 7 (Clinical PDF Reporter):** Future (PDF layouts, previews, GradCAM, summaries)
 - **Stage 8 (Dashboard UI & Deployment):** Future (Streamlit, FastAPI Backend)
