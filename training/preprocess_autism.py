@@ -5,6 +5,7 @@ import json
 import logging
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
+from typing import Any, Dict, List
 import torch
 import numpy as np
 
@@ -18,6 +19,72 @@ from schemas.processing import ExecutionContext
 from engine.readers.nifti import NiftiReader
 
 logger = setup_logger("preprocess_autism", "training/preprocess_autism.log")
+
+
+def compute_pipeline_hash(steps: List[Dict[str, Any]]) -> str:
+    """Computes deterministic SHA256 hash of the pipeline steps layout config."""
+    import hashlib
+    import json
+    serialized = json.dumps(steps, sort_keys=True)
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+
+def get_git_commit() -> str:
+    """Retrieves current Git commit SHA hash or 'unknown' fallback."""
+    import subprocess
+    try:
+        res = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=True
+        )
+        return res.stdout.strip()
+    except Exception:
+        return "unknown"
+
+
+def write_cache_metadata(preprocessed_dir: Path, config_yaml: Path, dataset_name: str = "ABIDE_I") -> None:
+    """Generates and writes metadata.json fingerprint to cache folder directory."""
+    import time
+    import yaml
+    
+    with open(config_yaml, encoding="utf-8") as f:
+        cfg = yaml.safe_load(f) or {}
+    steps = cfg.get("profiles", {}).get("autism", [])
+    
+    # Extract target shape size
+    target_shape = [128, 128, 128]
+    for step in reversed(steps):
+        if step.get("transform") in ("resize", "pad", "center_crop"):
+            params = step.get("params", {})
+            if "target_shape" in params:
+                target_shape = params["target_shape"]
+                break
+                
+    # Detect N4
+    n4_active = False
+    for step in steps:
+        if step.get("transform") == "bias_correction":
+            mode = step.get("params", {}).get("mode", "fast").lower()
+            if mode != "off":
+                n4_active = True
+            break
+            
+    metadata = {
+        "pipeline_hash": compute_pipeline_hash(steps),
+        "git_commit": get_git_commit(),
+        "target_shape": target_shape,
+        "dataset": dataset_name,
+        "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "n4": n4_active
+    }
+    
+    meta_path = preprocessed_dir / "metadata.json"
+    with open(meta_path, "w", encoding="utf-8") as f:
+        json.dump(metadata, f, indent=4)
+    logger.info(f"Saved preprocessed cache metadata fingerprint to: {meta_path}")
 
 
 def wrap_raw_mri(raw_mri: RawMRI) -> MRIData:
@@ -173,6 +240,14 @@ def preprocess_abide_dataset(
     with open(index_file, encoding="utf-8") as f:
         items = json.load(f)
 
+    # Scan the entire index prior to execution to resolve how many files are already preprocessed
+    skipped_count = 0
+    for item in items:
+        subject_id = item["subject_id"]
+        cache_path = preprocessed_dir / f"{subject_id}.pt"
+        if cache_path.exists():
+            skipped_count += 1
+
     # Filter out already preprocessed files first to avoid pool overhead
     todo_items = []
     for item in items:
@@ -188,6 +263,7 @@ def preprocess_abide_dataset(
 
     if not todo_items:
         logger.info("All subjects already preprocessed. Nothing to do.")
+        write_cache_metadata(preprocessed_dir, config_yaml)
         return
 
     logger.info(f"Submitting {len(todo_items)} subjects for preprocessing (using {max_workers or 'default'} workers)...")
@@ -233,10 +309,17 @@ def preprocess_abide_dataset(
                 else:
                     eta_str = f"{seconds}s"
 
+                failed_count = (idx + 1) - success_count
+
                 # Log progress
                 logger.info(
                     f"[{idx + 1}/{len(todo_items)}] Subject: {sub_id} | "
                     f"Time: {sub_time:.1f}s | Average: {avg_time:.1f}s | ETA: {eta_str}"
+                )
+                logger.info(
+                    f"[Progress Report] Completed: {skipped_count + success_count}/{len(items)} | "
+                    f"Skipped: {skipped_count} | Processed: {success_count} | "
+                    f"Failed: {failed_count} | Average: {avg_time:.1f}s | ETA: {eta_str}"
                 )
                 if step_timings:
                     for step_name, elapsed in step_timings:
@@ -245,6 +328,7 @@ def preprocess_abide_dataset(
                 logger.error(f"Worker generated exception for subject {sub_id}: {e}")
 
     logger.info(f"Offline dataset preprocessing completed. Successfully preprocessed: {success_count}/{len(todo_items)}")
+    write_cache_metadata(preprocessed_dir, config_yaml)
 
 
 if __name__ == "__main__":

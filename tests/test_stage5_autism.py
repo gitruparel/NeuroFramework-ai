@@ -68,7 +68,7 @@ def test_autism_training_smoke_test(tmp_path):
     config_yaml = tmp_path / "test_preprocessing.yaml"
     with open(config_yaml, "w", encoding="utf-8") as f:
         f.write("""
-cache_version: "v2"
+cache_version: "2026-06-baseline"
 profiles:
   autism:
     - transform: reorient
@@ -103,7 +103,7 @@ profiles:
     
     # 6. Verify cached preprocessing files exist and are valid torch tensors
     for sub_id in subjects:
-        cache_file = processed_dir / "v2" / f"{sub_id}.pt"
+        cache_file = processed_dir / "2026-06-baseline" / f"{sub_id}.pt"
         assert cache_file.exists(), f"Preprocessed cache file {cache_file} should exist"
         
         # Load and verify content structure
@@ -123,6 +123,17 @@ profiles:
     assert (experiment_dir / "history.json").exists()
     assert (experiment_dir / "loss.png").exists()
     assert (experiment_dir / "accuracy.png").exists()
+    
+    # Verify new cache validation report and backups
+    assert (experiment_dir / "cache_validation_report.json").exists()
+    assert (experiment_dir / "preprocessing.yaml").exists()
+    assert (experiment_dir / "cache_metadata.json").exists()
+    
+    with open(experiment_dir / "cache_validation_report.json", encoding="utf-8") as f:
+        val_report = json.load(f)
+    assert val_report["valid"] is True
+    assert val_report["pipeline_hash_match"] is True
+    assert val_report["subjects_checked"] == 20
     
     # Verify classification report content
     with open(experiment_dir / "classification_report.json", encoding="utf-8") as f:
@@ -158,3 +169,117 @@ profiles:
     # Check that resumption files exist in resume_experiment_dir
     assert (resume_experiment_dir / "latest_model.pt").exists()
     assert (resume_experiment_dir / "best_model.pt").exists()
+
+
+def test_cache_validation_failure(tmp_path):
+    """Test that cache validation properly detects mismatches and honors strict mode."""
+    # 1. Create directories
+    raw_dir = tmp_path / "raw"
+    raw_dir.mkdir()
+    processed_dir = tmp_path / "processed"
+    experiment_dir = tmp_path / "experiment"
+    
+    # Generate 3 mock subjects to avoid Batch Normalization and ZeroDivisionError
+    subjects = ["sub-ab01", "sub-ab02", "sub-ab03"]
+    index_data = []
+    for sub_id in subjects:
+        sub_dir = raw_dir / "CONTROL" / sub_id
+        sub_dir.mkdir(parents=True)
+        img_path = sub_dir / "scan.nii.gz"
+        data = np.random.randint(0, 100, size=(32, 32, 32), dtype=np.int16)
+        nii_img = nib.Nifti1Image(data, affine=np.eye(4))
+        nib.save(nii_img, str(img_path))
+        
+        index_data.append({
+            "subject_id": sub_id,
+            "path": str(img_path),
+            "label": "CONTROL"
+        })
+    
+    index_file = tmp_path / "abide_index.json"
+    with open(index_file, "w", encoding="utf-8") as f:
+        json.dump(index_data, f, indent=4)
+        
+    splits_data = {
+        "train": ["sub-ab01", "sub-ab02"],
+        "val": ["sub-ab03"],
+        "test": []
+    }
+    split_file = tmp_path / "abide_splits.json"
+    with open(split_file, "w", encoding="utf-8") as f:
+        json.dump(splits_data, f, indent=4)
+        
+    config_yaml = tmp_path / "test_preprocessing.yaml"
+    with open(config_yaml, "w", encoding="utf-8") as f:
+        f.write("""
+cache_version: "2026-06-baseline"
+profiles:
+  autism:
+    - transform: reorient
+      params: { target: "RAS" }
+    - transform: resize
+      params: { target_shape: [32, 32, 32] }
+""")
+        
+    # Run preprocessing once to create valid cache
+    from training.preprocess_autism import preprocess_abide_dataset
+    preprocess_abide_dataset(index_file, processed_dir, config_yaml, raw_dir=raw_dir)
+    
+    for sub_id in subjects:
+        cache_file = processed_dir / "2026-06-baseline" / f"{sub_id}.pt"
+        assert cache_file.exists()
+    
+    # 2. Modify config to change target shape to 64x64x64, which will create shape and pipeline hash mismatch
+    bad_config_yaml = tmp_path / "test_preprocessing_bad.yaml"
+    with open(bad_config_yaml, "w", encoding="utf-8") as f:
+        f.write("""
+cache_version: "2026-06-baseline"
+profiles:
+  autism:
+    - transform: reorient
+      params: { target: "RAS" }
+    - transform: resize
+      params: { target_shape: [64, 64, 64] }
+""")
+        
+    # If strict_cache_validation is True, running training should raise ValueError
+    with pytest.raises(ValueError, match="Cache validation failed"):
+        run_training_experiment(
+            data_root=raw_dir,
+            index_file=index_file,
+            split_file=split_file,
+            preprocessed_dir=processed_dir,
+            config_yaml=bad_config_yaml,
+            experiment_dir=experiment_dir,
+            epochs=1,
+            batch_size=2,
+            device="cpu",
+            lr=1e-3,
+            skip_preprocess=True,  # Don't overwrite the bad cache
+            strict_cache_validation=True
+        )
+        
+    # If strict_cache_validation is False, it should warning and run through
+    # (since epochs=1 and it's a small mock, it will run fine, albeit with warning logged)
+    run_training_experiment(
+        data_root=raw_dir,
+        index_file=index_file,
+        split_file=split_file,
+        preprocessed_dir=processed_dir,
+        config_yaml=bad_config_yaml,
+        experiment_dir=experiment_dir,
+        epochs=1,
+        batch_size=2,
+        device="cpu",
+        lr=1e-3,
+        skip_preprocess=True,
+        strict_cache_validation=False
+    )
+    
+    # Check that the report was written and is marked invalid
+    report_path = experiment_dir / "cache_validation_report.json"
+    assert report_path.exists()
+    with open(report_path, encoding="utf-8") as f:
+        report = json.load(f)
+    assert report["valid"] is False
+    assert report["pipeline_hash_match"] is False

@@ -9,6 +9,8 @@ import numpy as np
 import yaml
 import torch
 import torch.nn as nn
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, roc_curve, auc, classification_report
 
@@ -32,6 +34,134 @@ from training.preprocess_autism import preprocess_abide_dataset, wrap_raw_mri
 logger = setup_logger("train_autism", "training/train_autism.log")
 
 
+def validate_cache_data(
+    train_dataset: ABIDEDataset,
+    val_dataset: ABIDEDataset,
+    preprocessed_dir: Path,
+    config_yaml: Path,
+) -> Dict[str, Any]:
+    """Validates the cache files for the active train and val split subjects."""
+    from training.preprocess_autism import compute_pipeline_hash
+    
+    report = {
+        "valid": True,
+        "pipeline_hash_match": True,
+        "expected_hash": "",
+        "actual_hash": "",
+        "subjects_checked": 0,
+        "missing_subjects": [],
+        "invalid_shapes": [],
+        "invalid_dtypes": [],
+        "corrupt_subjects": []
+    }
+    
+    # 1. Compute expected hash
+    expected_steps = []
+    if config_yaml.exists():
+        try:
+            with open(config_yaml, encoding="utf-8") as f:
+                cfg = yaml.safe_load(f) or {}
+            expected_steps = cfg.get("profiles", {}).get("autism", [])
+        except Exception as e:
+            logger.error(f"Failed to read preprocessing config for validation: {e}")
+            
+    expected_hash = compute_pipeline_hash(expected_steps)
+    report["expected_hash"] = expected_hash
+    
+    # Extract expected target shape from expected steps
+    target_shape = [128, 128, 128]  # Default fallback
+    for step in reversed(expected_steps):
+        if step.get("transform") in ("resize", "pad", "center_crop"):
+            params = step.get("params", {})
+            if "target_shape" in params:
+                target_shape = params["target_shape"]
+                break
+    expected_shape = (1,) + tuple(target_shape)
+    
+    # 2. Check metadata.json in cache folder
+    meta_path = preprocessed_dir / "metadata.json"
+    actual_hash = None
+    if meta_path.exists():
+        try:
+            with open(meta_path, encoding="utf-8") as f:
+                meta_data = json.load(f)
+            actual_hash = meta_data.get("pipeline_hash")
+            report["actual_hash"] = actual_hash or "missing_hash"
+        except Exception as e:
+            logger.warning(f"Failed to read cache metadata.json: {e}")
+            report["actual_hash"] = "corrupt_metadata"
+    else:
+        report["actual_hash"] = "missing_metadata"
+        
+    if actual_hash != expected_hash:
+        report["pipeline_hash_match"] = False
+        report["valid"] = False
+        logger.warning(
+            f"Pipeline hash mismatch! Expected: {expected_hash}, Cached: {actual_hash}. "
+            "Preprocessed cache might be stale."
+        )
+        
+    # Collect all subject items to check
+    subjects_to_check = []
+    for item in train_dataset.items:
+        subjects_to_check.append(item["subject_id"])
+    for item in val_dataset.items:
+        subjects_to_check.append(item["subject_id"])
+        
+    # De-duplicate
+    subjects_to_check = list(set(subjects_to_check))
+    report["subjects_checked"] = len(subjects_to_check)
+    
+    for sub_id in subjects_to_check:
+        pt_path = preprocessed_dir / f"{sub_id}.pt"
+        if not pt_path.exists():
+            report["missing_subjects"].append(sub_id)
+            report["valid"] = False
+            continue
+            
+        try:
+            cache = torch.load(pt_path, map_location="cpu", weights_only=False)
+            tensor = cache.get("image")
+            
+            if tensor is None:
+                report["corrupt_subjects"].append(sub_id)
+                report["valid"] = False
+                continue
+                
+            actual_shape = tuple(tensor.shape)
+            if actual_shape != expected_shape:
+                report["invalid_shapes"].append({
+                    "subject_id": sub_id,
+                    "expected": list(expected_shape),
+                    "actual": list(actual_shape)
+                })
+                report["valid"] = False
+                
+            if hasattr(tensor, "dtype"):
+                dtype_str = str(tensor.dtype)
+                if "float32" not in dtype_str:
+                    report["invalid_dtypes"].append({
+                        "subject_id": sub_id,
+                        "expected": "float32",
+                        "actual": dtype_str
+                    })
+                    report["valid"] = False
+            else:
+                report["invalid_dtypes"].append({
+                    "subject_id": sub_id,
+                    "expected": "float32",
+                    "actual": "unknown"
+                })
+                report["valid"] = False
+                
+        except Exception as e:
+            logger.error(f"Failed loading cache for {sub_id}: {e}")
+            report["corrupt_subjects"].append(sub_id)
+            report["valid"] = False
+            
+    return report
+
+
 def run_training_experiment(
     data_root: str | Path,
     index_file: str | Path,
@@ -46,6 +176,7 @@ def run_training_experiment(
     resume_from: str | Path | None = None,
     skip_preprocess: bool = False,
     copy_outputs_to: str | Path | None = None,
+    strict_cache_validation: bool = False,
 ) -> None:
     """Orchestrates full train/validation, checkpointers, and classification plots reports."""
     index_path = Path(index_file)
@@ -90,6 +221,40 @@ def run_training_experiment(
     )
     
     logger.info(f"Loaded train samples: {len(train_dataset)}, validation samples: {len(val_dataset)}")
+    
+    # 2b. Perform pre-training cache validation
+    validation_report = validate_cache_data(
+        train_dataset=train_dataset,
+        val_dataset=val_dataset,
+        preprocessed_dir=preprocessed_path,
+        config_yaml=config_path,
+    )
+    
+    # Save cache validation report to experiment directory
+    report_path = exp_dir / "cache_validation_report.json"
+    with open(report_path, "w", encoding="utf-8") as f:
+        json.dump(validation_report, f, indent=4)
+    logger.info(f"Saved cache validation report to: {report_path}")
+    
+    # Copy preprocessor config and cache metadata.json (provenance backups) to experiment outputs directory
+    if config_path.exists():
+        import shutil
+        shutil.copy(config_path, exp_dir / "preprocessing.yaml")
+        logger.info(f"Copied preprocessing config to: {exp_dir / 'preprocessing.yaml'}")
+    
+    meta_path = preprocessed_path / "metadata.json"
+    if meta_path.exists():
+        import shutil
+        shutil.copy(meta_path, exp_dir / "cache_metadata.json")
+        logger.info(f"Copied cache metadata fingerprint to: {exp_dir / 'cache_metadata.json'}")
+        
+    if not validation_report["valid"]:
+        msg = f"Cache validation failed! Details: {validation_report}"
+        if strict_cache_validation:
+            logger.error(msg)
+            raise ValueError(msg)
+        else:
+            logger.warning(msg)
     
     # 3. Model construction
     model = DenseNet3D(in_channels=1, out_channels=2)
@@ -281,6 +446,7 @@ if __name__ == "__main__":
     parser.add_argument("--resume-from", default=None, help="Resume training checkpoint model path")
     parser.add_argument("--skip-preprocess", action="store_true", help="Skip offline dataset preprocessing validation/run step")
     parser.add_argument("--copy-outputs-to", default=None, help="Optional directory to copy final experiment outputs back to (e.g. on Google Drive)")
+    parser.add_argument("--strict-cache-validation", action="store_true", help="Halt training immediately if cache validation fails")
 
     args = parser.parse_args()
 
@@ -298,4 +464,5 @@ if __name__ == "__main__":
         resume_from=args.resume_from,
         skip_preprocess=args.skip_preprocess,
         copy_outputs_to=args.copy_outputs_to,
+        strict_cache_validation=args.strict_cache_validation,
     )
