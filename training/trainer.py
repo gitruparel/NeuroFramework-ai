@@ -9,6 +9,7 @@ from schemas.dataset import collate_dataset_samples
 from core.interfaces import BaseTrainer, BaseCallback, BaseModel, BaseDataset
 from core.logging import setup_logger
 from training.metrics import MetricsManager
+from tqdm import tqdm
 
 logger = setup_logger("training.trainer", "training/trainer.log")
 
@@ -124,7 +125,9 @@ class Trainer(BaseTrainer):
             train_targets = []
             train_probs = []
 
-            for batch in train_loader:
+            # Batch-level progress bar
+            pbar = tqdm(train_loader, desc=f"Epoch {epoch + 1}/{epochs} [Train]", leave=True)
+            for batch in pbar:
                 inputs = batch["image"].to(self.device, non_blocking=True)
                 targets = batch["label"].to(self.device, non_blocking=True)
 
@@ -158,6 +161,9 @@ class Trainer(BaseTrainer):
                 train_targets.extend(targets.cpu().numpy())
                 train_probs.extend(probs.detach().cpu().numpy())
 
+                # Update progress bar
+                pbar.set_postfix({"loss": f"{loss.item():.4f}"})
+
             # Compile Train Metrics
             train_loss = train_loss / len(self.train_dataset)
             train_metrics = MetricsManager.calculate_classification_metrics(
@@ -176,10 +182,17 @@ class Trainer(BaseTrainer):
                 else:
                     self.scheduler.step()
 
+            # Get current learning rate from optimizer
+            current_lr = 0.0
+            for param_group in self.optimizer.param_groups:
+                current_lr = param_group["lr"]
+                break
+
             # Consolidate epoch metrics
             epoch_metrics = {
                 "train_loss": train_loss,
-                "val_loss": val_metrics["val_loss"]
+                "val_loss": val_metrics["val_loss"],
+                "lr": current_lr
             }
             for k, v in train_metrics.items():
                 epoch_metrics[f"train_{k}"] = v
@@ -222,7 +235,8 @@ class Trainer(BaseTrainer):
         val_probs = []
 
         with torch.no_grad():
-            for batch in val_loader:
+            pbar = tqdm(val_loader, desc=f"Epoch {self.current_epoch + 1}/{self.config.get('epochs', 10)} [Val]", leave=False)
+            for batch in pbar:
                 inputs = batch["image"].to(self.device, non_blocking=True)
                 targets = batch["label"].to(self.device, non_blocking=True)
 
@@ -237,6 +251,8 @@ class Trainer(BaseTrainer):
                 val_preds.extend(preds.cpu().numpy())
                 val_targets.extend(targets.cpu().numpy())
                 val_probs.extend(probs.cpu().numpy())
+
+                pbar.set_postfix({"loss": f"{loss.item():.4f}"})
 
         val_loss = val_loss / len(self.val_dataset)
         metrics = MetricsManager.calculate_classification_metrics(

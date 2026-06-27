@@ -183,6 +183,7 @@ def run_training_experiment(
     strict_cache_validation: bool = False,
     limit: int | None = None,
     full_cache_validation: bool = False,
+    local_cache_dir: str | Path | None = None,
 ) -> None:
     """Orchestrates full train/validation, checkpointers, and classification plots reports."""
     index_path = Path(index_file)
@@ -206,6 +207,39 @@ def run_training_experiment(
         preprocess_abide_dataset(index_path, Path(preprocessed_dir), config_path, raw_dir=data_root)
     else:
         logger.info("Skipping offline dataset preprocessing as requested.")
+        
+    # 1.5 Handle copying cache to local SSD if requested
+    if local_cache_dir is not None:
+        local_cache_path = Path(local_cache_dir) / cache_version
+        logger.info(f"Local cache directory configured: {local_cache_path}")
+        
+        # Check if cache is already copied (verify if metadata.json exists locally)
+        local_meta = local_cache_path / "metadata.json"
+        if not local_meta.exists():
+            logger.info(f"Copying preprocessed cache from {preprocessed_path} to local SSD {local_cache_path}...")
+            import shutil
+            try:
+                local_cache_path.mkdir(parents=True, exist_ok=True)
+                remote_meta = preprocessed_path / "metadata.json"
+                if remote_meta.exists():
+                    shutil.copy(remote_meta, local_meta)
+                
+                pt_files = list(preprocessed_path.glob("*.pt"))
+                logger.info(f"Found {len(pt_files)} cache files to copy...")
+                
+                for idx, pt_file in enumerate(pt_files):
+                    shutil.copy(pt_file, local_cache_path / pt_file.name)
+                    if (idx + 1) % 100 == 0 or (idx + 1) == len(pt_files):
+                        logger.info(f"Copied {idx + 1}/{len(pt_files)} cache files to local SSD.")
+                        
+                logger.info("Successfully completed copying cache to local SSD!")
+            except Exception as e:
+                logger.error(f"Failed to copy cache to local SSD: {e}. Falling back to remote cache.")
+                local_cache_path = preprocessed_path
+        else:
+            logger.info("Cache files are already present on local SSD. Skipping copy step.")
+            
+        preprocessed_path = local_cache_path
     
     # 2. Build Datasets
     label_map = {"CONTROL": 0, "ASD": 1}
@@ -461,6 +495,7 @@ if __name__ == "__main__":
     parser.add_argument("--strict-cache-validation", action="store_true", help="Halt training immediately if cache validation fails")
     parser.add_argument("--limit", type=int, default=None, help="Limit dataset size to first N subjects for debug/test training")
     parser.add_argument("--full-cache-validation", action="store_true", help="Perform full cache validation by loading every cached file (slow on Google Drive)")
+    parser.add_argument("--local-cache-dir", default=None, help="Local SSD directory override to copy cache once to before training")
 
     args = parser.parse_args()
 
@@ -481,4 +516,5 @@ if __name__ == "__main__":
         strict_cache_validation=args.strict_cache_validation,
         limit=args.limit,
         full_cache_validation=args.full_cache_validation,
+        local_cache_dir=args.local_cache_dir,
     )

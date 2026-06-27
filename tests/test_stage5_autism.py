@@ -283,3 +283,67 @@ profiles:
         report = json.load(f)
     assert report["valid"] is False
     assert report["pipeline_hash_match"] is False
+
+
+def test_local_cache_copying(tmp_path):
+    """Verify that train_autism.py correctly clones the remote cache directory to a local override folder."""
+    raw_dir = tmp_path / "raw"
+    raw_dir.mkdir()
+    processed_dir = tmp_path / "processed"
+    local_cache_dir = tmp_path / "local_cache"
+    experiment_dir = tmp_path / "experiment"
+
+    subjects = ["sub-ab01", "sub-ab02", "sub-ab03", "sub-ab04"]
+    index_data = []
+
+    for sub_id in subjects:
+        sub_dir = raw_dir / "CONTROL" / sub_id
+        sub_dir.mkdir(parents=True)
+        img_path = sub_dir / "scan.nii.gz"
+        data = np.random.randint(0, 100, size=(32, 32, 32), dtype=np.int16)
+        nii_img = nib.Nifti1Image(data, affine=np.eye(4))
+        nib.save(nii_img, str(img_path))
+        index_data.append({"subject_id": sub_id, "path": str(img_path), "label": "CONTROL"})
+
+    index_file = tmp_path / "abide_index.json"
+    with open(index_file, "w", encoding="utf-8") as f:
+        json.dump(index_data, f, indent=4)
+
+    splits_data = {"train": ["sub-ab01", "sub-ab02"], "val": ["sub-ab03", "sub-ab04"], "test": []}
+    split_file = tmp_path / "abide_splits.json"
+    with open(split_file, "w", encoding="utf-8") as f:
+        json.dump(splits_data, f, indent=4)
+
+    config_yaml = tmp_path / "test_preprocessing.yaml"
+    with open(config_yaml, "w", encoding="utf-8") as f:
+        f.write("""
+cache_version: "2026-06-baseline"
+profiles:
+  autism:
+    - transform: reorient
+      params: { target: "RAS" }
+    - transform: resize
+      params: { target_shape: [32, 32, 32] }
+""")
+
+    # Run training with --local-cache-dir, which triggers preprocessing and copying to local_cache
+    run_training_experiment(
+        data_root=raw_dir,
+        index_file=index_file,
+        split_file=split_file,
+        preprocessed_dir=processed_dir,
+        config_yaml=config_yaml,
+        experiment_dir=experiment_dir,
+        epochs=1,
+        batch_size=2,
+        device="cpu",
+        lr=1e-3,
+        local_cache_dir=local_cache_dir,
+    )
+
+    # Check that the files were copied to local_cache_dir under the correct cache version
+    local_version_dir = local_cache_dir / "2026-06-baseline"
+    assert local_version_dir.exists()
+    assert (local_version_dir / "metadata.json").exists()
+    for sub_id in subjects:
+        assert (local_version_dir / f"{sub_id}.pt").exists()
