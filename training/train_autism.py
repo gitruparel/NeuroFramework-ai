@@ -39,6 +39,7 @@ def validate_cache_data(
     val_dataset: ABIDEDataset,
     preprocessed_dir: Path,
     config_yaml: Path,
+    full_validation: bool = False,
 ) -> Dict[str, Any]:
     """Validates the cache files for the active train and val split subjects."""
     from training.preprocess_autism import compute_pipeline_hash
@@ -119,6 +120,9 @@ def validate_cache_data(
             report["valid"] = False
             continue
             
+        if not full_validation:
+            continue
+            
         try:
             cache = torch.load(pt_path, map_location="cpu", weights_only=False)
             tensor = cache.get("image")
@@ -177,6 +181,8 @@ def run_training_experiment(
     skip_preprocess: bool = False,
     copy_outputs_to: str | Path | None = None,
     strict_cache_validation: bool = False,
+    limit: int | None = None,
+    full_cache_validation: bool = False,
 ) -> None:
     """Orchestrates full train/validation, checkpointers, and classification plots reports."""
     index_path = Path(index_file)
@@ -220,6 +226,11 @@ def run_training_experiment(
         label_map=label_map
     )
     
+    if limit is not None:
+        logger.info(f"Limiting train dataset to first {limit} subjects and val dataset to first {limit} subjects.")
+        train_dataset.items = train_dataset.items[:limit]
+        val_dataset.items = val_dataset.items[:limit]
+
     logger.info(f"Loaded train samples: {len(train_dataset)}, validation samples: {len(val_dataset)}")
     
     # 2b. Perform pre-training cache validation
@@ -228,6 +239,7 @@ def run_training_experiment(
         val_dataset=val_dataset,
         preprocessed_dir=preprocessed_path,
         config_yaml=config_path,
+        full_validation=full_cache_validation,
     )
     
     # Save cache validation report to experiment directory
@@ -447,6 +459,8 @@ if __name__ == "__main__":
     parser.add_argument("--skip-preprocess", action="store_true", help="Skip offline dataset preprocessing validation/run step")
     parser.add_argument("--copy-outputs-to", default=None, help="Optional directory to copy final experiment outputs back to (e.g. on Google Drive)")
     parser.add_argument("--strict-cache-validation", action="store_true", help="Halt training immediately if cache validation fails")
+    parser.add_argument("--limit", type=int, default=None, help="Limit dataset size to first N subjects for debug/test training")
+    parser.add_argument("--full-cache-validation", action="store_true", help="Perform full cache validation by loading every cached file (slow on Google Drive)")
 
     args = parser.parse_args()
 
@@ -465,4 +479,6 @@ if __name__ == "__main__":
         skip_preprocess=args.skip_preprocess,
         copy_outputs_to=args.copy_outputs_to,
         strict_cache_validation=args.strict_cache_validation,
+        limit=args.limit,
+        full_cache_validation=args.full_cache_validation,
     )
