@@ -177,7 +177,7 @@ def run_training_experiment(
     batch_size: int = 4,
     device: str = "cpu",
     lr: float = 1e-3,
-    resume_from: str | Path | None = None,
+    resume_from: str | Path | None = "auto",
     skip_preprocess: bool = False,
     copy_outputs_to: str | Path | None = None,
     strict_cache_validation: bool = False,
@@ -339,8 +339,20 @@ def run_training_experiment(
         config=config
     )
     
+    # Resolve auto-resume checkpoint path
+    resume_path = None
+    if resume_from == "auto" or resume_from == "latest":
+        auto_path = exp_dir / "latest_model.pt"
+        if auto_path.exists():
+            resume_path = auto_path
+            logger.info(f"Auto-resume: Found latest checkpoint at {resume_path}. Resuming training...")
+        else:
+            logger.info("Auto-resume: No previous checkpoint found in experiment directory. Starting training from scratch.")
+    elif resume_from is not None and str(resume_from).lower() != "none":
+        resume_path = Path(resume_from)
+
     # 5. Fit loop
-    trainer.fit(resume_from=resume_from)
+    trainer.fit(resume_from=resume_path)
     
     # Save the exact experiment configuration
     with open(exp_dir / "config.yaml", "w", encoding="utf-8") as f:
@@ -489,7 +501,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch-size", type=int, default=2, help="Batch size for training")
     parser.add_argument("--device", default="cuda", help="Target execution device (e.g. cpu, cuda)")
     parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate")
-    parser.add_argument("--resume-from", default=None, help="Resume training checkpoint model path")
+    parser.add_argument("--resume-from", default="auto", help="Resume training checkpoint path, 'auto' to auto-detect latest, or 'none' to start from scratch")
     parser.add_argument("--skip-preprocess", action="store_true", help="Skip offline dataset preprocessing validation/run step")
     parser.add_argument("--copy-outputs-to", default=None, help="Optional directory to copy final experiment outputs back to (e.g. on Google Drive)")
     parser.add_argument("--strict-cache-validation", action="store_true", help="Halt training immediately if cache validation fails")
