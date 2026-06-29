@@ -196,16 +196,21 @@ def run_training_experiment(
     logger.info(f"Resolved device backend: {backend.name} (device: {resolved_device}, version: {backend.version})")
     
     # Load cache version dynamically
+    logger.info("Loading preprocessing configuration...")
     if config_path.exists():
         with open(config_path, encoding="utf-8") as f:
             cfg = yaml.safe_load(f) or {}
         cache_version = str(cfg.get("cache_version", "v1"))
     else:
         cache_version = "v1"
+    logger.info(f"Using cache version directory: {cache_version}")
         
     preprocessed_path = Path(preprocessed_dir) / cache_version
     exp_dir = Path(experiment_dir)
+    
+    logger.info(f"Creating experiment output directory (Google Drive mount path): {exp_dir}...")
     exp_dir.mkdir(parents=True, exist_ok=True)
+    logger.info("Experiment directory successfully verified.")
     
     # 1. Offline Preprocessing run
     if not skip_preprocess:
