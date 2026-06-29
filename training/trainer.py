@@ -107,6 +107,16 @@ class Trainer(BaseTrainer):
             collate_fn=collate_dataset_samples
         )
 
+        val_loader = DataLoader(
+            self.val_dataset,
+            batch_size=batch_size,
+            shuffle=False,
+            num_workers=num_workers,
+            pin_memory=pin_memory,
+            persistent_workers=persistent_workers,
+            collate_fn=collate_dataset_samples
+        )
+
         # Set up Mixed Precision Scaler
         use_amp = self.config.get("amp", False) and self.backend.capabilities.amp
         device_type = "cuda" if self.backend.capabilities.amp else "cpu"
@@ -182,7 +192,7 @@ class Trainer(BaseTrainer):
             )
 
             # Validation epoch
-            val_metrics = self.validate()
+            val_metrics = self.validate(val_loader=val_loader)
 
             # Step learning rate scheduler if present
             if self.scheduler is not None:
@@ -220,22 +230,26 @@ class Trainer(BaseTrainer):
 
         logger.info("Trainer: Training run finished.")
 
-    def validate(self) -> Dict[str, float]:
+    def validate(self, val_loader: DataLoader | None = None) -> Dict[str, float]:
         """Runs validation loop and returns calculated metrics."""
-        batch_size = self.config.get("batch_size", 4)
-        num_workers = self.config.get("num_workers", 2 if self.backend.capabilities.pin_memory else 0)
-        pin_memory = self.config.get("pin_memory", self.backend.capabilities.pin_memory)
-        persistent_workers = self.config.get("persistent_workers", num_workers > 0) if num_workers > 0 else False
+        use_amp = self.config.get("amp", False) and self.backend.capabilities.amp
+        device_type = "cuda" if self.backend.capabilities.amp else "cpu"
 
-        val_loader = DataLoader(
-            self.val_dataset,
-            batch_size=batch_size,
-            shuffle=False,
-            num_workers=num_workers,
-            pin_memory=pin_memory,
-            persistent_workers=persistent_workers,
-            collate_fn=collate_dataset_samples
-        )
+        if val_loader is None:
+            batch_size = self.config.get("batch_size", 4)
+            num_workers = self.config.get("num_workers", 2 if self.backend.capabilities.pin_memory else 0)
+            pin_memory = self.config.get("pin_memory", self.backend.capabilities.pin_memory)
+            persistent_workers = self.config.get("persistent_workers", num_workers > 0) if num_workers > 0 else False
+
+            val_loader = DataLoader(
+                self.val_dataset,
+                batch_size=batch_size,
+                shuffle=False,
+                num_workers=num_workers,
+                pin_memory=pin_memory,
+                persistent_workers=persistent_workers,
+                collate_fn=collate_dataset_samples
+            )
 
         self.model.eval()
         val_loss = 0.0
@@ -249,8 +263,9 @@ class Trainer(BaseTrainer):
                 inputs = batch["image"].to(self.device, non_blocking=self.backend.capabilities.non_blocking)
                 targets = batch["label"].to(self.device, non_blocking=self.backend.capabilities.non_blocking)
 
-                outputs = self.model(inputs)
-                loss = self.loss_fn(outputs, targets)
+                with torch.amp.autocast(device_type=device_type, enabled=use_amp):
+                    outputs = self.model(inputs)
+                    loss = self.loss_fn(outputs, targets)
 
                 val_loss += loss.item() * inputs.size(0)
 
