@@ -42,7 +42,11 @@ class Checkpointer(BaseCallback):
         # Pack checkpoint data
         checkpoint = {
             "epoch": epoch,
-            "model_state_dict": trainer.model.state_dict(),
+            "model_state_dict": (
+                trainer.model.module.state_dict()
+                if isinstance(trainer.model, torch.nn.DataParallel)
+                else trainer.model.state_dict()
+            ),
             "optimizer_state_dict": trainer.optimizer.state_dict(),
             "scheduler_state_dict": (
                 trainer.scheduler.state_dict()

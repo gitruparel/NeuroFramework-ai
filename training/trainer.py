@@ -64,7 +64,8 @@ class Trainer(BaseTrainer):
                     )
                     raise e
                 
-                self.model.load_state_dict(checkpoint["model_state_dict"])
+                from utils.device import load_state_dict_flexible
+                load_state_dict_flexible(self.model, checkpoint["model_state_dict"])
                 self.optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
                 
                 # Move optimizer state tensors explicitly to target device to prevent any CPU/GPU mismatch

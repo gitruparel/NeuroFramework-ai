@@ -191,6 +191,29 @@ def resolve_backend(device_name: str | torch.device) -> ResolvedBackend:
             raise ValueError(f"Unknown device identifier: '{device_name}'. Error: {e}")
 
 
+def load_state_dict_flexible(model: torch.nn.Module, state_dict: dict) -> None:
+    """Loads a state dict into a PyTorch model, dynamically handling 'module.' prefixes
+
+    from DataParallel wrappers.
+    """
+    from collections import OrderedDict
+    new_state_dict = OrderedDict()
+    
+    # Check if model has a 'module' attribute (is wrapped in DataParallel)
+    model_has_module = hasattr(model, "module") or isinstance(model, torch.nn.DataParallel)
+    
+    for k, v in state_dict.items():
+        is_prefixed = k.startswith("module.")
+        if model_has_module and not is_prefixed:
+            new_state_dict[f"module.{k}"] = v
+        elif not model_has_module and is_prefixed:
+            new_state_dict[k[7:]] = v
+        else:
+            new_state_dict[k] = v
+            
+    model.load_state_dict(new_state_dict)
+
+
 if __name__ == "__main__":
     print("=" * 40)
     print("NeuroFramework Device Report")

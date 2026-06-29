@@ -448,6 +448,14 @@ def run_training_experiment(
     # 3. Model construction
     model = DenseNet3D(in_channels=1, out_channels=2, dropout_prob=dropout_prob)
     
+    # Move model to resolved device BEFORE setting up optimizer parameters
+    model.to(resolved_device)
+    
+    # Enable DataParallel if multi-GPU is available on CUDA
+    if resolved_device.type == "cuda" and torch.cuda.device_count() > 1:
+        logger.info(f"Using {torch.cuda.device_count()} GPUs with nn.DataParallel!")
+        model = torch.nn.DataParallel(model)
+        
     # 3b. Optimizer setup
     opt_name = optimizer_name.lower()
     if opt_name == "adamw":
@@ -589,7 +597,8 @@ def run_training_experiment(
     if best_ckpt_path.exists():
         logger.info("Loading best model weights for final evaluation...")
         best_ckpt = torch.load(best_ckpt_path, map_location=resolved_device, weights_only=False)
-        model.load_state_dict(best_ckpt["model_state_dict"])
+        from utils.device import load_state_dict_flexible
+        load_state_dict_flexible(model, best_ckpt["model_state_dict"])
         
         best_epoch = int(best_ckpt.get("epoch", 0))
         best_val_loss = float(best_ckpt.get("best_metric", 0.0))
@@ -625,6 +634,12 @@ def run_training_experiment(
     model.to(resolved_device)
     model.eval()
     
+    # Wrap in DataParallel for validation speedup if available
+    eval_model = model
+    if resolved_device.type == "cuda" and torch.cuda.device_count() > 1:
+        logger.info(f"Wrapping validation model in nn.DataParallel to use {torch.cuda.device_count()} GPUs!")
+        eval_model = torch.nn.DataParallel(model)
+        
     from torch.utils.data import DataLoader
     val_loader = DataLoader(
         val_dataset,
@@ -644,7 +659,7 @@ def run_training_experiment(
         for batch in val_loader:
             inputs = batch["image"].to(resolved_device, non_blocking=backend.capabilities.non_blocking)
             targets = batch["label"].to(resolved_device, non_blocking=backend.capabilities.non_blocking)
-            outputs = model(inputs)
+            outputs = eval_model(inputs)
             
             probs = torch.softmax(outputs, dim=1)
             probs_asd = probs[:, 1]
@@ -981,8 +996,9 @@ def run_training_experiment(
         logger.info(f"Auto-exporting best checkpoint model to ONNX: {onnx_path}")
         
         # Export
+        export_model = model.module if isinstance(model, torch.nn.DataParallel) else model
         torch.onnx.export(
-            model,
+            export_model,
             dummy_input,
             onnx_path,
             export_params=True,
