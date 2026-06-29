@@ -12,7 +12,7 @@ import torch.nn as nn
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix, roc_curve, auc, classification_report, precision_recall_curve, average_precision_score
+from sklearn.metrics import confusion_matrix, roc_curve, auc, classification_report, precision_recall_curve, average_precision_score, f1_score, balanced_accuracy_score
 
 from core.logging import setup_logger
 from preprocessing.pipeline import PreprocessingPipeline
@@ -269,6 +269,9 @@ def run_training_experiment(
     experiment_name: str = "unnamed_experiment",
     decision_threshold: float = 0.5,
     early_stopping_patience: int = 8,
+    dropout_prob: float = 0.0,
+    label_smoothing: float = 0.0,
+    use_class_weights: bool = False,
 ) -> None:
     """Orchestrates full train/validation, checkpointers, and classification plots reports."""
     # Set reproducibility seeds
@@ -443,7 +446,7 @@ def run_training_experiment(
             logger.warning(msg)
     
     # 3. Model construction
-    model = DenseNet3D(in_channels=1, out_channels=2)
+    model = DenseNet3D(in_channels=1, out_channels=2, dropout_prob=dropout_prob)
     
     # 3b. Optimizer setup
     opt_name = optimizer_name.lower()
@@ -455,7 +458,23 @@ def run_training_experiment(
         raise ValueError(f"Unsupported optimizer: {optimizer_name}. Choose 'adam' or 'adamw'.")
     logger.info(f"Initialized {optimizer.__class__.__name__} optimizer (lr={lr}, weight_decay={weight_decay})")
     
-    loss_fn = nn.CrossEntropyLoss()
+    # Measure class distribution and ratio
+    train_labels = [int(item["label"] == "ASD") for item in train_dataset.items]
+    class_counts = np.bincount(train_labels)
+    num_control = int(class_counts[0]) if len(class_counts) > 0 else 0
+    num_asd = int(class_counts[1]) if len(class_counts) > 1 else 0
+    ratio = max(num_control, num_asd) / max(min(num_control, num_asd), 1)
+    logger.info(f"Training split distribution - Control: {num_control}, Autism: {num_asd}, Imbalance Ratio: {ratio:.2f}")
+    
+    # Setup class weights if requested
+    loss_weight_tensor = None
+    if use_class_weights:
+        total_samples = len(train_labels)
+        class_weights = total_samples / (len(class_counts) * class_counts)
+        loss_weight_tensor = torch.tensor(class_weights, dtype=torch.float).to(resolved_device)
+        logger.info(f"Applying class-weighted loss with weights: {class_weights}")
+        
+    loss_fn = nn.CrossEntropyLoss(weight=loss_weight_tensor, label_smoothing=label_smoothing)
     
     # ReduceLROnPlateau Scheduler
     scheduler = get_scheduler("ReduceLROnPlateau", optimizer, mode="min", patience=scheduler_patience, factor=scheduler_factor)
@@ -473,6 +492,9 @@ def run_training_experiment(
         "scheduler_factor": scheduler_factor,
         "early_stopping_patience": early_stopping_patience,
         "decision_threshold": decision_threshold,
+        "dropout_prob": dropout_prob,
+        "label_smoothing": label_smoothing,
+        "use_class_weights": use_class_weights,
         "epochs": epochs,
         "batch_size": batch_size,
         "seed": seed,
@@ -501,6 +523,9 @@ def run_training_experiment(
         "scheduler_factor": scheduler_factor,
         "early_stopping_patience": early_stopping_patience,
         "decision_threshold": decision_threshold,
+        "dropout_prob": dropout_prob,
+        "label_smoothing": label_smoothing,
+        "use_class_weights": use_class_weights,
         "seed": seed,
         "experiment_name": experiment_name,
         "monitor": "val_loss",
@@ -678,8 +703,9 @@ def run_training_experiment(
             asd_probs_control = y_prob[y_true == 0, 1]
             asd_probs_asd = y_prob[y_true == 1, 1]
             
-            plt.hist(asd_probs_control, bins=10, alpha=0.5, label="Control", color="blue", edgecolor="black")
-            plt.hist(asd_probs_asd, bins=10, alpha=0.5, label="Autism (ASD)", color="orange", edgecolor="black")
+            bins_arr = np.linspace(0.0, 1.0, 11)
+            plt.hist(asd_probs_control, bins=bins_arr, alpha=0.5, label="Control", color="blue", edgecolor="black")
+            plt.hist(asd_probs_asd, bins=bins_arr, alpha=0.5, label="Autism (ASD)", color="orange", edgecolor="black")
             plt.xlabel("Predicted Probability of ASD")
             plt.ylabel("Count")
             plt.title("Distribution of Predicted ASD Probabilities")
@@ -765,9 +791,58 @@ def run_training_experiment(
     except Exception as e:
         logger.error(f"Failed to save predictions.csv: {e}")
 
+    # Save probabilities and logits as numpy binaries
+    try:
+        prob_path = exp_dir / "val_probabilities.npy"
+        logit_path = exp_dir / "val_logits.npy"
+        np.save(prob_path, y_prob)
+        np.save(logit_path, y_logit)
+        logger.info(f"Saved validation probability and logit arrays to: {prob_path}, {logit_path}")
+    except Exception as e:
+        logger.error(f"Failed to save validation numpy arrays: {e}")
+
     # Append PR AUC details to meta config if computed
+    best_val_pr_auc = None
     if avg_precision is not None:
         best_val_pr_auc = float(avg_precision)
+        
+    # Compute optimal thresholds maximizing F1, Balanced Accuracy, and Youden's J
+    best_f1_th = 0.5
+    best_f1_val = 0.0
+    best_bal_acc_th = 0.5
+    best_bal_acc_val = 0.0
+    best_youden_th = 0.5
+    best_youden_val = -1.0
+    
+    if len(np.unique(y_true)) > 1:
+        for th in np.linspace(0.01, 0.99, 99):
+            th_preds = (y_prob[:, 1] >= th).astype(int)
+            
+            # F1 Score (Autism / class 1)
+            th_f1 = f1_score(y_true, th_preds, zero_division=0)
+            if th_f1 > best_f1_val:
+                best_f1_val = th_f1
+                best_f1_th = float(th)
+                
+            # Balanced Accuracy
+            th_bal_acc = balanced_accuracy_score(y_true, th_preds)
+            if th_bal_acc > best_bal_acc_val:
+                best_bal_acc_val = th_bal_acc
+                best_bal_acc_th = float(th)
+                
+            # Youden's J
+            cm_th = confusion_matrix(y_true, th_preds)
+            tn, fp, fn, tp = cm_th.ravel()
+            sensitivity = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+            specificity = tn / (tn + fp) if (tn + fp) > 0 else 0.0
+            th_youden = sensitivity + specificity - 1.0
+            if th_youden > best_youden_val:
+                best_youden_val = th_youden
+                best_youden_th = float(th)
+                
+        logger.info(f"Optimal threshold (F1): {best_f1_th:.2f} (F1: {best_f1_val:.4f})")
+        logger.info(f"Optimal threshold (Balanced Acc): {best_bal_acc_th:.2f} (Acc: {best_bal_acc_val:.4f})")
+        logger.info(f"Optimal threshold (Youden's J): {best_youden_th:.2f} (J: {best_youden_val:.4f})")
         
     if meta_path.exists():
         try:
@@ -777,7 +852,16 @@ def run_training_experiment(
             pass
             
     meta_config.update({
-        "best_val_pr_auc": best_val_pr_auc
+        "best_epoch": best_epoch,
+        "best_val_loss": best_val_loss,
+        "best_val_accuracy": best_val_accuracy,
+        "best_val_pr_auc": best_val_pr_auc,
+        "optimal_threshold_f1": best_f1_th,
+        "optimal_threshold_f1_val": best_f1_val,
+        "optimal_threshold_balanced_acc": best_bal_acc_th,
+        "optimal_threshold_balanced_acc_val": best_bal_acc_val,
+        "optimal_threshold_youden": best_youden_th,
+        "optimal_threshold_youden_val": best_youden_val
     })
     
     with open(meta_path, "w", encoding="utf-8") as f:
@@ -787,6 +871,80 @@ def run_training_experiment(
     report = classification_report(y_true, y_pred, target_names=["Control", "Autism"] if len(np.unique(y_true)) > 1 else None, output_dict=True, zero_division=0)
     with open(exp_dir / "classification_report.json", "w", encoding="utf-8") as f:
         json.dump(report, f, indent=4)
+        
+    # Update central comparison.csv in the parent experiment directory
+    try:
+        parent_dir = exp_dir.parent
+        comparison_path = parent_dir / "comparison.csv"
+        
+        # Read existing records if the file exists
+        records = []
+        fieldnames = [
+            "Experiment",
+            "Val_Loss",
+            "Val_Accuracy",
+            "ROC_AUC",
+            "PR_AUC",
+            "F1",
+            "Best_Epoch",
+            "Optimizer",
+            "Learning_Rate",
+            "Weight_Decay",
+            "Dropout_Prob",
+            "Label_Smoothing",
+            "Class_Weights",
+            "Augmentation"
+        ]
+        
+        import csv
+        existing_names = set()
+        if comparison_path.exists():
+            try:
+                with open(comparison_path, "r", newline="", encoding="utf-8") as csvfile:
+                    reader = csv.DictReader(csvfile)
+                    for row in reader:
+                        records.append(row)
+                        existing_names.add(row.get("Experiment"))
+            except Exception as e:
+                logger.warning(f"Failed to read existing comparison.csv: {e}")
+                
+        # Prepare the new record
+        new_record = {
+            "Experiment": experiment_name,
+            "Val_Loss": f"{best_val_loss:.4f}" if best_val_loss is not None else "N/A",
+            "Val_Accuracy": f"{best_val_accuracy:.4f}" if best_val_accuracy is not None else "N/A",
+            "ROC_AUC": f"{roc_auc:.4f}" if (len(np.unique(y_true)) > 1 and 'roc_auc' in locals()) else "N/A",
+            "PR_AUC": f"{avg_precision:.4f}" if (len(np.unique(y_true)) > 1 and avg_precision is not None) else "N/A",
+            "F1": f"{report.get('macro avg', {}).get('f1-score', 0.0):.4f}" if 'report' in locals() else "N/A",
+            "Best_Epoch": str(best_epoch) if best_epoch is not None else "N/A",
+            "Optimizer": optimizer_name,
+            "Learning_Rate": str(lr),
+            "Weight_Decay": str(weight_decay),
+            "Dropout_Prob": str(dropout_prob),
+            "Label_Smoothing": str(label_smoothing),
+            "Class_Weights": str(use_class_weights),
+            "Augmentation": str(augment)
+        }
+        
+        # Override if experiment already exists, else append
+        if experiment_name in existing_names:
+            for idx, rec in enumerate(records):
+                if rec.get("Experiment") == experiment_name:
+                    records[idx] = new_record
+                    break
+        else:
+            records.append(new_record)
+            
+        with open(comparison_path, "w", newline="", encoding="utf-8") as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            for rec in records:
+                filtered_rec = {k: rec.get(k, "N/A") for k in fieldnames}
+                writer.writerow(filtered_rec)
+                
+        logger.info(f"Updated experiment comparison table at: {comparison_path}")
+    except Exception as e:
+        logger.error(f"Failed to update comparison.csv: {e}")
         
     # 7. ONNX Model Auto-Export
     try:
@@ -858,6 +1016,9 @@ if __name__ == "__main__":
     parser.add_argument("--experiment-name", default="unnamed_experiment", help="Name to identify this training experiment run")
     parser.add_argument("--decision-threshold", type=float, default=0.5, help="Decision threshold for class probability prediction")
     parser.add_argument("--early-stopping-patience", type=int, default=8, help="Number of validation epochs before early stopping")
+    parser.add_argument("--dropout-prob", type=float, default=0.0, help="Dropout probability for DenseNet backbone blocks")
+    parser.add_argument("--label-smoothing", type=float, default=0.0, help="Label smoothing regularization parameter")
+    parser.add_argument("--use-class-weights", action="store_true", help="Enable dynamic class weighting for CrossEntropyLoss")
 
     args = parser.parse_args()
 
@@ -888,4 +1049,7 @@ if __name__ == "__main__":
         experiment_name=args.experiment_name,
         decision_threshold=args.decision_threshold,
         early_stopping_patience=args.early_stopping_patience,
+        dropout_prob=args.dropout_prob,
+        label_smoothing=args.label_smoothing,
+        use_class_weights=args.use_class_weights,
     )
