@@ -510,7 +510,7 @@ def run_training_experiment(
             dummy_input,
             onnx_path,
             export_params=True,
-            opset_version=11,
+            opset_version=17,
             do_constant_folding=True,
             input_names=["input"],
             output_names=["output"]
