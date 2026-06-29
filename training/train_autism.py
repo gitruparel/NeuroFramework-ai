@@ -114,9 +114,21 @@ def validate_cache_data(
     subjects_to_check = list(set(subjects_to_check))
     report["subjects_checked"] = len(subjects_to_check)
     
+    # Build a set of all files in the directory to do O(1) local checks instead of sequential exists() FUSE roundtrips
+    import os
+    cached_files = set()
+    if preprocessed_dir.exists():
+        try:
+            for entry in os.scandir(preprocessed_dir):
+                if entry.is_file():
+                    cached_files.add(entry.name)
+        except Exception as e:
+            logger.warning(f"Failed to scan cache directory: {e}")
+            
     for sub_id in subjects_to_check:
-        pt_path = preprocessed_dir / f"{sub_id}.pt"
-        if not pt_path.exists():
+        pt_filename = f"{sub_id}.pt"
+        pt_path = preprocessed_dir / pt_filename
+        if pt_filename not in cached_files:
             report["missing_subjects"].append(sub_id)
             report["valid"] = False
             continue
