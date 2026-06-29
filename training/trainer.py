@@ -72,6 +72,18 @@ class Trainer(BaseTrainer):
                     for k, v in state.items():
                         if isinstance(v, torch.Tensor):
                             state[k] = v.to(self.device)
+                            
+                # Restore checkpointer and early stopping best metric states from checkpoint
+                if "best_metric" in checkpoint:
+                    from training.checkpoint import Checkpointer
+                    from training.callbacks import EarlyStopping
+                    for callback in self.callbacks:
+                        if isinstance(callback, Checkpointer):
+                            callback.best_metric = checkpoint["best_metric"]
+                            logger.info(f"Trainer: Restored checkpointer best metric: {callback.best_metric:.4f}")
+                        elif isinstance(callback, EarlyStopping):
+                            callback.best_score = checkpoint["best_metric"]
+                            logger.info(f"Trainer: Restored early stopping best score: {callback.best_score:.4f}")
                 
                 if self.scheduler is not None and checkpoint.get("scheduler_state_dict") is not None:
                     self.scheduler.load_state_dict(checkpoint["scheduler_state_dict"])

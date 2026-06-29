@@ -400,6 +400,18 @@ def run_training_experiment(
     elif resume_from is not None and str(resume_from).lower() != "none":
         resume_path = Path(resume_from)
 
+    # Copy best_model.pt from source directory if resuming in a new experiment directory
+    if resume_path is not None and resume_path.exists():
+        src_best = resume_path.parent / "best_model.pt"
+        dest_best = exp_dir / "best_model.pt"
+        if src_best.exists() and src_best != dest_best:
+            try:
+                import shutil
+                shutil.copy(src_best, dest_best)
+                logger.info(f"Auto-resume: Copied best checkpoint from {src_best} to {dest_best}")
+            except Exception as e:
+                logger.warning(f"Auto-resume: Failed to copy best checkpoint: {e}")
+
     # 5. Fit loop
     trainer.fit(resume_from=resume_path)
     

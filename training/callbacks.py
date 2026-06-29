@@ -88,8 +88,31 @@ class HistoryTracker(BaseCallback):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.history: Dict[str, list] = {}
+        
+        # Load existing history if it exists (for seamless resume support)
+        history_path = self.output_dir / "history.json"
+        if history_path.exists():
+            try:
+                with open(history_path, "r", encoding="utf-8") as f:
+                    self.history = json.load(f)
+                logger.info(f"HistoryTracker: Loaded existing history from {history_path}")
+            except Exception as e:
+                logger.warning(f"HistoryTracker: Failed to load existing history: {e}")
 
     def on_epoch_end(self, trainer: Any, epoch: int, metrics: Dict[str, float]) -> None:
+        # If we resumed from an earlier checkpoint, truncate history to keep it consistent
+        epochs = self.history.get("epoch", [])
+        if epochs and epoch <= epochs[-1]:
+            keep_len = 0
+            for idx, ep in enumerate(epochs):
+                if ep < epoch:
+                    keep_len = idx + 1
+                else:
+                    break
+            
+            for k in list(self.history.keys()):
+                self.history[k] = self.history[k][:keep_len]
+                
         self.history.setdefault("epoch", []).append(epoch)
         for k, v in metrics.items():
             self.history.setdefault(k, []).append(v)
