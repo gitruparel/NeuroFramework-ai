@@ -10,6 +10,7 @@ from core.interfaces import BaseTrainer, BaseCallback, BaseModel, BaseDataset
 from core.logging import setup_logger
 from training.metrics import MetricsManager
 from tqdm import tqdm
+from utils.device import resolve_backend
 
 logger = setup_logger("training.trainer", "training/trainer.log")
 
@@ -37,9 +38,8 @@ class Trainer(BaseTrainer):
         self.callbacks = callbacks or []
         self.config = config or {}
         
-        self.device = self.config.get(
-            "device", "cuda" if torch.cuda.is_available() else "cpu"
-        )
+        self.backend = resolve_backend(self.config.get("device", "auto"))
+        self.device = self.backend.device
         self.current_epoch = 0
         self.start_epoch = 0
         self.stop_training = False
@@ -50,7 +50,16 @@ class Trainer(BaseTrainer):
             checkpoint_path = Path(resume_from)
             if checkpoint_path.exists():
                 logger.info(f"Trainer: Resuming training run from checkpoint: {checkpoint_path}")
-                checkpoint = torch.load(checkpoint_path, map_location=self.device, weights_only=False)
+                try:
+                    checkpoint = torch.load(checkpoint_path, map_location=self.device, weights_only=False)
+                except Exception as e:
+                    logger.error(
+                        f"Trainer: Failed to load checkpoint {checkpoint_path} using map_location '{self.device}'. "
+                        f"This might be due to PyTorch version incompatibilities or device serialization mismatches "
+                        f"between platforms (e.g. loading a DirectML checkpoint on CPU/CUDA).\n"
+                        f"Detailed error: {e}"
+                    )
+                    raise e
                 
                 self.model.load_state_dict(checkpoint["model_state_dict"])
                 self.optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
@@ -79,12 +88,12 @@ class Trainer(BaseTrainer):
         self.model.to(self.device)
         self.stop_training = False
 
-        if "cuda" in self.device:
+        if self.backend.capabilities.benchmark:
             torch.backends.cudnn.benchmark = True
 
         batch_size = self.config.get("batch_size", 4)
-        num_workers = self.config.get("num_workers", 2 if "cuda" in self.device else 0)
-        pin_memory = self.config.get("pin_memory", "cuda" in self.device)
+        num_workers = self.config.get("num_workers", 2 if self.backend.capabilities.pin_memory else 0)
+        pin_memory = self.config.get("pin_memory", self.backend.capabilities.pin_memory)
         persistent_workers = self.config.get("persistent_workers", num_workers > 0) if num_workers > 0 else False
 
         train_loader = DataLoader(
@@ -99,8 +108,8 @@ class Trainer(BaseTrainer):
         )
 
         # Set up Mixed Precision Scaler
-        use_amp = self.config.get("amp", False) and "cuda" in self.device
-        device_type = "cuda" if "cuda" in self.device else "cpu"
+        use_amp = self.config.get("amp", False) and self.backend.capabilities.amp
+        device_type = "cuda" if self.backend.capabilities.amp else "cpu"
         scaler = torch.amp.GradScaler(device=device_type, enabled=use_amp)
 
         epochs = self.config.get("epochs", 10)
@@ -128,8 +137,8 @@ class Trainer(BaseTrainer):
             # Batch-level progress bar
             pbar = tqdm(train_loader, desc=f"Epoch {epoch + 1}/{epochs} [Train]", leave=True)
             for batch in pbar:
-                inputs = batch["image"].to(self.device, non_blocking=True)
-                targets = batch["label"].to(self.device, non_blocking=True)
+                inputs = batch["image"].to(self.device, non_blocking=self.backend.capabilities.non_blocking)
+                targets = batch["label"].to(self.device, non_blocking=self.backend.capabilities.non_blocking)
 
                 self.optimizer.zero_grad()
 
@@ -214,8 +223,8 @@ class Trainer(BaseTrainer):
     def validate(self) -> Dict[str, float]:
         """Runs validation loop and returns calculated metrics."""
         batch_size = self.config.get("batch_size", 4)
-        num_workers = self.config.get("num_workers", 2 if "cuda" in self.device else 0)
-        pin_memory = self.config.get("pin_memory", "cuda" in self.device)
+        num_workers = self.config.get("num_workers", 2 if self.backend.capabilities.pin_memory else 0)
+        pin_memory = self.config.get("pin_memory", self.backend.capabilities.pin_memory)
         persistent_workers = self.config.get("persistent_workers", num_workers > 0) if num_workers > 0 else False
 
         val_loader = DataLoader(
@@ -237,8 +246,8 @@ class Trainer(BaseTrainer):
         with torch.no_grad():
             pbar = tqdm(val_loader, desc=f"Epoch {self.current_epoch + 1}/{self.config.get('epochs', 10)} [Val]", leave=False)
             for batch in pbar:
-                inputs = batch["image"].to(self.device, non_blocking=True)
-                targets = batch["label"].to(self.device, non_blocking=True)
+                inputs = batch["image"].to(self.device, non_blocking=self.backend.capabilities.non_blocking)
+                targets = batch["label"].to(self.device, non_blocking=self.backend.capabilities.non_blocking)
 
                 outputs = self.model(inputs)
                 loss = self.loss_fn(outputs, targets)

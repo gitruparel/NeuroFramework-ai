@@ -28,6 +28,7 @@ from training.trainer import Trainer
 from training.checkpoint import Checkpointer
 from training.callbacks import EarlyStopping, HistoryTracker, WandbLogger
 from training.scheduler import get_scheduler
+from utils.device import resolve_backend
 
 from training.preprocess_autism import preprocess_abide_dataset, wrap_raw_mri
 
@@ -175,7 +176,7 @@ def run_training_experiment(
     experiment_dir: str | Path,
     epochs: int = 10,
     batch_size: int = 4,
-    device: str = "cpu",
+    device: str = "auto",
     lr: float = 1e-3,
     resume_from: str | Path | None = "auto",
     skip_preprocess: bool = False,
@@ -189,6 +190,10 @@ def run_training_experiment(
     index_path = Path(index_file)
     split_path = Path(split_file)
     config_path = Path(config_yaml)
+    
+    backend = resolve_backend(device)
+    resolved_device = backend.device
+    logger.info(f"Resolved device backend: {backend.name} (device: {resolved_device}, version: {backend.version})")
     
     # Load cache version dynamically
     if config_path.exists():
@@ -218,19 +223,34 @@ def run_training_experiment(
         if not local_meta.exists():
             logger.info(f"Copying preprocessed cache from {preprocessed_path} to local SSD {local_cache_path}...")
             import shutil
+            import os
+            from concurrent.futures import ThreadPoolExecutor
             try:
                 local_cache_path.mkdir(parents=True, exist_ok=True)
                 remote_meta = preprocessed_path / "metadata.json"
                 if remote_meta.exists():
                     shutil.copy(remote_meta, local_meta)
                 
-                pt_files = list(preprocessed_path.glob("*.pt"))
+                # Efficient directory scanning
+                pt_files = []
+                for entry in os.scandir(preprocessed_path):
+                    if entry.is_file() and entry.name.endswith(".pt"):
+                        pt_files.append(Path(entry.path))
+                        
                 logger.info(f"Found {len(pt_files)} cache files to copy...")
                 
-                for idx, pt_file in enumerate(pt_files):
-                    shutil.copy(pt_file, local_cache_path / pt_file.name)
-                    if (idx + 1) % 100 == 0 or (idx + 1) == len(pt_files):
-                        logger.info(f"Copied {idx + 1}/{len(pt_files)} cache files to local SSD.")
+                def copy_single_file(src_path: Path):
+                    shutil.copy(src_path, local_cache_path / src_path.name)
+                
+                # Copy in parallel using 16 threads to saturate FUSE network mount I/O
+                copied_count = 0
+                with ThreadPoolExecutor(max_workers=16) as executor:
+                    futures = [executor.submit(copy_single_file, f) for f in pt_files]
+                    for future in futures:
+                        future.result()  # blocks until completed, raises exception if failed
+                        copied_count += 1
+                        if copied_count % 100 == 0 or copied_count == len(pt_files):
+                            logger.info(f"Copied {copied_count}/{len(pt_files)} cache files to local SSD.")
                         
                 logger.info("Successfully completed copying cache to local SSD!")
             except Exception as e:
@@ -314,7 +334,10 @@ def run_training_experiment(
     config = {
         "epochs": epochs,
         "batch_size": batch_size,
-        "device": device,
+        "device": str(resolved_device),
+        "backend_name": str(backend.name),
+        "backend_version": str(backend.version),
+        "torch_version": str(torch.__version__),
         "amp": True,
         "grad_clip_max_norm": 1.0,
         "learning_rate": lr,
@@ -362,10 +385,10 @@ def run_training_experiment(
     best_ckpt_path = exp_dir / "best_model.pt"
     if best_ckpt_path.exists():
         logger.info("Loading best model weights for final evaluation...")
-        best_ckpt = torch.load(best_ckpt_path, map_location=device, weights_only=False)
+        best_ckpt = torch.load(best_ckpt_path, map_location=resolved_device, weights_only=False)
         model.load_state_dict(best_ckpt["model_state_dict"])
         
-    model.to(device)
+    model.to(resolved_device)
     model.eval()
     
     from torch.utils.data import DataLoader
@@ -373,8 +396,8 @@ def run_training_experiment(
         val_dataset,
         batch_size=batch_size,
         shuffle=False,
-        num_workers=2 if device == "cuda" else 0,
-        pin_memory=device == "cuda",
+        num_workers=2 if backend.capabilities.pin_memory else 0,
+        pin_memory=backend.capabilities.pin_memory,
         collate_fn=collate_dataset_samples
     )
     
@@ -384,8 +407,8 @@ def run_training_experiment(
     
     with torch.no_grad():
         for batch in val_loader:
-            inputs = batch["image"].to(device, non_blocking=True)
-            targets = batch["label"].to(device, non_blocking=True)
+            inputs = batch["image"].to(resolved_device, non_blocking=backend.capabilities.non_blocking)
+            targets = batch["label"].to(resolved_device, non_blocking=backend.capabilities.non_blocking)
             outputs = model(inputs)
             
             probs = torch.softmax(outputs, dim=1)
@@ -499,7 +522,7 @@ if __name__ == "__main__":
     parser.add_argument("--experiment-dir", default="/content/drive/MyDrive/NeuroFramework/experiments/autism_densenet", help="Experiment outputs directory")
     parser.add_argument("--epochs", type=int, default=5, help="Number of training epochs")
     parser.add_argument("--batch-size", type=int, default=2, help="Batch size for training")
-    parser.add_argument("--device", default="cuda", help="Target execution device (e.g. cpu, cuda)")
+    parser.add_argument("--device", default="auto", help="Target execution device (e.g. cpu, cuda, directml, auto)")
     parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate")
     parser.add_argument("--resume-from", default="auto", help="Resume training checkpoint path, 'auto' to auto-detect latest, or 'none' to start from scratch")
     parser.add_argument("--skip-preprocess", action="store_true", help="Skip offline dataset preprocessing validation/run step")

@@ -34,3 +34,27 @@ A modular, production-grade research repository for processing, analyzing, train
    ```bash
    pre-commit install
    ```
+
+## Local AMD GPU Training (DirectML)
+
+For Windows systems with AMD Radeon or Intel GPUs, you can train models with hardware acceleration using the DirectML backend.
+
+### Setup Steps
+1. Activate your virtual environment.
+2. Install the DirectML PyTorch extension:
+   ```bash
+   pip install -r requirements-directml.txt
+   ```
+3. Run the device check script to verify status and capabilities:
+   ```bash
+   python -m utils.device
+   ```
+
+### Execution Example
+Start your training run by specifying `directml` as the target device:
+```bash
+python -m training.train_autism --device directml --skip-preprocess
+```
+
+> [!NOTE]
+> CUDA remains the recommended backend for NVIDIA GPUs, while DirectML provides hardware acceleration on Windows for AMD and Intel GPUs. Checkpoint files (`latest_model.pt`) are compatible across backends when using matching PyTorch versions, allowing you to train locally on DirectML and resume on CUDA (e.g. Google Colab) seamlessly.
