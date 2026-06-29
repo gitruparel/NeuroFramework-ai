@@ -46,6 +46,9 @@ class Trainer(BaseTrainer):
 
     def fit(self, resume_from: str | Path | None = None) -> None:
         """Loads weight checkpoints and optimizers state if provided, then executes the train loop."""
+        # Move model to target device BEFORE loading optimizer state dict so PyTorch aligns state devices to model parameters
+        self.model.to(self.device)
+        
         if resume_from is not None:
             checkpoint_path = Path(resume_from)
             if checkpoint_path.exists():
@@ -63,6 +66,12 @@ class Trainer(BaseTrainer):
                 
                 self.model.load_state_dict(checkpoint["model_state_dict"])
                 self.optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+                
+                # Move optimizer state tensors explicitly to target device to prevent any CPU/GPU mismatch
+                for state in self.optimizer.state.values():
+                    for k, v in state.items():
+                        if isinstance(v, torch.Tensor):
+                            state[k] = v.to(self.device)
                 
                 if self.scheduler is not None and checkpoint.get("scheduler_state_dict") is not None:
                     self.scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
