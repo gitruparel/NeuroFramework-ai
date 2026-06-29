@@ -664,7 +664,7 @@ def run_training_experiment(
     avg_precision = None
     if len(np.unique(y_true)) > 1:
         # ROC Curve
-        fpr, tpr, _ = roc_curve(y_true, y_prob[:, 1])
+        fpr, tpr, roc_thresholds = roc_curve(y_true, y_prob[:, 1])
         roc_auc = auc(fpr, tpr)
         
         plt.figure()
@@ -679,9 +679,22 @@ def run_training_experiment(
         plt.grid(True)
         plt.savefig(exp_dir / "roc_curve.png", dpi=300, bbox_inches="tight")
         plt.close()
+
+        # Save ROC points to CSV
+        try:
+            import csv
+            roc_csv_path = exp_dir / "roc_points.csv"
+            with open(roc_csv_path, "w", newline="", encoding="utf-8") as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(["threshold", "tpr", "fpr"])
+                for f_val, t_val, th_val in zip(fpr, tpr, roc_thresholds):
+                    writer.writerow([f"{th_val:.4f}", f"{t_val:.4f}", f"{f_val:.4f}"])
+            logger.info(f"Saved ROC points to: {roc_csv_path}")
+        except Exception as e:
+            logger.error(f"Failed to save roc_points.csv: {e}")
         
         # Precision-Recall Curve
-        precision_vals, recall_vals, _ = precision_recall_curve(y_true, y_prob[:, 1])
+        precision_vals, recall_vals, pr_thresholds = precision_recall_curve(y_true, y_prob[:, 1])
         avg_precision = average_precision_score(y_true, y_prob[:, 1])
         
         plt.figure()
@@ -696,6 +709,19 @@ def run_training_experiment(
         plt.savefig(exp_dir / "pr_curve.png", dpi=300, bbox_inches="tight")
         plt.close()
         logger.info(f"Saved PR curve plot (AP = {avg_precision:.4f}).")
+
+        # Save PR points to CSV
+        try:
+            import csv
+            pr_csv_path = exp_dir / "pr_points.csv"
+            with open(pr_csv_path, "w", newline="", encoding="utf-8") as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(["threshold", "precision", "recall"])
+                for idx, th_val in enumerate(pr_thresholds):
+                    writer.writerow([f"{th_val:.4f}", f"{precision_vals[idx]:.4f}", f"{recall_vals[idx]:.4f}"])
+            logger.info(f"Saved PR points to: {pr_csv_path}")
+        except Exception as e:
+            logger.error(f"Failed to save pr_points.csv: {e}")
 
         # Probability Histogram of ASD predictions (class 1) stratified by True Label
         try:
