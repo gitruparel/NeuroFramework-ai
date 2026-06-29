@@ -235,9 +235,18 @@ def run_training_experiment(
         local_cache_path = Path(local_cache_dir) / cache_version
         logger.info(f"Local cache directory configured: {local_cache_path}")
         
-        # Check if cache is already copied (verify if metadata.json exists locally)
+        # Check if cache is already copied (verify if metadata.json exists locally AND contains pt files)
         local_meta = local_cache_path / "metadata.json"
-        if not local_meta.exists():
+        
+        import os
+        local_pt_count = 0
+        if local_cache_path.exists():
+            try:
+                local_pt_count = sum(1 for entry in os.scandir(local_cache_path) if entry.is_file() and entry.name.endswith(".pt"))
+            except Exception:
+                pass
+                
+        if not local_meta.exists() or local_pt_count < 100:
             logger.info(f"Copying preprocessed cache from {preprocessed_path} to local SSD {local_cache_path}...")
             import shutil
             import os
