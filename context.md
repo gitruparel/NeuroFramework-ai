@@ -138,6 +138,17 @@ brain-ai/
   - **Dynamic Shape Validator:** Enforces dynamic shape assertions (e.g., checking that the preprocessed volume matches the final spatial transform target size `(1, 128, 128, 128)`) before saving `.pt` caches.
   - **Cache Clearing:** Implemented a `--clear-cache` CLI flag in the preprocessor executable script to safely wipe active version folders.
 
+### 12. Stage 6 Clinical Robustness & Regularization Tuning
+- **Problem:** Overfitting regularization is needed on the deep 3D DenseNet with a limited dataset, raw validation outputs must be backed up to conserve compute, and multiple experimental runs need to be tracked and compared automatically.
+- **Decision:**
+  - **Dropout and Label Smoothing:** Exposed `--dropout-prob` (passed to DenseNet blocks) and `--label-smoothing` (passed to CrossEntropyLoss) as parameters default to off (0.0) for controlled experiments.
+  - **Smart Class Weighting:** Logs training Control/ASD distribution and exact imbalance ratio on startup. Applies inverse frequency weights only when `--use-class-weights` is requested.
+  - **Diagnostic Output & Numpy Backups:** Saves validation raw logits (`val_logits.npy`) and probabilities (`val_probabilities.npy`) next to `predictions.csv`, `roc_points.csv`, and `pr_points.csv` for post-inference analysis and publication plotting.
+  - **Threshold Analysis:** Searches validation probabilities for boundaries maximizing Youden's J, F1, and Balanced Accuracy, logging them to `experiment_meta.json`.
+  - **Central Comparison Logging:** Automates adding or updating rows in a parent `comparison.csv` file, providing an aggregated matrix of metrics across all experiments.
+
+---
+
 ## Pipeline Development Status
 
 - **Stage 0 (Architecture Foundation):** Completed
@@ -147,6 +158,7 @@ brain-ai/
 - **Stage 3 (Research Preprocessing Engine):** Completed & Verified (Orientation, Normalization, Resampling, Spatial cropping/padding, N4 Bias correction, Skull-stripping, and Inverse reconstruction framework)
 - **Stage 4 (Generic Training Framework & 4.5 Smoke Tests):** Completed & Verified (Trainer, Callbacks, Checkpointer, MetricsManager, EarlyStopping, Resumption, and ONNX model export validation)
 - **Stage 5 (Autism Model & Disease Modules):** Completed & Verified (3D DenseNet121 model training, preprocessed cache, 5-fold stratification, and generic compiler framework)
-- **Stage 6 (Inference Engine):** Future (Standardized Prediction packaging)
-- **Stage 7 (Clinical PDF Reporter):** Future (PDF layouts, previews, GradCAM, summaries)
-- **Stage 8 (Dashboard UI & Deployment):** Future (Streamlit, FastAPI Backend)
+- **Stage 6 (Clinical Robustness & Advanced Regularization):** Completed & Verified (Dropout, Label Smoothing, Smart Class Weighting, threshold analysis, validation backups, and central comparison logging)
+- **Stage 7 (Optimal Thresholds, Calibration, & 5-Fold Evaluation):** Future (5-Fold cross-validation, ECE calibration plots, threshold calibrations)
+- **Stage 8 (Attribution & Explainability):** Future (Grad-CAM heatmaps, localized visualization)
+- **Stage 9 (Clinical Dashboard & Deployment):** Future (FastAPI, Streamlit, local offline deployment setup)
