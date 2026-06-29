@@ -636,7 +636,7 @@ def run_training_experiment(
     
     # Wrap in DataParallel for validation speedup if available
     eval_model = model
-    if resolved_device.type == "cuda" and torch.cuda.device_count() > 1:
+    if resolved_device.type == "cuda" and torch.cuda.device_count() > 1 and not isinstance(model, torch.nn.DataParallel):
         logger.info(f"Wrapping validation model in nn.DataParallel to use {torch.cuda.device_count()} GPUs!")
         eval_model = torch.nn.DataParallel(model)
         
