@@ -12,7 +12,7 @@ import torch.nn as nn
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix, roc_curve, auc, classification_report
+from sklearn.metrics import confusion_matrix, roc_curve, auc, classification_report, precision_recall_curve, average_precision_score
 
 from core.logging import setup_logger
 from preprocessing.pipeline import PreprocessingPipeline
@@ -267,6 +267,8 @@ def run_training_experiment(
     scheduler_factor: float = 0.5,
     seed: int = 42,
     experiment_name: str = "unnamed_experiment",
+    decision_threshold: float = 0.5,
+    early_stopping_patience: int = 8,
 ) -> None:
     """Orchestrates full train/validation, checkpointers, and classification plots reports."""
     # Set reproducibility seeds
@@ -469,6 +471,8 @@ def run_training_experiment(
         "scheduler": "ReduceLROnPlateau",
         "scheduler_patience": scheduler_patience,
         "scheduler_factor": scheduler_factor,
+        "early_stopping_patience": early_stopping_patience,
+        "decision_threshold": decision_threshold,
         "epochs": epochs,
         "batch_size": batch_size,
         "seed": seed,
@@ -495,6 +499,8 @@ def run_training_experiment(
         "weight_decay": weight_decay,
         "scheduler_patience": scheduler_patience,
         "scheduler_factor": scheduler_factor,
+        "early_stopping_patience": early_stopping_patience,
+        "decision_threshold": decision_threshold,
         "seed": seed,
         "experiment_name": experiment_name,
         "monitor": "val_loss",
@@ -503,7 +509,7 @@ def run_training_experiment(
     
     # 4. Callbacks setup
     checkpointer = Checkpointer(dirpath=exp_dir, monitor="val_loss", mode="min")
-    early_stopping = EarlyStopping(monitor="val_loss", patience=5, min_delta=1e-4, mode="min")
+    early_stopping = EarlyStopping(monitor="val_loss", patience=early_stopping_patience, min_delta=1e-4, mode="min")
     history_tracker = HistoryTracker(output_dir=exp_dir)
     wandb_logger = WandbLogger(project="abide_autism", config=config, mode="disabled")
     
@@ -566,6 +572,14 @@ def run_training_experiment(
         logger.info(f"Loaded best checkpoint weights from epoch {best_epoch} (val_loss: {best_val_loss:.4f}, val_acc: {best_val_accuracy:.4f})")
 
     # Update experiment metadata with final best results
+    best_val_pr_auc = None
+    if best_ckpt_path.exists():
+        try:
+            # Recompute average precision (PR AUC) if valid checkpoint is found
+            best_val_pr_auc = float(best_ckpt.get("metrics", {}).get("val_val_pr_auc", 0.0))
+        except Exception:
+            pass
+            
     if meta_path.exists():
         try:
             with open(meta_path, "r", encoding="utf-8") as f:
@@ -576,7 +590,7 @@ def run_training_experiment(
     meta_config.update({
         "best_epoch": best_epoch,
         "best_val_loss": best_val_loss,
-        "best_val_accuracy": best_val_accuracy
+        "best_val_accuracy": best_val_accuracy,
     })
     
     with open(meta_path, "w", encoding="utf-8") as f:
@@ -599,6 +613,7 @@ def run_training_experiment(
     y_true = []
     y_pred = []
     y_prob = []
+    y_logit = []
     
     with torch.no_grad():
         for batch in val_loader:
@@ -607,17 +622,21 @@ def run_training_experiment(
             outputs = model(inputs)
             
             probs = torch.softmax(outputs, dim=1)
-            preds = torch.argmax(outputs, dim=1)
+            probs_asd = probs[:, 1]
+            preds = (probs_asd >= decision_threshold).long()
             
             y_true.extend(targets.cpu().numpy())
             y_pred.extend(preds.cpu().numpy())
             y_prob.extend(probs.cpu().numpy())
+            y_logit.extend(outputs.cpu().numpy())
             
     y_true = np.array(y_true)
     y_pred = np.array(y_pred)
     y_prob = np.array(y_prob)
+    y_logit = np.array(y_logit)
     
     # Handle single target class cases gracefully for evaluation plotting
+    avg_precision = None
     if len(np.unique(y_true)) > 1:
         # ROC Curve
         fpr, tpr, _ = roc_curve(y_true, y_prob[:, 1])
@@ -636,6 +655,42 @@ def run_training_experiment(
         plt.savefig(exp_dir / "roc_curve.png", dpi=300, bbox_inches="tight")
         plt.close()
         
+        # Precision-Recall Curve
+        precision_vals, recall_vals, _ = precision_recall_curve(y_true, y_prob[:, 1])
+        avg_precision = average_precision_score(y_true, y_prob[:, 1])
+        
+        plt.figure()
+        plt.plot(recall_vals, precision_vals, color="blue", lw=2, label=f"PR curve (AP = {avg_precision:.2f})")
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel("Recall")
+        plt.ylabel("Precision")
+        plt.title("Precision-Recall Curve")
+        plt.legend(loc="lower left")
+        plt.grid(True)
+        plt.savefig(exp_dir / "pr_curve.png", dpi=300, bbox_inches="tight")
+        plt.close()
+        logger.info(f"Saved PR curve plot (AP = {avg_precision:.4f}).")
+
+        # Probability Histogram of ASD predictions (class 1) stratified by True Label
+        try:
+            plt.figure()
+            asd_probs_control = y_prob[y_true == 0, 1]
+            asd_probs_asd = y_prob[y_true == 1, 1]
+            
+            plt.hist(asd_probs_control, bins=10, alpha=0.5, label="Control", color="blue", edgecolor="black")
+            plt.hist(asd_probs_asd, bins=10, alpha=0.5, label="Autism (ASD)", color="orange", edgecolor="black")
+            plt.xlabel("Predicted Probability of ASD")
+            plt.ylabel("Count")
+            plt.title("Distribution of Predicted ASD Probabilities")
+            plt.legend(loc="upper right")
+            plt.grid(True, linestyle="--", alpha=0.7)
+            plt.savefig(exp_dir / "probability_histogram.png", dpi=300, bbox_inches="tight")
+            plt.close()
+            logger.info("Saved probability histogram plot.")
+        except Exception as e:
+            logger.error(f"Failed to generate probability histogram: {e}")
+            
         # Confusion Matrix
         cm = confusion_matrix(y_true, y_pred)
         plt.figure()
@@ -658,7 +713,75 @@ def run_training_experiment(
         plt.savefig(exp_dir / "confusion_matrix.png", dpi=300, bbox_inches="tight")
         plt.close()
     else:
-        logger.warning("Val dataset contains only one label class. Skipping ROC and Confusion Matrix plots.")
+        logger.warning("Val dataset contains only one label class. Skipping ROC, PR, Histogram, and Confusion Matrix plots.")
+
+    # Save detailed predictions to CSV file
+    try:
+        import csv
+        pred_csv_path = exp_dir / "predictions.csv"
+        inv_label_map = {0: "Control", 1: "Autism"}
+        
+        with open(pred_csv_path, "w", newline="", encoding="utf-8") as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow([
+                "Subject",
+                "True_Label",
+                "Pred_Label",
+                "Probability_ASD",
+                "Probability_Control",
+                "Logit_ASD",
+                "Logit_Control",
+                "Correct"
+            ])
+            
+            for idx, item in enumerate(val_dataset.items):
+                subj = item["subject_id"]
+                true_lbl = int(y_true[idx])
+                pred_lbl = int(y_pred[idx])
+                
+                true_label_str = inv_label_map.get(true_lbl, str(true_lbl))
+                pred_label_str = inv_label_map.get(pred_lbl, str(pred_lbl))
+                
+                prob_asd = float(y_prob[idx, 1])
+                prob_control = float(y_prob[idx, 0])
+                
+                logit_asd = float(y_logit[idx, 1])
+                logit_control = float(y_logit[idx, 0])
+                
+                correct_bool = bool(true_lbl == pred_lbl)
+                
+                writer.writerow([
+                    subj,
+                    true_label_str,
+                    pred_label_str,
+                    f"{prob_asd:.4f}",
+                    f"{prob_control:.4f}",
+                    f"{logit_asd:.4f}",
+                    f"{logit_control:.4f}",
+                    str(correct_bool)
+                ])
+                
+        logger.info(f"Saved validation predictions to: {pred_csv_path}")
+    except Exception as e:
+        logger.error(f"Failed to save predictions.csv: {e}")
+
+    # Append PR AUC details to meta config if computed
+    if avg_precision is not None:
+        best_val_pr_auc = float(avg_precision)
+        
+    if meta_path.exists():
+        try:
+            with open(meta_path, "r", encoding="utf-8") as f:
+                meta_config = json.load(f)
+        except Exception:
+            pass
+            
+    meta_config.update({
+        "best_val_pr_auc": best_val_pr_auc
+    })
+    
+    with open(meta_path, "w", encoding="utf-8") as f:
+        json.dump(meta_config, f, indent=4)
         
     # Classification Report
     report = classification_report(y_true, y_pred, target_names=["Control", "Autism"] if len(np.unique(y_true)) > 1 else None, output_dict=True, zero_division=0)
@@ -733,6 +856,8 @@ if __name__ == "__main__":
     parser.add_argument("--scheduler-factor", type=float, default=0.5, help="Multiplication factor for learning rate decay")
     parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility")
     parser.add_argument("--experiment-name", default="unnamed_experiment", help="Name to identify this training experiment run")
+    parser.add_argument("--decision-threshold", type=float, default=0.5, help="Decision threshold for class probability prediction")
+    parser.add_argument("--early-stopping-patience", type=int, default=8, help="Number of validation epochs before early stopping")
 
     args = parser.parse_args()
 
@@ -761,4 +886,6 @@ if __name__ == "__main__":
         scheduler_factor=args.scheduler_factor,
         seed=args.seed,
         experiment_name=args.experiment_name,
+        decision_threshold=args.decision_threshold,
+        early_stopping_patience=args.early_stopping_patience,
     )
