@@ -261,8 +261,22 @@ def run_training_experiment(
     full_cache_validation: bool = False,
     local_cache_dir: str | Path | None = None,
     augment: bool = False,
+    optimizer_name: str = "adam",
+    weight_decay: float = 1e-4,
+    scheduler_patience: int = 6,
+    scheduler_factor: float = 0.5,
+    seed: int = 42,
+    experiment_name: str = "unnamed_experiment",
 ) -> None:
     """Orchestrates full train/validation, checkpointers, and classification plots reports."""
+    # Set reproducibility seeds
+    import random
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+    
     index_path = Path(index_file)
     split_path = Path(split_file)
     config_path = Path(config_yaml)
@@ -428,12 +442,43 @@ def run_training_experiment(
     
     # 3. Model construction
     model = DenseNet3D(in_channels=1, out_channels=2)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
+    
+    # 3b. Optimizer setup
+    opt_name = optimizer_name.lower()
+    if opt_name == "adamw":
+        optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
+    elif opt_name == "adam":
+        optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+    else:
+        raise ValueError(f"Unsupported optimizer: {optimizer_name}. Choose 'adam' or 'adamw'.")
+    logger.info(f"Initialized {optimizer.__class__.__name__} optimizer (lr={lr}, weight_decay={weight_decay})")
+    
     loss_fn = nn.CrossEntropyLoss()
     
     # ReduceLROnPlateau Scheduler
-    scheduler = get_scheduler("ReduceLROnPlateau", optimizer, mode="min", patience=3, factor=0.5)
+    scheduler = get_scheduler("ReduceLROnPlateau", optimizer, mode="min", patience=scheduler_patience, factor=scheduler_factor)
     
+    # Save the initial experiment configuration
+    meta_path = exp_dir / "experiment_meta.json"
+    meta_config = {
+        "experiment_name": experiment_name,
+        "architecture": "DenseNet3D",
+        "optimizer": optimizer_name,
+        "lr": lr,
+        "weight_decay": weight_decay,
+        "scheduler": "ReduceLROnPlateau",
+        "scheduler_patience": scheduler_patience,
+        "scheduler_factor": scheduler_factor,
+        "epochs": epochs,
+        "batch_size": batch_size,
+        "seed": seed,
+        "augmentation": augment,
+    }
+    
+    with open(meta_path, "w", encoding="utf-8") as f:
+        json.dump(meta_config, f, indent=4)
+    logger.info(f"Saved initial experiment metadata configuration to: {meta_path}")
+
     # Config parameters dict
     config = {
         "epochs": epochs,
@@ -446,6 +491,12 @@ def run_training_experiment(
         "grad_clip_max_norm": 1.0,
         "learning_rate": lr,
         "augment": augment,
+        "optimizer": optimizer_name,
+        "weight_decay": weight_decay,
+        "scheduler_patience": scheduler_patience,
+        "scheduler_factor": scheduler_factor,
+        "seed": seed,
+        "experiment_name": experiment_name,
         "monitor": "val_loss",
         "mode": "min"
     }
@@ -500,10 +551,37 @@ def run_training_experiment(
         
     # 6. Evaluation on validation set using the best model checkpoint
     best_ckpt_path = exp_dir / "best_model.pt"
+    best_epoch = None
+    best_val_loss = None
+    best_val_accuracy = None
+    
     if best_ckpt_path.exists():
         logger.info("Loading best model weights for final evaluation...")
         best_ckpt = torch.load(best_ckpt_path, map_location=resolved_device, weights_only=False)
         model.load_state_dict(best_ckpt["model_state_dict"])
+        
+        best_epoch = int(best_ckpt.get("epoch", 0))
+        best_val_loss = float(best_ckpt.get("best_metric", 0.0))
+        best_val_accuracy = float(best_ckpt.get("metrics", {}).get("val_val_accuracy", 0.0))
+        logger.info(f"Loaded best checkpoint weights from epoch {best_epoch} (val_loss: {best_val_loss:.4f}, val_acc: {best_val_accuracy:.4f})")
+
+    # Update experiment metadata with final best results
+    if meta_path.exists():
+        try:
+            with open(meta_path, "r", encoding="utf-8") as f:
+                meta_config = json.load(f)
+        except Exception:
+            pass
+            
+    meta_config.update({
+        "best_epoch": best_epoch,
+        "best_val_loss": best_val_loss,
+        "best_val_accuracy": best_val_accuracy
+    })
+    
+    with open(meta_path, "w", encoding="utf-8") as f:
+        json.dump(meta_config, f, indent=4)
+    logger.info(f"Updated experiment metadata with best epoch results at: {meta_path}")
         
     model.to(resolved_device)
     model.eval()
@@ -649,6 +727,12 @@ if __name__ == "__main__":
     parser.add_argument("--full-cache-validation", action="store_true", help="Perform full cache validation by loading every cached file (slow on Google Drive)")
     parser.add_argument("--local-cache-dir", default=None, help="Local SSD directory override to copy cache once to before training")
     parser.add_argument("--augment", action="store_true", help="Enable 3D data augmentation on the training set to prevent overfitting")
+    parser.add_argument("--optimizer", default="adam", choices=["adam", "adamw"], help="Optimizer choice (adam or adamw)")
+    parser.add_argument("--weight-decay", type=float, default=1e-4, help="Weight decay for regularization")
+    parser.add_argument("--scheduler-patience", type=int, default=6, help="Patience epochs before decaying learning rate")
+    parser.add_argument("--scheduler-factor", type=float, default=0.5, help="Multiplication factor for learning rate decay")
+    parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility")
+    parser.add_argument("--experiment-name", default="unnamed_experiment", help="Name to identify this training experiment run")
 
     args = parser.parse_args()
 
@@ -671,4 +755,10 @@ if __name__ == "__main__":
         full_cache_validation=args.full_cache_validation,
         local_cache_dir=args.local_cache_dir,
         augment=args.augment,
+        optimizer_name=args.optimizer,
+        weight_decay=args.weight_decay,
+        scheduler_patience=args.scheduler_patience,
+        scheduler_factor=args.scheduler_factor,
+        seed=args.seed,
+        experiment_name=args.experiment_name,
     )
