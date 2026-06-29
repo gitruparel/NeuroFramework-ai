@@ -1,0 +1,116 @@
+{
+    "total_mri_scans": 1102,
+    "indexed_subjects": 1102,
+    "asd_count": 531,
+    "control_count": 571,
+    "male_count": 939,
+    "female_count": 163,
+    "mean_age": 17.085342105263155,
+    "site_distribution": {
+        "PITT": 57,
+        "OLIN": 36,
+        "OHSU": 28,
+        "SDSU": 36,
+        "TRINITY": 49,
+        "UM_1": 110,
+        "UM_2": 35,
+        "USM": 101,
+        "YALE": 56,
+        "CMU": 27,
+        "LEUVEN_1": 29,
+        "LEUVEN_2": 35,
+        "KKI": 55,
+        "NYU": 184,
+        "STANFORD": 40,
+        "UCLA_1": 73,
+        "UCLA_2": 26,
+        "MAX_MUN": 57,
+        "CALTECH": 38,
+        "SBL": 30
+    },
+    "split_info": {
+        "train": {
+            "count": 771,
+            "class_balance": {
+                "ASD": 372,
+                "CONTROL": 399
+            }
+        },
+        "val": {
+            "count": 165,
+            "class_balance": {
+                "ASD": 79,
+                "CONTROL": 86
+            }
+        },
+        "test": {
+            "count": 166,
+            "class_balance": {
+                "ASD": 80,
+                "CONTROL": 86
+            }
+        }
+    },
+    "kfold_info": [
+        {
+            "train_count": 881,
+            "val_count": 221,
+            "train_balance": {
+                "ASD": 424,
+                "CONTROL": 457
+            },
+            "val_balance": {
+                "ASD": 107,
+                "CONTROL": 114
+            }
+        },
+        {
+            "train_count": 881,
+            "val_count": 221,
+            "train_balance": {
+                "ASD": 425,
+                "CONTROL": 456
+            },
+            "val_balance": {
+                "ASD": 106,
+                "CONTROL": 115
+            }
+        },
+        {
+            "train_count": 882,
+            "val_count": 220,
+            "train_balance": {
+                "ASD": 425,
+                "CONTROL": 457
+            },
+            "val_balance": {
+                "ASD": 106,
+                "CONTROL": 114
+            }
+        },
+        {
+            "train_count": 882,
+            "val_count": 220,
+            "train_balance": {
+                "ASD": 425,
+                "CONTROL": 457
+            },
+            "val_balance": {
+                "ASD": 106,
+                "CONTROL": 114
+            }
+        },
+        {
+            "train_count": 882,
+            "val_count": 220,
+            "train_balance": {
+                "ASD": 425,
+                "CONTROL": 457
+            },
+            "val_balance": {
+                "ASD": 106,
+                "CONTROL": 114
+            }
+        }
+    ]
+}
