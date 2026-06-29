@@ -35,6 +35,69 @@ from training.preprocess_autism import preprocess_abide_dataset, wrap_raw_mri
 logger = setup_logger("train_autism", "training/train_autism.log")
 
 
+class Random3DAugmentation:
+    """Applies on-the-fly random 3D augmentations to PyTorch tensors to prevent overfitting."""
+
+    def __init__(
+        self,
+        flip_prob: float = 0.5,
+        noise_std: float = 0.015,
+        intensity_scale_range: tuple[float, float] = (0.9, 1.1),
+        intensity_shift_range: tuple[float, float] = (-0.08, 0.08),
+        translation_range: tuple[int, int] = (-4, 4)
+    ):
+        self.flip_prob = flip_prob
+        self.noise_std = noise_std
+        self.scale_min, self.scale_max = intensity_scale_range
+        self.shift_min, self.shift_max = intensity_shift_range
+        self.trans_min, self.trans_max = translation_range
+
+    def __call__(self, tensor: torch.Tensor) -> torch.Tensor:
+        import random
+        x = tensor.clone()
+
+        # 1. Left-Right Flip (flips along dimension 1 of shape C,X,Y,Z)
+        if random.random() < self.flip_prob:
+            x = torch.flip(x, dims=[1])
+
+        # 2. Random 3D Translation with zero-padding (shifts by up to N voxels)
+        if random.random() < 0.5:
+            shift_x = random.randint(self.trans_min, self.trans_max)
+            shift_y = random.randint(self.trans_min, self.trans_max)
+            shift_z = random.randint(self.trans_min, self.trans_max)
+            
+            x = torch.roll(x, shifts=(shift_x, shift_y, shift_z), dims=(1, 2, 3))
+            
+            # Zero out boundary wrap-around regions
+            if shift_x > 0:
+                x[:, :shift_x, :, :] = 0
+            elif shift_x < 0:
+                x[:, shift_x:, :, :] = 0
+                
+            if shift_y > 0:
+                x[:, :, :shift_y, :] = 0
+            elif shift_y < 0:
+                x[:, :, shift_y:, :] = 0
+                
+            if shift_z > 0:
+                x[:, :, :, :shift_z] = 0
+            elif shift_z < 0:
+                x[:, :, :, shift_z:] = 0
+
+        # 3. Random Gaussian Noise
+        if self.noise_std > 0 and random.random() < 0.5:
+            noise = torch.randn_like(x) * self.noise_std
+            x = x + noise
+
+        # 4. Random Intensity Scaling & Shifting
+        if random.random() < 0.5:
+            scale = random.uniform(self.scale_min, self.scale_max)
+            shift = random.uniform(self.shift_min, self.shift_max)
+            x = x * scale + shift
+
+        return x
+
+
 def validate_cache_data(
     train_dataset: ABIDEDataset,
     val_dataset: ABIDEDataset,
@@ -197,6 +260,7 @@ def run_training_experiment(
     limit: int | None = None,
     full_cache_validation: bool = False,
     local_cache_dir: str | Path | None = None,
+    augment: bool = False,
 ) -> None:
     """Orchestrates full train/validation, checkpointers, and classification plots reports."""
     index_path = Path(index_file)
@@ -289,13 +353,27 @@ def run_training_experiment(
     
     # 2. Build Datasets
     label_map = {"CONTROL": 0, "ASD": 1}
+    
+    # Define augmentations for training if requested
+    train_transform = None
+    if augment:
+        train_transform = Random3DAugmentation(
+            flip_prob=0.5,
+            noise_std=0.015,
+            intensity_scale_range=(0.9, 1.1),
+            intensity_shift_range=(-0.08, 0.08),
+            translation_range=(-4, 4)
+        )
+        logger.info("3D data augmentation enabled for training dataset.")
+
     train_dataset = ABIDEDataset(
         index_file=index_path,
         split_file=split_path,
         split_name="train",
         preprocessed_dir=preprocessed_path,
         raw_dir=data_root,
-        label_map=label_map
+        label_map=label_map,
+        transform=train_transform
     )
     val_dataset = ABIDEDataset(
         index_file=index_path,
@@ -367,6 +445,7 @@ def run_training_experiment(
         "amp": True,
         "grad_clip_max_norm": 1.0,
         "learning_rate": lr,
+        "augment": augment,
         "monitor": "val_loss",
         "mode": "min"
     }
@@ -569,6 +648,7 @@ if __name__ == "__main__":
     parser.add_argument("--limit", type=int, default=None, help="Limit dataset size to first N subjects for debug/test training")
     parser.add_argument("--full-cache-validation", action="store_true", help="Perform full cache validation by loading every cached file (slow on Google Drive)")
     parser.add_argument("--local-cache-dir", default=None, help="Local SSD directory override to copy cache once to before training")
+    parser.add_argument("--augment", action="store_true", help="Enable 3D data augmentation on the training set to prevent overfitting")
 
     args = parser.parse_args()
 
@@ -590,4 +670,5 @@ if __name__ == "__main__":
         limit=args.limit,
         full_cache_validation=args.full_cache_validation,
         local_cache_dir=args.local_cache_dir,
+        augment=args.augment,
     )
