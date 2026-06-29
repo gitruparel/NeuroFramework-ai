@@ -57,6 +57,8 @@ ENV/
 
 # Project-specific paths
 data/
+!data/*.json
+!data/**/*.json
 experiments/
 logs/*
 !logs/training/
