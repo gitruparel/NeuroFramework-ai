@@ -159,6 +159,44 @@ class Trainer(BaseTrainer):
             self.current_epoch = epoch
             logger.info(f"Trainer: Epoch {epoch + 1}/{epochs}")
 
+            # Check freeze / unfreeze triggers
+            freeze_epochs = self.config.get("freeze_epochs", 0)
+            if freeze_epochs > 0:
+                classifier_names = ["class_out", "classifier", "fc"]
+                if epoch == 0:
+                    from models.pretrained import freeze_backbone
+                    freeze_backbone(self.model)
+                    logger.info(f"Trainer: Backbone frozen for the first {freeze_epochs} epochs.")
+                    
+                    # Re-create optimizer with only classifier parameters to avoid optimizing frozen params
+                    classifier_params = [p for n, p in self.model.named_parameters() if p.requires_grad and any(cn in n for cn in classifier_names)]
+                    self.optimizer = type(self.optimizer)(
+                        [{"params": classifier_params, "lr": self.config.get("classifier_lr", self.config.get("learning_rate", 1e-3))}],
+                        weight_decay=self.optimizer.defaults.get("weight_decay", 1e-4)
+                    )
+                elif epoch == freeze_epochs:
+                    from models.pretrained import unfreeze_backbone
+                    unfreeze_backbone(self.model)
+                    logger.info(f"Trainer: Unfreezing backbone parameters at epoch {epoch + 1}.")
+                    
+                    # Re-create optimizer with differential learning rates
+                    backbone_params = []
+                    classifier_params = []
+                    for n, p in self.model.named_parameters():
+                        if p.requires_grad:
+                            if any(cn in n for cn in classifier_names):
+                                classifier_params.append(p)
+                            else:
+                                backbone_params.append(p)
+                                
+                    param_groups = []
+                    if backbone_params:
+                        param_groups.append({"params": backbone_params, "lr": self.config.get("backbone_lr", self.config.get("learning_rate", 1e-3))})
+                    if classifier_params:
+                        param_groups.append({"params": classifier_params, "lr": self.config.get("classifier_lr", self.config.get("learning_rate", 1e-3))})
+                        
+                    self.optimizer = type(self.optimizer)(param_groups, weight_decay=self.optimizer.defaults.get("weight_decay", 1e-4))
+
             # Training epoch
             self.model.train()
             train_loss = 0.0

@@ -281,6 +281,13 @@ def run_training_experiment(
     tta: bool = False,
     tta_runs: int = 5,
     tta_method: str = "mean",
+    pretrained: bool = False,
+    pretrained_source: str = "none",
+    pretrained_checkpoint: Optional[str] = None,
+    freeze_backbone: bool = False,
+    freeze_epochs: int = 0,
+    backbone_lr: Optional[float] = None,
+    classifier_lr: Optional[float] = None,
 ) -> Dict[str, Any]:
     """Orchestrates full train/validation, checkpointers, and classification plots reports."""
     # Set reproducibility seeds
@@ -470,6 +477,20 @@ def run_training_experiment(
         dropout_prob=dropout_prob
     )
     
+    # Load pretrained weights if requested
+    if pretrained or pretrained_source != "none":
+        from models.pretrained import load_pretrained_weights
+        model = load_pretrained_weights(
+            model=model,
+            source=pretrained_source,
+            checkpoint_path=pretrained_checkpoint,
+            architecture=architecture
+        )
+        
+    if freeze_backbone and freeze_epochs > 0:
+        from models.pretrained import freeze_backbone as freeze_bb
+        freeze_bb(model)
+    
     # Estimate parameter counts and model size in MB
     total_params = sum(p.numel() for p in model.parameters())
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -496,13 +517,37 @@ def run_training_experiment(
         
     # 3b. Optimizer setup
     opt_name = optimizer_name.lower()
+    
+    # Setup parameters with differential learning rates if requested
+    classifier_names = ["class_out", "classifier", "fc"]
+    backbone_params = []
+    classifier_params = []
+    for n, p in model.named_parameters():
+        if p.requires_grad:
+            if any(cn in n for cn in classifier_names):
+                classifier_params.append(p)
+            else:
+                backbone_params.append(p)
+                
+    param_groups = []
+    if backbone_lr is not None and classifier_lr is not None:
+        if backbone_params:
+            param_groups.append({"params": backbone_params, "lr": backbone_lr})
+        if classifier_params:
+            param_groups.append({"params": classifier_params, "lr": classifier_lr})
+        logger.info(f"Using differential learning rates: backbone_lr={backbone_lr}, classifier_lr={classifier_lr}")
+    else:
+        # Use single learning rate
+        param_groups = [{"params": [p for p in model.parameters() if p.requires_grad], "lr": lr}]
+        logger.info(f"Using single learning rate: lr={lr}")
+        
     if opt_name == "adamw":
-        optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
+        optimizer = torch.optim.AdamW(param_groups, weight_decay=weight_decay)
     elif opt_name == "adam":
-        optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+        optimizer = torch.optim.Adam(param_groups, weight_decay=weight_decay)
     else:
         raise ValueError(f"Unsupported optimizer: {optimizer_name}. Choose 'adam' or 'adamw'.")
-    logger.info(f"Initialized {optimizer.__class__.__name__} optimizer (lr={lr}, weight_decay={weight_decay})")
+    logger.info(f"Initialized {optimizer.__class__.__name__} optimizer (weight_decay={weight_decay})")
     
     # Measure class distribution and ratio
     train_labels = [int(item["label"] == "ASD") for item in train_dataset.items]
@@ -556,6 +601,11 @@ def run_training_experiment(
         "loss_function": loss_function,
         "focal_gamma": focal_gamma,
         "focal_alpha": focal_alpha,
+        "initialization_type": pretrained_source,
+        "pretrained_source": pretrained_source,
+        "frozen_epochs": freeze_epochs,
+        "backbone_learning_rate": backbone_lr,
+        "classifier_learning_rate": classifier_lr,
         "epochs": epochs,
         "batch_size": batch_size,
         "seed": seed,
@@ -612,7 +662,11 @@ def run_training_experiment(
         "seed": seed,
         "experiment_name": experiment_name,
         "monitor": "val_loss",
-        "mode": "min"
+        "mode": "min",
+        "freeze_epochs": freeze_epochs,
+        "backbone_lr": backbone_lr,
+        "classifier_lr": classifier_lr,
+        "pretrained_source": pretrained_source,
     }
     
     # 4. Callbacks setup
@@ -1213,7 +1267,8 @@ def run_training_experiment(
                 "Label_Smoothing",
                 "Class_Weights",
                 "Augmentation",
-                "Augmentation_Profile"
+                "Augmentation_Profile",
+                "Initialization_Type"
             ]
             
             import csv
@@ -1253,7 +1308,8 @@ def run_training_experiment(
                 "Label_Smoothing": str(label_smoothing),
                 "Class_Weights": str(use_class_weights),
                 "Augmentation": str(augment),
-                "Augmentation_Profile": augmentation_profile if augment else "none"
+                "Augmentation_Profile": augmentation_profile if augment else "none",
+                "Initialization_Type": pretrained_source
             }
             
             # Override if experiment already exists, else append
@@ -1371,8 +1427,27 @@ if __name__ == "__main__":
     parser.add_argument("--tta", action="store_true", help="Enable Test-Time Augmentation during final evaluation")
     parser.add_argument("--tta-runs", type=int, default=5, help="Number of TTA runs to average")
     parser.add_argument("--tta-method", default="mean", choices=["mean", "median", "majority"], help="Probability aggregation method for TTA")
+    parser.add_argument("--pretrained", action="store_true", help="Enable pretrained weight initialization")
+    parser.add_argument("--pretrained-source", default="none", choices=["none", "medicalnet", "monai", "custom"], help="Source of pretrained weight parameters")
+    parser.add_argument("--pretrained-checkpoint", default=None, help="Path to local pretrained model checkpoint file")
+    parser.add_argument("--freeze-backbone", action="store_true", help="Freeze backbone weights and train only classifier for initial epochs")
+    parser.add_argument("--freeze-epochs", type=int, default=0, help="Number of epochs to keep backbone frozen")
+    parser.add_argument("--backbone-lr", type=float, default=None, help="Differential learning rate for backbone parameters")
+    parser.add_argument("--classifier-lr", type=float, default=None, help="Differential learning rate for classifier parameters")
+    parser.add_argument("--benchmark-transfer", action="store_true", help="Sequentially train models under random init vs medicalnet vs monai init")
 
     args = parser.parse_args()
+
+    # Consolidate transfer learning settings to pass to experiments
+    extra_run_args = {
+        "pretrained": args.pretrained or (args.pretrained_source != "none"),
+        "pretrained_source": args.pretrained_source,
+        "pretrained_checkpoint": args.pretrained_checkpoint,
+        "freeze_backbone": args.freeze_backbone,
+        "freeze_epochs": args.freeze_epochs,
+        "backbone_lr": args.backbone_lr,
+        "classifier_lr": args.classifier_lr,
+    }
 
     if args.benchmark_losses:
         from training.losses import aggregate_losses_benchmark
@@ -1426,6 +1501,7 @@ if __name__ == "__main__":
                 tta=args.tta,
                 tta_runs=args.tta_runs,
                 tta_method=args.tta_method,
+                **extra_run_args,
             )
             
         aggregate_losses_benchmark(Path(args.experiment_dir), losses_to_test)
@@ -1483,11 +1559,75 @@ if __name__ == "__main__":
                 tta=args.tta,
                 tta_runs=args.tta_runs,
                 tta_method=args.tta_method,
+                **extra_run_args,
             )
             
         aggregate_architecture_benchmark(Path(args.experiment_dir), architectures)
         logger.info(f"Multi-Architecture Benchmark Run completed successfully!")
         
+    elif args.benchmark_transfer:
+        from training.transfer_learning import aggregate_transfer_learning_benchmark
+        init_strategies = ["none", "medicalnet", "monai"]
+        logger.info(f"Starting Transfer Learning Initialization Benchmark Run for: {init_strategies}")
+        
+        for init in init_strategies:
+            logger.info(f"\n==================================================")
+            logger.info(f"TRAINING INITIALIZATION STRATEGY: {init}")
+            logger.info(f"==================================================")
+            
+            init_dir = Path(args.experiment_dir) / init
+            
+            run_training_experiment(
+                data_root=args.data_root,
+                index_file=args.index_file,
+                split_file=args.split_file,
+                preprocessed_dir=args.preprocessed_dir,
+                config_yaml=args.config_yaml,
+                experiment_dir=init_dir,
+                epochs=args.epochs,
+                batch_size=args.batch_size,
+                device=args.device,
+                lr=args.lr,
+                resume_from="none",
+                skip_preprocess=True,
+                copy_outputs_to=None,
+                strict_cache_validation=args.strict_cache_validation,
+                limit=args.limit,
+                full_cache_validation=False,
+                local_cache_dir=args.local_cache_dir,
+                augment=args.augment,
+                optimizer_name=args.optimizer,
+                weight_decay=args.weight_decay,
+                scheduler_patience=args.scheduler_patience,
+                scheduler_factor=args.scheduler_factor,
+                seed=args.seed,
+                experiment_name=f"{args.experiment_name}_{init}",
+                decision_threshold=args.decision_threshold,
+                early_stopping_patience=args.early_stopping_patience,
+                dropout_prob=args.dropout_prob,
+                label_smoothing=args.label_smoothing,
+                use_class_weights=args.use_class_weights,
+                is_hyperopt=False,
+                augmentation_profile=args.augmentation_profile,
+                architecture=args.architecture,
+                loss_function=args.loss_function,
+                focal_gamma=args.focal_gamma,
+                focal_alpha=args.focal_alpha,
+                tta=args.tta,
+                tta_runs=args.tta_runs,
+                tta_method=args.tta_method,
+                pretrained=(init != "none"),
+                pretrained_source=init,
+                pretrained_checkpoint=args.pretrained_checkpoint,
+                freeze_backbone=args.freeze_backbone,
+                freeze_epochs=args.freeze_epochs,
+                backbone_lr=args.backbone_lr,
+                classifier_lr=args.classifier_lr,
+            )
+            
+        aggregate_transfer_learning_benchmark(Path(args.experiment_dir), init_strategies)
+        logger.info(f"Transfer Learning Benchmark Run completed successfully!")
+
     elif args.optuna_trials > 0:
         from training.hyperopt import optimize_hyperparameters
         import shutil
@@ -1544,6 +1684,7 @@ if __name__ == "__main__":
                     tta=False,
                     tta_runs=1,
                     tta_method="mean",
+                    **extra_run_args,
                 )
                 
                 # Fetch ROC-AUC as optimization target
@@ -1610,6 +1751,7 @@ if __name__ == "__main__":
             tta=args.tta,
             tta_runs=args.tta_runs,
             tta_method=args.tta_method,
+            **extra_run_args,
         )
     else:
         run_training_experiment(
@@ -1651,4 +1793,5 @@ if __name__ == "__main__":
             tta=args.tta,
             tta_runs=args.tta_runs,
             tta_method=args.tta_method,
+            **extra_run_args,
         )

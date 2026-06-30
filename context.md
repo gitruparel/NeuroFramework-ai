@@ -183,6 +183,14 @@ brain-ai/
   - **Aggregated Prediction Combinator:** Created `PredictionAggregator` offering `mean` probability, `median` probability, and `majority` voting aggregation options.
   - **TTA Evaluation & Latency plots:** Automatically evaluates validation outputs twice (with and without TTA) to record accuracy metrics and latency deltas to `tta_comparison.csv` and side-by-side bar plots to `tta_comparison.png`.
 
+### 18. Stage 6.5F Transfer Learning & Pretrained Backbone Support
+- **Problem:** Training 3D deep CNN backbones from scratch on small medical datasets can lead to slow convergence and suboptimal generalization. We need to initialize models from pretrained weights (MedicalNet, MONAI, custom checkpoints) and support layer freezing and differential learning rates to guide training.
+- **Decision:**
+  - **Pretrained Loader (`models/pretrained.py`):** Implemented `load_pretrained_weights` mapping and loading weights from local/custom checkpoints or MedicalNet/MONAI weight libraries. Matches keys flexibly using prefix cleaning and shape checks.
+  - **Layer Freezing (`models/pretrained.py`):** Created `freeze_backbone` freezing non-classifier parameters, and `unfreeze_backbone` to re-enable gradients.
+  - **Dynamic Optimizer Rebuilding (`training/trainer.py`):** Rebuilds optimizer parameter groups at unfreeze transitions (e.g. at epoch `freeze_epochs`), mapping backbone parameters to `backbone_lr` and classifier parameters to `classifier_lr` (differential learning rates).
+  - **TL Comparison Sweeper & Plots (`training/transfer_learning.py`):** Added `--benchmark-transfer` running sequential random-init vs pretrained sweeps, exporting `transfer_learning_comparison.csv` and side-by-side comparative metric bar charts `transfer_learning_comparison.png`.
+
 ---
 
 ## Pipeline Development Status
@@ -200,7 +208,7 @@ brain-ai/
 - **Stage 6.5C (Architecture Benchmark Framework):** Completed & Verified (Centralized factory, ResNet-10/18 wraps, summary traces, sequential orchestrator, comparative bar plots, and unit tests)
 - **Stage 6.5D (Advanced Loss Function Benchmark):** Completed & Verified (Custom vectorized Focal Loss, LossFactory, Sensitivity/Specificity computations, sequential loss sweeps, comparative bar plots, and unit tests)
 - **Stage 6.5E (Test-Time Augmentation & Robust Inference):** Completed & Verified (Deterministic TTA augmentor, PredictionAggregator, timing / metrics validation deltas logging, and grouped bar chart comparisons)
-- **Stage 6.5F (Future Sub-Stages):** Future (Architecture modifications, explainability, etc.)
+- **Stage 6.5F (Transfer Learning & Pretrained Backbone Support):** Completed & Verified (Pretrained model loader, layer freezing hooks, differential learning rates, benchmark aggregations, comparison CSVs, and convergence speed plots)
 - **Stage 7 (Optimal Thresholds, Calibration, & 5-Fold Evaluation):** Future (5-Fold cross-validation, ECE calibration plots, threshold calibrations)
 - **Stage 8 (Attribution & Explainability):** Future (Grad-CAM heatmaps, localized visualization)
 - **Stage 9 (Clinical Dashboard & Deployment):** Future (FastAPI, Streamlit, local offline deployment setup)
