@@ -273,15 +273,12 @@ def run_training_experiment(
     label_smoothing: float = 0.0,
     use_class_weights: bool = False,
     is_hyperopt: bool = False,
+    augmentation_profile: str = "moderate",
 ) -> Dict[str, Any]:
     """Orchestrates full train/validation, checkpointers, and classification plots reports."""
     # Set reproducibility seeds
-    import random
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed)
+    from training.experiment import set_seed
+    set_seed(seed)
     
     index_path = Path(index_file)
     split_path = Path(split_file)
@@ -377,14 +374,9 @@ def run_training_experiment(
     # Define augmentations for training if requested
     train_transform = None
     if augment:
-        train_transform = Random3DAugmentation(
-            flip_prob=0.5,
-            noise_std=0.015,
-            intensity_scale_range=(0.9, 1.1),
-            intensity_shift_range=(-0.08, 0.08),
-            translation_range=(-4, 4)
-        )
-        logger.info("3D data augmentation enabled for training dataset.")
+        from training.augmentations import get_mri_augmentations
+        train_transform = get_mri_augmentations(profile=augmentation_profile, seed=seed)
+        logger.info(f"MONAI 3D data augmentation enabled using profile '{augmentation_profile}'.")
 
     train_dataset = ABIDEDataset(
         index_file=index_path,
@@ -395,6 +387,22 @@ def run_training_experiment(
         label_map=label_map,
         transform=train_transform
     )
+    
+    # Generate augmentation preview if requested and not in hyperopt trial mode
+    if augment and not is_hyperopt:
+        try:
+            from training.augmentations import generate_augmentation_preview
+            preview_path = exp_dir / "augmentation_preview.png"
+            
+            # Temporarily deactivate dataset transform to read the raw preprocessed volume
+            train_dataset.transform = None
+            original_sample = train_dataset[0]
+            train_dataset.transform = train_transform
+            
+            generate_augmentation_preview(original_sample.image, train_transform, preview_path)
+            logger.info(f"Generated data augmentation visual preview at: {preview_path}")
+        except Exception as e:
+            logger.error(f"Failed to generate data augmentation visual preview: {e}")
     val_dataset = ABIDEDataset(
         index_file=index_path,
         split_file=split_path,
@@ -510,6 +518,23 @@ def run_training_experiment(
         "augmentation": augment,
     }
     
+    if augment:
+        from training.augmentations import get_profile_metadata
+        aug_meta = get_profile_metadata(augmentation_profile)
+        meta_config.update({
+            "augmentation_profile": augmentation_profile,
+            "enabled_transforms": aug_meta["enabled_transforms"],
+            "transform_probabilities": aug_meta["transform_probabilities"],
+            "random_seed": seed
+        })
+    else:
+        meta_config.update({
+            "augmentation_profile": "none",
+            "enabled_transforms": [],
+            "transform_probabilities": {},
+            "random_seed": seed
+        })
+        
     with open(meta_path, "w", encoding="utf-8") as f:
         json.dump(meta_config, f, indent=4)
     logger.info(f"Saved initial experiment metadata configuration to: {meta_path}")
@@ -1082,6 +1107,7 @@ if __name__ == "__main__":
     parser.add_argument("--label-smoothing", type=float, default=0.0, help="Label smoothing regularization parameter")
     parser.add_argument("--use-class-weights", action="store_true", help="Enable dynamic class weighting for CrossEntropyLoss")
     parser.add_argument("--optuna-trials", type=int, default=0, help="Number of Optuna trials for hyperparameter optimization search (0 to disable)")
+    parser.add_argument("--augmentation-profile", default="moderate", choices=["minimal", "moderate", "strong", "research"], help="MONAI augmentation profile to apply when training")
 
     args = parser.parse_args()
 
@@ -1133,6 +1159,7 @@ if __name__ == "__main__":
                     label_smoothing=args.label_smoothing,
                     use_class_weights=args.use_class_weights,
                     is_hyperopt=True,
+                    augmentation_profile=args.augmentation_profile,
                 )
                 
                 # Fetch ROC-AUC as optimization target
@@ -1191,6 +1218,7 @@ if __name__ == "__main__":
             label_smoothing=args.label_smoothing,
             use_class_weights=args.use_class_weights,
             is_hyperopt=False,
+            augmentation_profile=args.augmentation_profile,
         )
     else:
         run_training_experiment(
@@ -1224,4 +1252,5 @@ if __name__ == "__main__":
             label_smoothing=args.label_smoothing,
             use_class_weights=args.use_class_weights,
             is_hyperopt=False,
+            augmentation_profile=args.augmentation_profile,
         )

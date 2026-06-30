@@ -10,13 +10,18 @@ logger = setup_logger("training.experiment", "training/experiment.log")
 
 
 def set_seed(seed: int = 42) -> None:
-    """Sets system-wide seed for reproducibility across random, numpy, and torch."""
+    """Sets system-wide seed for reproducibility across random, numpy, torch, and MONAI."""
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
+    try:
+        import monai
+        monai.utils.set_determinism(seed=seed)
+    except Exception as e:
+        logger.warning(f"Could not set MONAI determinism: {e}")
     logger.info(f"Reproducibility seed set to {seed}")
 
 

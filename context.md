@@ -154,6 +154,14 @@ brain-ai/
   - **Diagnostic Sweep Reports:** Logs complete studies to `optuna_trials.csv` and optimal configurations to `optuna_best.json`. Renders optimization history and parameter importance plots with basic matplotlib visual fallbacks.
   - **CLI Search & Sandbox Isolation:** Added `--optuna-trials` CLI flag to `train_autism.py`. Suppresses WandB, plotting, and comparisons during intermediate trials, writing checkpoints to temporary trial-specific subdirectories that are immediately deleted upon completion to conserve gigabytes of disk space. Automatically kicks off a final, fully package-compiled baseline run using the best hyperparameters found.
 
+### 14. Stage 6.5B Research-Grade MRI Augmentation Framework (MONAI)
+- **Problem:** Basic spatial translations/flips do not expose model training to realistic intensity deviations and scanning noise. We need a modular, seed-reproducible augmentation suite that preserves clinical anatomy while improving generalization.
+- **Decision:**
+  - **Configurable MONAI Pipeline (`training/augmentations.py`):** Implemented predefined augmentation profiles (`minimal`, `moderate` (default), `strong`, and `research` with elastic deformations) leveraging advanced 3D spatial and intensity transforms (Gaussian noise/smoothing, contrast, scaling, and affine shifts).
+  - **Determinism Seeding:** Coupled MONAI's random state setting (`monai.utils.set_determinism`) with global reproducibility seeds.
+  - **Slice Validation Previews:** Exports `augmentation_preview.png` comparing the middle axial slice of the original scan against 5 random augmented outputs for quick visual validation.
+  - **CLI Profiling & Logging:** Added `--augmentation-profile` flag. Logs active profiles, enabled transforms lists, and exact transform probabilities inside `experiment_meta.json`.
+
 ---
 
 ## Pipeline Development Status
@@ -167,6 +175,22 @@ brain-ai/
 - **Stage 5 (Autism Model & Disease Modules):** Completed & Verified (3D DenseNet121 model training, preprocessed cache, 5-fold stratification, and generic compiler framework)
 - **Stage 6 (Clinical Robustness & Advanced Regularization):** Completed & Verified (Dropout, Label Smoothing, Smart Class Weighting, threshold analysis, validation backups, and central comparison logging)
 - **Stage 6.5A (Automated Hyperparameter Optimization):** Completed & Verified (Optuna integration, search spaces, trial plotting, and validation tests)
+- **Stage 6.5B (Research-Grade MRI Augmentation Framework):** Completed & Verified (Configurable profiles, slice visualizations, deterministic seeding, and unit tests)
+- **Stage 6.5C-F (Future Sub-Stages):** Future (Architecture modifications, Focal Loss, TTA, explainability, etc.)
 - **Stage 7 (Optimal Thresholds, Calibration, & 5-Fold Evaluation):** Future (5-Fold cross-validation, ECE calibration plots, threshold calibrations)
 - **Stage 8 (Attribution & Explainability):** Future (Grad-CAM heatmaps, localized visualization)
 - **Stage 9 (Clinical Dashboard & Deployment):** Future (FastAPI, Streamlit, local offline deployment setup)
+
+---
+
+## Proposed Experiment Training Progression (After Stage 6.5F)
+
+1. **Experiment 1:** DenseNet | No Augmentations | Baseline
+2. **Experiment 2:** DenseNet | Moderate Augmentations
+3. **Experiment 3:** DenseNet | Best Optuna Hyperparameters
+4. **Experiment 4:** DenseNet | Best Optuna Hyperparameters + Best Augmentation Profile
+5. **Experiment 5:** ResNet10 | Same Settings as Experiment 4 (Architecture Comparison)
+6. **Experiment 6:** ResNet18 | Same Settings as Experiment 4 (Architecture Comparison)
+7. **Experiment 7:** Winner Architecture | Focal Loss Regularization
+8. **Experiment 8:** Winner Architecture | Test-Time Augmentation (TTA)
+9. *Proceed to Stage 7 (Calibration and 5-Fold Evaluation).*
