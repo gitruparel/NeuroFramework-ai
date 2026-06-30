@@ -162,6 +162,14 @@ brain-ai/
   - **Slice Validation Previews:** Exports `augmentation_preview.png` comparing the middle axial slice of the original scan against 5 random augmented outputs for quick visual validation.
   - **CLI Profiling & Logging:** Added `--augmentation-profile` flag. Logs active profiles, enabled transforms lists, and exact transform probabilities inside `experiment_meta.json`.
 
+### 15. Stage 6.5C Architecture Benchmark Framework (ResNet & DenseNet)
+- **Problem:** We need a unified, architecture-agnostic framework to compare different 3D CNN backbones under identical preprocessing, augmentation, and optimizer constraints.
+- **Decision:**
+  - **Unified Model Factory (`models/factory.py`):** Created `ModelFactory` providing a standardized constructor interface for `DenseNet121`, `ResNet10`, and `ResNet18` models supporting dropout.
+  - **Automatic Model Summary:** Implemented hook-based tracing (`generate_model_summary`) estimating total/trainable parameter counts, parameter sizes, and dynamic activation memory footprints into `model_summary.txt`.
+  - **Benchmark Logging:** Extended the central `comparison.csv` register to capture detailed architecture configurations, parameter metrics, model sizes, and wall-clock training speeds.
+  - **Multi-Run Benchmarking CLI:** Added `--benchmark-all` flag to sequentially run DenseNet121, ResNet10, and ResNet18 pipelines under identical seeds, auto-generating an aggregated comparison table (`architecture_comparison.csv`) and comparative bar plots (`architecture_comparison.png`).
+
 ---
 
 ## Pipeline Development Status
@@ -176,7 +184,8 @@ brain-ai/
 - **Stage 6 (Clinical Robustness & Advanced Regularization):** Completed & Verified (Dropout, Label Smoothing, Smart Class Weighting, threshold analysis, validation backups, and central comparison logging)
 - **Stage 6.5A (Automated Hyperparameter Optimization):** Completed & Verified (Optuna integration, search spaces, trial plotting, and validation tests)
 - **Stage 6.5B (Research-Grade MRI Augmentation Framework):** Completed & Verified (Configurable profiles, slice visualizations, deterministic seeding, and unit tests)
-- **Stage 6.5C-F (Future Sub-Stages):** Future (Architecture modifications, Focal Loss, TTA, explainability, etc.)
+- **Stage 6.5C (Architecture Benchmark Framework):** Completed & Verified (Centralized factory, ResNet-10/18 wraps, summary traces, sequential orchestrator, comparative bar plots, and unit tests)
+- **Stage 6.5D-F (Future Sub-Stages):** Future (Architecture modifications, Focal Loss, TTA, explainability, etc.)
 - **Stage 7 (Optimal Thresholds, Calibration, & 5-Fold Evaluation):** Future (5-Fold cross-validation, ECE calibration plots, threshold calibrations)
 - **Stage 8 (Attribution & Explainability):** Future (Grad-CAM heatmaps, localized visualization)
 - **Stage 9 (Clinical Dashboard & Deployment):** Future (FastAPI, Streamlit, local offline deployment setup)

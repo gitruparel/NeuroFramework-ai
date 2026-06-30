@@ -274,6 +274,7 @@ def run_training_experiment(
     use_class_weights: bool = False,
     is_hyperopt: bool = False,
     augmentation_profile: str = "moderate",
+    architecture: str = "densenet121",
 ) -> Dict[str, Any]:
     """Orchestrates full train/validation, checkpointers, and classification plots reports."""
     # Set reproducibility seeds
@@ -454,9 +455,31 @@ def run_training_experiment(
         else:
             logger.warning(msg)
     
-    # 3. Model construction
-    model = DenseNet3D(in_channels=1, out_channels=2, dropout_prob=dropout_prob)
+    # 3. Model construction using ModelFactory
+    from models.factory import ModelFactory
+    model = ModelFactory.create_model(
+        model_name=architecture,
+        in_channels=1,
+        out_channels=2,
+        dropout_prob=dropout_prob
+    )
     
+    # Estimate parameter counts and model size in MB
+    total_params = sum(p.numel() for p in model.parameters())
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    model_size_mb = (total_params * 4) / (1024 * 1024)
+    
+    # Save model summary file (model_summary.txt)
+    if not is_hyperopt:
+        try:
+            from training.benchmark import generate_model_summary
+            summary_path = exp_dir / "model_summary.txt"
+            sample_shape = train_dataset[0].image.shape  # (C, D, H, W)
+            input_shape = (1,) + tuple(sample_shape)     # (1, C, D, H, W)
+            generate_model_summary(model, input_shape, summary_path)
+        except Exception as e:
+            logger.error(f"Failed to generate model summary: {e}")
+
     # Move model to resolved device BEFORE setting up optimizer parameters
     model.to(resolved_device)
     
@@ -516,6 +539,11 @@ def run_training_experiment(
         "batch_size": batch_size,
         "seed": seed,
         "augmentation": augment,
+        "architecture": architecture,
+        "parameter_count": total_params,
+        "trainable_parameter_count": trainable_params,
+        "model_size_mb": model_size_mb,
+        "backbone_name": architecture,
     }
     
     if augment:
@@ -607,8 +635,15 @@ def run_training_experiment(
             except Exception as e:
                 logger.warning(f"Auto-resume: Failed to copy best checkpoint: {e}")
 
-    # 5. Fit loop
+    # 5. Fit loop with training time monitoring
+    import time
+    start_time = time.time()
     trainer.fit(resume_from=resume_path)
+    training_time = time.time() - start_time
+    
+    actual_epochs = len(history_tracker.history.get("epoch", []))
+    epoch_time = training_time / max(1, actual_epochs)
+    logger.info(f"Training completed in {training_time:.2f}s (avg {epoch_time:.2f}s/epoch)")
     
     # Save the exact experiment configuration
     with open(exp_dir / "config.yaml", "w", encoding="utf-8") as f:
@@ -651,6 +686,9 @@ def run_training_experiment(
         "best_epoch": best_epoch,
         "best_val_loss": best_val_loss,
         "best_val_accuracy": best_val_accuracy,
+        "best_val_pr_auc": best_val_pr_auc,
+        "training_time": training_time,
+        "epoch_time": epoch_time,
     })
     
     with open(meta_path, "w", encoding="utf-8") as f:
@@ -917,7 +955,12 @@ def run_training_experiment(
         logger.info(f"Optimal threshold (Balanced Acc): {best_bal_acc_th:.2f} (Acc: {best_bal_acc_val:.4f})")
         logger.info(f"Optimal threshold (Youden's J): {best_youden_th:.2f} (J: {best_youden_val:.4f})")
         
+    # Classification Report
+    report = classification_report(y_true, y_pred, target_names=["Control", "Autism"] if len(np.unique(y_true)) > 1 else None, output_dict=True, zero_division=0)
     if not is_hyperopt:
+        with open(exp_dir / "classification_report.json", "w", encoding="utf-8") as f:
+            json.dump(report, f, indent=4)
+            
         if meta_path.exists():
             try:
                 with open(meta_path, "r", encoding="utf-8") as f:
@@ -925,11 +968,20 @@ def run_training_experiment(
             except Exception:
                 pass
                 
+        # Compute validation balanced accuracy at current decision threshold
+        val_bal_acc = float(balanced_accuracy_score(y_true, y_pred))
+        
+        # Calculate macro f1 if report exists
+        macro_f1 = report.get('macro avg', {}).get('f1-score', 0.0) if 'report' in locals() else None
+        
         meta_config.update({
             "best_epoch": best_epoch,
             "best_val_loss": best_val_loss,
             "best_val_accuracy": best_val_accuracy,
             "best_val_pr_auc": best_val_pr_auc,
+            "best_val_roc_auc": roc_auc if (len(np.unique(y_true)) > 1 and 'roc_auc' in locals()) else None,
+            "best_val_balanced_accuracy": val_bal_acc,
+            "best_val_macro_f1": macro_f1,
             "optimal_threshold_f1": best_f1_th,
             "optimal_threshold_f1_val": best_f1_val,
             "optimal_threshold_balanced_acc": best_bal_acc_th,
@@ -941,12 +993,6 @@ def run_training_experiment(
         with open(meta_path, "w", encoding="utf-8") as f:
             json.dump(meta_config, f, indent=4)
         
-    # Classification Report
-    report = classification_report(y_true, y_pred, target_names=["Control", "Autism"] if len(np.unique(y_true)) > 1 else None, output_dict=True, zero_division=0)
-    if not is_hyperopt:
-        with open(exp_dir / "classification_report.json", "w", encoding="utf-8") as f:
-            json.dump(report, f, indent=4)
-        
     # Update central comparison.csv in the parent experiment directory
     if not is_hyperopt:
         try:
@@ -957,11 +1003,17 @@ def run_training_experiment(
             records = []
             fieldnames = [
                 "Experiment",
+                "Architecture",
                 "Val_Loss",
                 "Val_Accuracy",
                 "ROC_AUC",
                 "PR_AUC",
                 "F1",
+                "Balanced_Accuracy",
+                "Training_Time",
+                "Epoch_Time",
+                "Parameter_Count",
+                "Model_Size",
                 "Best_Epoch",
                 "Optimizer",
                 "Learning_Rate",
@@ -969,7 +1021,8 @@ def run_training_experiment(
                 "Dropout_Prob",
                 "Label_Smoothing",
                 "Class_Weights",
-                "Augmentation"
+                "Augmentation",
+                "Augmentation_Profile"
             ]
             
             import csv
@@ -987,11 +1040,17 @@ def run_training_experiment(
             # Prepare the new record
             new_record = {
                 "Experiment": experiment_name,
+                "Architecture": architecture,
                 "Val_Loss": f"{best_val_loss:.4f}" if best_val_loss is not None else "N/A",
                 "Val_Accuracy": f"{best_val_accuracy:.4f}" if best_val_accuracy is not None else "N/A",
                 "ROC_AUC": f"{roc_auc:.4f}" if (len(np.unique(y_true)) > 1 and 'roc_auc' in locals()) else "N/A",
                 "PR_AUC": f"{avg_precision:.4f}" if (len(np.unique(y_true)) > 1 and avg_precision is not None) else "N/A",
                 "F1": f"{report.get('macro avg', {}).get('f1-score', 0.0):.4f}" if 'report' in locals() else "N/A",
+                "Balanced_Accuracy": f"{val_bal_acc:.4f}" if 'val_bal_acc' in locals() else "N/A",
+                "Training_Time": f"{training_time:.2f}" if 'training_time' in locals() else "N/A",
+                "Epoch_Time": f"{epoch_time:.2f}" if 'epoch_time' in locals() else "N/A",
+                "Parameter_Count": str(total_params) if 'total_params' in locals() else "N/A",
+                "Model_Size": f"{model_size_mb:.2f}" if 'model_size_mb' in locals() else "N/A",
                 "Best_Epoch": str(best_epoch) if best_epoch is not None else "N/A",
                 "Optimizer": optimizer_name,
                 "Learning_Rate": str(lr),
@@ -999,7 +1058,8 @@ def run_training_experiment(
                 "Dropout_Prob": str(dropout_prob),
                 "Label_Smoothing": str(label_smoothing),
                 "Class_Weights": str(use_class_weights),
-                "Augmentation": str(augment)
+                "Augmentation": str(augment),
+                "Augmentation_Profile": augmentation_profile if augment else "none"
             }
             
             # Override if experiment already exists, else append
@@ -1108,10 +1168,63 @@ if __name__ == "__main__":
     parser.add_argument("--use-class-weights", action="store_true", help="Enable dynamic class weighting for CrossEntropyLoss")
     parser.add_argument("--optuna-trials", type=int, default=0, help="Number of Optuna trials for hyperparameter optimization search (0 to disable)")
     parser.add_argument("--augmentation-profile", default="moderate", choices=["minimal", "moderate", "strong", "research"], help="MONAI augmentation profile to apply when training")
+    parser.add_argument("--architecture", default="densenet121", choices=["densenet121", "resnet10", "resnet18"], help="3D CNN architecture backbone model to train")
+    parser.add_argument("--benchmark-all", action="store_true", help="Sequentially train densenet121, resnet10, and resnet18 and aggregate comparison metrics")
 
     args = parser.parse_args()
 
-    if args.optuna_trials > 0:
+    if args.benchmark_all:
+        from training.benchmark import aggregate_architecture_benchmark
+        architectures = ["densenet121", "resnet10", "resnet18"]
+        logger.info(f"Starting Multi-Architecture Benchmark Run for: {architectures}")
+        
+        for arch in architectures:
+            logger.info(f"\n==================================================")
+            logger.info(f"TRAINING ARCHITECTURE: {arch}")
+            logger.info(f"==================================================")
+            
+            # Setup a subfolder per architecture to isolate outputs
+            arch_dir = Path(args.experiment_dir) / arch
+            
+            run_training_experiment(
+                data_root=args.data_root,
+                index_file=args.index_file,
+                split_file=args.split_file,
+                preprocessed_dir=args.preprocessed_dir,
+                config_yaml=args.config_yaml,
+                experiment_dir=arch_dir,
+                epochs=args.epochs,
+                batch_size=args.batch_size,
+                device=args.device,
+                lr=args.lr,
+                resume_from="none",
+                skip_preprocess=True,
+                copy_outputs_to=None,
+                strict_cache_validation=args.strict_cache_validation,
+                limit=args.limit,
+                full_cache_validation=False,
+                local_cache_dir=args.local_cache_dir,
+                augment=args.augment,
+                optimizer_name=args.optimizer,
+                weight_decay=args.weight_decay,
+                scheduler_patience=args.scheduler_patience,
+                scheduler_factor=args.scheduler_factor,
+                seed=args.seed,
+                experiment_name=f"{args.experiment_name}_{arch}",
+                decision_threshold=args.decision_threshold,
+                early_stopping_patience=args.early_stopping_patience,
+                dropout_prob=args.dropout_prob,
+                label_smoothing=args.label_smoothing,
+                use_class_weights=args.use_class_weights,
+                is_hyperopt=False,
+                augmentation_profile=args.augmentation_profile,
+                architecture=arch,
+            )
+            
+        aggregate_architecture_benchmark(Path(args.experiment_dir), architectures)
+        logger.info(f"Multi-Architecture Benchmark Run completed successfully!")
+        
+    elif args.optuna_trials > 0:
         from training.hyperopt import optimize_hyperparameters
         import shutil
         
@@ -1160,6 +1273,7 @@ if __name__ == "__main__":
                     use_class_weights=args.use_class_weights,
                     is_hyperopt=True,
                     augmentation_profile=args.augmentation_profile,
+                    architecture=args.architecture,
                 )
                 
                 # Fetch ROC-AUC as optimization target
@@ -1219,6 +1333,7 @@ if __name__ == "__main__":
             use_class_weights=args.use_class_weights,
             is_hyperopt=False,
             augmentation_profile=args.augmentation_profile,
+            architecture=args.architecture,
         )
     else:
         run_training_experiment(
@@ -1253,4 +1368,5 @@ if __name__ == "__main__":
             use_class_weights=args.use_class_weights,
             is_hyperopt=False,
             augmentation_profile=args.augmentation_profile,
+            architecture=args.architecture,
         )
