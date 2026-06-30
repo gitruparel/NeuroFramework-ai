@@ -167,8 +167,15 @@ brain-ai/
 - **Decision:**
   - **Unified Model Factory (`models/factory.py`):** Created `ModelFactory` providing a standardized constructor interface for `DenseNet121`, `ResNet10`, and `ResNet18` models supporting dropout.
   - **Automatic Model Summary:** Implemented hook-based tracing (`generate_model_summary`) estimating total/trainable parameter counts, parameter sizes, and dynamic activation memory footprints into `model_summary.txt`.
-  - **Benchmark Logging:** Extended the central `comparison.csv` register to capture detailed architecture configurations, parameter metrics, model sizes, and wall-clock training speeds.
   - **Multi-Run Benchmarking CLI:** Added `--benchmark-all` flag to sequentially run DenseNet121, ResNet10, and ResNet18 pipelines under identical seeds, auto-generating an aggregated comparison table (`architecture_comparison.csv`) and comparative bar plots (`architecture_comparison.png`).
+
+### 16. Stage 6.5D Advanced Loss Function Benchmark (Medical Class Criteria)
+- **Problem:** Medical class imbalance, noisy patient labels, and edge case misclassifications limit standard CrossEntropy validation score performance.
+- **Decision:**
+  - **Custom Vectorized Focal Loss (`training/losses.py`):** Implemented a vectorized PyTorch custom loss class supporting soft target distributions, multi-dimensional alpha parameter broadcasting, focusing parameters (gamma), and label smoothing.
+  - **Unified Loss Factory:** Exposes a factory mapping `ce`, `weighted_ce`, `focal`, `ce_ls`, and `focal_ls` configurations.
+  - **Clinical Metrics Log additions:** Computes validation Sensitivity (Recall) and Specificity from evaluation confusion matrices, writing them to `experiment_meta.json` and extending `comparison.csv`.
+  - **Multi-Loss Benchmark Sweeper:** Added `--benchmark-losses` command routing sequential runs over the 5 loss variants under identical conditions and seeds, generating `loss_comparison.csv` and a 6-panel bar chart report grid `loss_comparison.png`.
 
 ---
 
@@ -178,14 +185,15 @@ brain-ai/
 - **Stage 1 (Universal Ingestion Engine):** Completed & Verified (NIfTI, DICOM, images)
 - **Stage 1.5 (Dataset Audit Engine):** Completed & Verified (Distribution stats, corruptions)
 - **Stage 2 (Dataset Management Engine):** Completed & Verified (Indexing, parsing, patient splits for ABIDE, ADNI, BraTS)
-- **Stage 3 (Research Preprocessing Engine):** Completed & Verified (Orientation, Normalization, Resampling, Spatial cropping/padding, N4 Bias correction, Skull-stripping, and Inverse reconstruction framework)
+- **Stage 3 (Research Preprocessing Engine):** Completed & Verified (Orientation, Normalization, Resample spacing, Spatial cropping/padding, N4 Bias correction, Skull-stripping, and Inverse reconstruction framework)
 - **Stage 4 (Generic Training Framework & 4.5 Smoke Tests):** Completed & Verified (Trainer, Callbacks, Checkpointer, MetricsManager, EarlyStopping, Resumption, and ONNX model export validation)
 - **Stage 5 (Autism Model & Disease Modules):** Completed & Verified (3D DenseNet121 model training, preprocessed cache, 5-fold stratification, and generic compiler framework)
 - **Stage 6 (Clinical Robustness & Advanced Regularization):** Completed & Verified (Dropout, Label Smoothing, Smart Class Weighting, threshold analysis, validation backups, and central comparison logging)
 - **Stage 6.5A (Automated Hyperparameter Optimization):** Completed & Verified (Optuna integration, search spaces, trial plotting, and validation tests)
 - **Stage 6.5B (Research-Grade MRI Augmentation Framework):** Completed & Verified (Configurable profiles, slice visualizations, deterministic seeding, and unit tests)
 - **Stage 6.5C (Architecture Benchmark Framework):** Completed & Verified (Centralized factory, ResNet-10/18 wraps, summary traces, sequential orchestrator, comparative bar plots, and unit tests)
-- **Stage 6.5D-F (Future Sub-Stages):** Future (Architecture modifications, Focal Loss, TTA, explainability, etc.)
+- **Stage 6.5D (Advanced Loss Function Benchmark):** Completed & Verified (Custom vectorized Focal Loss, LossFactory, Sensitivity/Specificity computations, sequential loss sweeps, comparative bar plots, and unit tests)
+- **Stage 6.5E-F (Future Sub-Stages):** Future (Architecture modifications, TTA, explainability, etc.)
 - **Stage 7 (Optimal Thresholds, Calibration, & 5-Fold Evaluation):** Future (5-Fold cross-validation, ECE calibration plots, threshold calibrations)
 - **Stage 8 (Attribution & Explainability):** Future (Grad-CAM heatmaps, localized visualization)
 - **Stage 9 (Clinical Dashboard & Deployment):** Future (FastAPI, Streamlit, local offline deployment setup)

@@ -4,7 +4,7 @@ import ast
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 import numpy as np
 import yaml
 import torch
@@ -275,6 +275,9 @@ def run_training_experiment(
     is_hyperopt: bool = False,
     augmentation_profile: str = "moderate",
     architecture: str = "densenet121",
+    loss_function: str = "ce",
+    focal_gamma: float = 2.0,
+    focal_alpha: Optional[float] = None,
 ) -> Dict[str, Any]:
     """Orchestrates full train/validation, checkpointers, and classification plots reports."""
     # Set reproducibility seeds
@@ -508,13 +511,25 @@ def run_training_experiment(
     
     # Setup class weights if requested
     loss_weight_tensor = None
-    if use_class_weights:
+    if use_class_weights or loss_function in ["weighted_ce", "weighted-ce"]:
         total_samples = len(train_labels)
         class_weights = total_samples / (len(class_counts) * class_counts)
         loss_weight_tensor = torch.tensor(class_weights, dtype=torch.float).to(resolved_device)
         logger.info(f"Applying class-weighted loss with weights: {class_weights}")
         
-    loss_fn = nn.CrossEntropyLoss(weight=loss_weight_tensor, label_smoothing=label_smoothing)
+    # Override with focal_alpha balance if provided for Focal Loss
+    if loss_function in ["focal", "focal_ls"] and focal_alpha is not None:
+        loss_weight_tensor = torch.tensor([focal_alpha, 1.0 - focal_alpha], dtype=torch.float).to(resolved_device)
+        logger.info(f"Applying Focal Loss alpha balance: [{focal_alpha}, {1.0 - focal_alpha}]")
+        
+    from training.losses import LossFactory
+    loss_fn = LossFactory.create_loss(
+        loss_name=loss_function,
+        alpha=loss_weight_tensor,
+        gamma=focal_gamma,
+        label_smoothing=label_smoothing
+    )
+    logger.info(f"Using loss function: {loss_function}")
     
     # ReduceLROnPlateau Scheduler
     scheduler = get_scheduler("ReduceLROnPlateau", optimizer, mode="min", patience=scheduler_patience, factor=scheduler_factor)
@@ -534,7 +549,10 @@ def run_training_experiment(
         "decision_threshold": decision_threshold,
         "dropout_prob": dropout_prob,
         "label_smoothing": label_smoothing,
-        "use_class_weights": use_class_weights,
+        "use_class_weights": use_class_weights or (loss_function == "weighted_ce"),
+        "loss_function": loss_function,
+        "focal_gamma": focal_gamma,
+        "focal_alpha": focal_alpha,
         "epochs": epochs,
         "batch_size": batch_size,
         "seed": seed,
@@ -738,6 +756,16 @@ def run_training_experiment(
     y_pred = np.array(y_pred)
     y_prob = np.array(y_prob)
     y_logit = np.array(y_logit)
+    
+    # Calculate Sensitivity and Specificity at the active decision threshold
+    sensitivity = 0.0
+    specificity = 0.0
+    if len(np.unique(y_true)) > 1:
+        cm_eval = confusion_matrix(y_true, y_pred)
+        tn, fp, fn, tp = cm_eval.ravel()
+        sensitivity = float(tp / (tp + fn)) if (tp + fn) > 0 else 0.0
+        specificity = float(tn / (tn + fp)) if (tn + fp) > 0 else 0.0
+        logger.info(f"Validation Sensitivity (Recall): {sensitivity:.4f} | Specificity: {specificity:.4f}")
     
     # Handle single target class cases gracefully for evaluation plotting
     avg_precision = None
@@ -982,6 +1010,8 @@ def run_training_experiment(
             "best_val_roc_auc": roc_auc if (len(np.unique(y_true)) > 1 and 'roc_auc' in locals()) else None,
             "best_val_balanced_accuracy": val_bal_acc,
             "best_val_macro_f1": macro_f1,
+            "best_val_sensitivity": sensitivity,
+            "best_val_specificity": specificity,
             "optimal_threshold_f1": best_f1_th,
             "optimal_threshold_f1_val": best_f1_val,
             "optimal_threshold_balanced_acc": best_bal_acc_th,
@@ -1004,12 +1034,15 @@ def run_training_experiment(
             fieldnames = [
                 "Experiment",
                 "Architecture",
+                "Loss_Function",
                 "Val_Loss",
                 "Val_Accuracy",
                 "ROC_AUC",
                 "PR_AUC",
                 "F1",
                 "Balanced_Accuracy",
+                "Sensitivity",
+                "Specificity",
                 "Training_Time",
                 "Epoch_Time",
                 "Parameter_Count",
@@ -1041,12 +1074,15 @@ def run_training_experiment(
             new_record = {
                 "Experiment": experiment_name,
                 "Architecture": architecture,
+                "Loss_Function": loss_function,
                 "Val_Loss": f"{best_val_loss:.4f}" if best_val_loss is not None else "N/A",
                 "Val_Accuracy": f"{best_val_accuracy:.4f}" if best_val_accuracy is not None else "N/A",
                 "ROC_AUC": f"{roc_auc:.4f}" if (len(np.unique(y_true)) > 1 and 'roc_auc' in locals()) else "N/A",
                 "PR_AUC": f"{avg_precision:.4f}" if (len(np.unique(y_true)) > 1 and avg_precision is not None) else "N/A",
                 "F1": f"{report.get('macro avg', {}).get('f1-score', 0.0):.4f}" if 'report' in locals() else "N/A",
                 "Balanced_Accuracy": f"{val_bal_acc:.4f}" if 'val_bal_acc' in locals() else "N/A",
+                "Sensitivity": f"{sensitivity:.4f}" if 'sensitivity' in locals() else "N/A",
+                "Specificity": f"{specificity:.4f}" if 'specificity' in locals() else "N/A",
                 "Training_Time": f"{training_time:.2f}" if 'training_time' in locals() else "N/A",
                 "Epoch_Time": f"{epoch_time:.2f}" if 'epoch_time' in locals() else "N/A",
                 "Parameter_Count": str(total_params) if 'total_params' in locals() else "N/A",
@@ -1170,10 +1206,68 @@ if __name__ == "__main__":
     parser.add_argument("--augmentation-profile", default="moderate", choices=["minimal", "moderate", "strong", "research"], help="MONAI augmentation profile to apply when training")
     parser.add_argument("--architecture", default="densenet121", choices=["densenet121", "resnet10", "resnet18"], help="3D CNN architecture backbone model to train")
     parser.add_argument("--benchmark-all", action="store_true", help="Sequentially train densenet121, resnet10, and resnet18 and aggregate comparison metrics")
+    parser.add_argument("--loss-function", default="ce", choices=["ce", "weighted_ce", "focal", "ce_ls", "focal_ls"], help="Loss function criterion for training")
+    parser.add_argument("--focal-gamma", type=float, default=2.0, help="Gamma focusing parameter for Focal Loss")
+    parser.add_argument("--focal-alpha", type=float, default=None, help="Alpha balancing parameter for Focal Loss")
+    parser.add_argument("--benchmark-losses", action="store_true", help="Sequentially train models under ce, weighted_ce, focal, ce_ls, focal_ls criteria and plot ranked statistics")
 
     args = parser.parse_args()
 
-    if args.benchmark_all:
+    if args.benchmark_losses:
+        from training.losses import aggregate_losses_benchmark
+        losses_to_test = ["ce", "weighted_ce", "focal", "ce_ls", "focal_ls"]
+        logger.info(f"Starting Multi-Loss Function Benchmark Run for: {losses_to_test}")
+        
+        for loss in losses_to_test:
+            logger.info(f"\n==================================================")
+            logger.info(f"TRAINING LOSS FUNCTION: {loss}")
+            logger.info(f"==================================================")
+            
+            # Setup a subfolder per loss to isolate outputs
+            loss_dir = Path(args.experiment_dir) / loss
+            
+            run_training_experiment(
+                data_root=args.data_root,
+                index_file=args.index_file,
+                split_file=args.split_file,
+                preprocessed_dir=args.preprocessed_dir,
+                config_yaml=args.config_yaml,
+                experiment_dir=loss_dir,
+                epochs=args.epochs,
+                batch_size=args.batch_size,
+                device=args.device,
+                lr=args.lr,
+                resume_from="none",
+                skip_preprocess=True,
+                copy_outputs_to=None,
+                strict_cache_validation=args.strict_cache_validation,
+                limit=args.limit,
+                full_cache_validation=False,
+                local_cache_dir=args.local_cache_dir,
+                augment=args.augment,
+                optimizer_name=args.optimizer,
+                weight_decay=args.weight_decay,
+                scheduler_patience=args.scheduler_patience,
+                scheduler_factor=args.scheduler_factor,
+                seed=args.seed,
+                experiment_name=f"{args.experiment_name}_{loss}",
+                decision_threshold=args.decision_threshold,
+                early_stopping_patience=args.early_stopping_patience,
+                dropout_prob=args.dropout_prob,
+                label_smoothing=args.label_smoothing,
+                use_class_weights=args.use_class_weights,
+                is_hyperopt=False,
+                augmentation_profile=args.augmentation_profile,
+                architecture=args.architecture,
+                loss_function=loss,
+                focal_gamma=args.focal_gamma,
+                focal_alpha=args.focal_alpha,
+            )
+            
+        aggregate_losses_benchmark(Path(args.experiment_dir), losses_to_test)
+        logger.info(f"Multi-Loss Benchmark Run completed successfully!")
+        
+    elif args.benchmark_all:
         from training.benchmark import aggregate_architecture_benchmark
         architectures = ["densenet121", "resnet10", "resnet18"]
         logger.info(f"Starting Multi-Architecture Benchmark Run for: {architectures}")
@@ -1274,6 +1368,9 @@ if __name__ == "__main__":
                     is_hyperopt=True,
                     augmentation_profile=args.augmentation_profile,
                     architecture=args.architecture,
+                    loss_function=args.loss_function,
+                    focal_gamma=args.focal_gamma,
+                    focal_alpha=args.focal_alpha,
                 )
                 
                 # Fetch ROC-AUC as optimization target
@@ -1334,6 +1431,9 @@ if __name__ == "__main__":
             is_hyperopt=False,
             augmentation_profile=args.augmentation_profile,
             architecture=args.architecture,
+            loss_function=args.loss_function,
+            focal_gamma=args.focal_gamma,
+            focal_alpha=args.focal_alpha,
         )
     else:
         run_training_experiment(
@@ -1369,4 +1469,7 @@ if __name__ == "__main__":
             is_hyperopt=False,
             augmentation_profile=args.augmentation_profile,
             architecture=args.architecture,
+            loss_function=args.loss_function,
+            focal_gamma=args.focal_gamma,
+            focal_alpha=args.focal_alpha,
         )
