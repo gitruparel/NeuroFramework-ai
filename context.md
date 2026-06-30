@@ -173,9 +173,15 @@ brain-ai/
 - **Problem:** Medical class imbalance, noisy patient labels, and edge case misclassifications limit standard CrossEntropy validation score performance.
 - **Decision:**
   - **Custom Vectorized Focal Loss (`training/losses.py`):** Implemented a vectorized PyTorch custom loss class supporting soft target distributions, multi-dimensional alpha parameter broadcasting, focusing parameters (gamma), and label smoothing.
-  - **Unified Loss Factory:** Exposes a factory mapping `ce`, `weighted_ce`, `focal`, `ce_ls`, and `focal_ls` configurations.
   - **Clinical Metrics Log additions:** Computes validation Sensitivity (Recall) and Specificity from evaluation confusion matrices, writing them to `experiment_meta.json` and extending `comparison.csv`.
   - **Multi-Loss Benchmark Sweeper:** Added `--benchmark-losses` command routing sequential runs over the 5 loss variants under identical conditions and seeds, generating `loss_comparison.csv` and a 6-panel bar chart report grid `loss_comparison.png`.
+
+### 17. Stage 6.5E Test-Time Augmentation & Robust Inference (MONAI & PyTorch)
+- **Problem:** Medical scan predictions can fluctuate significantly due to small voxel shifts or scanner noise. We need to average out predictions over multiple realistic spatial and intensity variations during inference to stabilize output predictions and boost ROC-AUC.
+- **Decision:**
+  - **Inference Augmentor Engine (`training/inference.py`):** Implemented a deterministic `TestTimeAugmentor` applying identity (original), lateral spatial flips, small rotations/translations (MONAI `Affine`), scale alterations, and contrast shifts.
+  - **Aggregated Prediction Combinator:** Created `PredictionAggregator` offering `mean` probability, `median` probability, and `majority` voting aggregation options.
+  - **TTA Evaluation & Latency plots:** Automatically evaluates validation outputs twice (with and without TTA) to record accuracy metrics and latency deltas to `tta_comparison.csv` and side-by-side bar plots to `tta_comparison.png`.
 
 ---
 
@@ -193,7 +199,8 @@ brain-ai/
 - **Stage 6.5B (Research-Grade MRI Augmentation Framework):** Completed & Verified (Configurable profiles, slice visualizations, deterministic seeding, and unit tests)
 - **Stage 6.5C (Architecture Benchmark Framework):** Completed & Verified (Centralized factory, ResNet-10/18 wraps, summary traces, sequential orchestrator, comparative bar plots, and unit tests)
 - **Stage 6.5D (Advanced Loss Function Benchmark):** Completed & Verified (Custom vectorized Focal Loss, LossFactory, Sensitivity/Specificity computations, sequential loss sweeps, comparative bar plots, and unit tests)
-- **Stage 6.5E-F (Future Sub-Stages):** Future (Architecture modifications, TTA, explainability, etc.)
+- **Stage 6.5E (Test-Time Augmentation & Robust Inference):** Completed & Verified (Deterministic TTA augmentor, PredictionAggregator, timing / metrics validation deltas logging, and grouped bar chart comparisons)
+- **Stage 6.5F (Future Sub-Stages):** Future (Architecture modifications, explainability, etc.)
 - **Stage 7 (Optimal Thresholds, Calibration, & 5-Fold Evaluation):** Future (5-Fold cross-validation, ECE calibration plots, threshold calibrations)
 - **Stage 8 (Attribution & Explainability):** Future (Grad-CAM heatmaps, localized visualization)
 - **Stage 9 (Clinical Dashboard & Deployment):** Future (FastAPI, Streamlit, local offline deployment setup)

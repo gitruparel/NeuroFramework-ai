@@ -278,6 +278,9 @@ def run_training_experiment(
     loss_function: str = "ce",
     focal_gamma: float = 2.0,
     focal_alpha: Optional[float] = None,
+    tta: bool = False,
+    tta_runs: int = 5,
+    tta_method: str = "mean",
 ) -> Dict[str, Any]:
     """Orchestrates full train/validation, checkpointers, and classification plots reports."""
     # Set reproducibility seeds
@@ -732,32 +735,182 @@ def run_training_experiment(
         collate_fn=collate_dataset_samples
     )
     
-    y_true = []
-    y_pred = []
-    y_prob = []
-    y_logit = []
+    # Define a robust inference runner supporting Test-Time Augmentation
+    def run_inference_loop(
+        m: nn.Module,
+        loader: DataLoader,
+        dev: torch.device,
+        cap_backend,
+        tta_aug = None,
+        runs: int = 1,
+        method: str = "mean"
+    ):
+        y_t = []
+        y_p = []
+        y_pr = []
+        y_lg = []
+        
+        with torch.no_grad():
+            for batch in loader:
+                inputs = batch["image"].to(dev, non_blocking=cap_backend.capabilities.non_blocking)
+                targets = batch["label"].to(dev, non_blocking=cap_backend.capabilities.non_blocking)
+                
+                if tta_aug is not None and runs > 1:
+                    batch_probs = []
+                    batch_logits = []
+                    for r in range(runs):
+                        # Augment each spatial volume individually and restack
+                        augmented_inputs = []
+                        for i in range(inputs.size(0)):
+                            augmented_inputs.append(tta_aug.get_augmentations(inputs[i], r))
+                        augmented_batch = torch.stack(augmented_inputs, dim=0)
+                        
+                        outputs = m(augmented_batch)
+                        probs = torch.softmax(outputs, dim=1)
+                        batch_probs.append(probs)
+                        batch_logits.append(outputs)
+                        
+                    from training.inference import PredictionAggregator
+                    aggregated_probs = PredictionAggregator.aggregate(batch_probs, method=method)
+                    preds = (aggregated_probs[:, 1] >= decision_threshold).long()
+                    
+                    y_t.extend(targets.cpu().numpy())
+                    y_p.extend(preds.cpu().numpy())
+                    y_pr.extend(aggregated_probs.cpu().numpy())
+                    avg_logits = torch.stack(batch_logits, dim=0).mean(dim=0)
+                    y_lg.extend(avg_logits.cpu().numpy())
+                else:
+                    outputs = m(inputs)
+                    probs = torch.softmax(outputs, dim=1)
+                    preds = (probs[:, 1] >= decision_threshold).long()
+                    
+                    y_t.extend(targets.cpu().numpy())
+                    y_p.extend(preds.cpu().numpy())
+                    y_pr.extend(probs.cpu().numpy())
+                    y_lg.extend(outputs.cpu().numpy())
+                    
+        return np.array(y_t), np.array(y_p), np.array(y_pr), np.array(y_lg)
+
+    import time
+    from training.inference import TestTimeAugmentor, aggregate_tta_comparison
     
-    with torch.no_grad():
-        for batch in val_loader:
-            inputs = batch["image"].to(resolved_device, non_blocking=backend.capabilities.non_blocking)
-            targets = batch["label"].to(resolved_device, non_blocking=backend.capabilities.non_blocking)
-            outputs = eval_model(inputs)
-            
-            probs = torch.softmax(outputs, dim=1)
-            probs_asd = probs[:, 1]
-            preds = (probs_asd >= decision_threshold).long()
-            
-            y_true.extend(targets.cpu().numpy())
-            y_pred.extend(preds.cpu().numpy())
-            y_prob.extend(probs.cpu().numpy())
-            y_logit.extend(outputs.cpu().numpy())
-            
-    y_true = np.array(y_true)
-    y_pred = np.array(y_pred)
-    y_prob = np.array(y_prob)
-    y_logit = np.array(y_logit)
+    # 1. Run Baseline validation inference
+    start_baseline = time.time()
+    y_true, y_pred, y_prob, y_logit = run_inference_loop(
+        m=eval_model,
+        loader=val_loader,
+        dev=resolved_device,
+        cap_backend=backend,
+        tta_aug=None,
+        runs=1,
+        method="mean"
+    )
+    baseline_latency = time.time() - start_baseline
     
-    # Calculate Sensitivity and Specificity at the active decision threshold
+    # Calculate baseline Sensitivity/Specificity for delta tracking
+    baseline_sensitivity = 0.0
+    baseline_specificity = 0.0
+    if len(np.unique(y_true)) > 1:
+        cm_base = confusion_matrix(y_true, y_pred)
+        tn, fp, fn, tp = cm_base.ravel()
+        baseline_sensitivity = float(tp / (tp + fn)) if (tp + fn) > 0 else 0.0
+        baseline_specificity = float(tn / (tn + fp)) if (tn + fp) > 0 else 0.0
+        
+    baseline_accuracy = float(np.mean(y_true == y_pred))
+    
+    # Calculate baseline ROC-AUC and PR-AUC
+    from sklearn.metrics import average_precision_score, roc_auc_score
+    baseline_roc_auc = 0.5
+    baseline_pr_auc = 0.5
+    if len(np.unique(y_true)) > 1:
+        baseline_roc_auc = float(roc_auc_score(y_true, y_prob[:, 1]))
+        baseline_pr_auc = float(average_precision_score(y_true, y_prob[:, 1]))
+        
+    # Calculate baseline Balanced Accuracy & Macro F1
+    baseline_bal_acc = float(balanced_accuracy_score(y_true, y_pred))
+    report_base = classification_report(y_true, y_pred, target_names=["Control", "Autism"] if len(np.unique(y_true)) > 1 else None, output_dict=True, zero_division=0)
+    baseline_f1 = float(report_base.get('macro avg', {}).get('f1-score', 0.0))
+    
+    baseline_metrics_dict = {
+        "accuracy": baseline_accuracy,
+        "roc_auc": baseline_roc_auc,
+        "pr_auc": baseline_pr_auc,
+        "macro_f1": baseline_f1,
+        "balanced_accuracy": baseline_bal_acc,
+        "sensitivity": baseline_sensitivity,
+        "specificity": baseline_specificity
+    }
+    
+    # 2. Run TTA validation inference if requested
+    tta_metrics_dict = {}
+    tta_latency = 0.0
+    
+    if tta and tta_runs > 1:
+        logger.info(f"Running Test-Time Augmentation (TTA) with {tta_runs} runs using aggregation: {tta_method}")
+        start_tta = time.time()
+        y_true_tta, y_pred_tta, y_prob_tta, y_logit_tta = run_inference_loop(
+            m=eval_model,
+            loader=val_loader,
+            dev=resolved_device,
+            cap_backend=backend,
+            tta_aug=TestTimeAugmentor(seed=seed),
+            runs=tta_runs,
+            method=tta_method
+        )
+        tta_latency = time.time() - start_tta
+        
+        # Compute TTA metrics
+        tta_sensitivity = 0.0
+        tta_specificity = 0.0
+        if len(np.unique(y_true_tta)) > 1:
+            cm_tta = confusion_matrix(y_true_tta, y_pred_tta)
+            tn, fp, fn, tp = cm_tta.ravel()
+            tta_sensitivity = float(tp / (tp + fn)) if (tp + fn) > 0 else 0.0
+            tta_specificity = float(tn / (tn + fp)) if (tn + fp) > 0 else 0.0
+            
+        tta_accuracy = float(np.mean(y_true_tta == y_pred_tta))
+        tta_roc_auc = 0.5
+        tta_pr_auc = 0.5
+        if len(np.unique(y_true_tta)) > 1:
+            tta_roc_auc = float(roc_auc_score(y_true_tta, y_prob_tta[:, 1]))
+            tta_pr_auc = float(average_precision_score(y_true_tta, y_prob_tta[:, 1]))
+            
+        tta_bal_acc = float(balanced_accuracy_score(y_true_tta, y_pred_tta))
+        report_tta = classification_report(y_true_tta, y_pred_tta, target_names=["Control", "Autism"] if len(np.unique(y_true_tta)) > 1 else None, output_dict=True, zero_division=0)
+        tta_f1 = float(report_tta.get('macro avg', {}).get('f1-score', 0.0))
+        
+        tta_metrics_dict = {
+            "accuracy": tta_accuracy,
+            "roc_auc": tta_roc_auc,
+            "pr_auc": tta_pr_auc,
+            "macro_f1": tta_f1,
+            "balanced_accuracy": tta_bal_acc,
+            "sensitivity": tta_sensitivity,
+            "specificity": tta_specificity
+        }
+        
+        # Save TTA comparison reports
+        aggregate_tta_comparison(baseline_metrics_dict, tta_metrics_dict, baseline_latency, tta_latency, exp_dir)
+        
+        # Override baseline evaluation arrays with the TTA predictions
+        y_true = y_true_tta
+        y_pred = y_pred_tta
+        y_prob = y_prob_tta
+        y_logit = y_logit_tta
+        
+        metric_improvements = {
+            "accuracy_delta": tta_accuracy - baseline_accuracy,
+            "roc_auc_delta": tta_roc_auc - baseline_roc_auc,
+            "pr_auc_delta": tta_pr_auc - baseline_pr_auc,
+            "macro_f1_delta": tta_f1 - baseline_f1,
+            "balanced_accuracy_delta": tta_bal_acc - baseline_bal_acc,
+            "sensitivity_delta": tta_sensitivity - baseline_sensitivity,
+            "specificity_delta": tta_specificity - baseline_specificity
+        }
+    else:
+        metric_improvements = {}
+        
+    # Calculate final Sensitivity and Specificity at the active decision threshold (TTA or Baseline)
     sensitivity = 0.0
     specificity = 0.0
     if len(np.unique(y_true)) > 1:
@@ -765,7 +918,7 @@ def run_training_experiment(
         tn, fp, fn, tp = cm_eval.ravel()
         sensitivity = float(tp / (tp + fn)) if (tp + fn) > 0 else 0.0
         specificity = float(tn / (tn + fp)) if (tn + fp) > 0 else 0.0
-        logger.info(f"Validation Sensitivity (Recall): {sensitivity:.4f} | Specificity: {specificity:.4f}")
+        logger.info(f"Final Validation Sensitivity (Recall): {sensitivity:.4f} | Specificity: {specificity:.4f}")
     
     # Handle single target class cases gracefully for evaluation plotting
     avg_precision = None
@@ -1012,6 +1165,11 @@ def run_training_experiment(
             "best_val_macro_f1": macro_f1,
             "best_val_sensitivity": sensitivity,
             "best_val_specificity": specificity,
+            "tta_enabled": tta,
+            "tta_runs": tta_runs,
+            "tta_method": tta_method,
+            "inference_time_increase": float(tta_latency - baseline_latency) if tta else 0.0,
+            "metric_improvements": metric_improvements,
             "optimal_threshold_f1": best_f1_th,
             "optimal_threshold_f1_val": best_f1_val,
             "optimal_threshold_balanced_acc": best_bal_acc_th,
@@ -1210,6 +1368,9 @@ if __name__ == "__main__":
     parser.add_argument("--focal-gamma", type=float, default=2.0, help="Gamma focusing parameter for Focal Loss")
     parser.add_argument("--focal-alpha", type=float, default=None, help="Alpha balancing parameter for Focal Loss")
     parser.add_argument("--benchmark-losses", action="store_true", help="Sequentially train models under ce, weighted_ce, focal, ce_ls, focal_ls criteria and plot ranked statistics")
+    parser.add_argument("--tta", action="store_true", help="Enable Test-Time Augmentation during final evaluation")
+    parser.add_argument("--tta-runs", type=int, default=5, help="Number of TTA runs to average")
+    parser.add_argument("--tta-method", default="mean", choices=["mean", "median", "majority"], help="Probability aggregation method for TTA")
 
     args = parser.parse_args()
 
@@ -1262,6 +1423,9 @@ if __name__ == "__main__":
                 loss_function=loss,
                 focal_gamma=args.focal_gamma,
                 focal_alpha=args.focal_alpha,
+                tta=args.tta,
+                tta_runs=args.tta_runs,
+                tta_method=args.tta_method,
             )
             
         aggregate_losses_benchmark(Path(args.experiment_dir), losses_to_test)
@@ -1313,6 +1477,12 @@ if __name__ == "__main__":
                 is_hyperopt=False,
                 augmentation_profile=args.augmentation_profile,
                 architecture=arch,
+                loss_function=args.loss_function,
+                focal_gamma=args.focal_gamma,
+                focal_alpha=args.focal_alpha,
+                tta=args.tta,
+                tta_runs=args.tta_runs,
+                tta_method=args.tta_method,
             )
             
         aggregate_architecture_benchmark(Path(args.experiment_dir), architectures)
@@ -1371,6 +1541,9 @@ if __name__ == "__main__":
                     loss_function=args.loss_function,
                     focal_gamma=args.focal_gamma,
                     focal_alpha=args.focal_alpha,
+                    tta=False,
+                    tta_runs=1,
+                    tta_method="mean",
                 )
                 
                 # Fetch ROC-AUC as optimization target
@@ -1434,6 +1607,9 @@ if __name__ == "__main__":
             loss_function=args.loss_function,
             focal_gamma=args.focal_gamma,
             focal_alpha=args.focal_alpha,
+            tta=args.tta,
+            tta_runs=args.tta_runs,
+            tta_method=args.tta_method,
         )
     else:
         run_training_experiment(
@@ -1472,4 +1648,7 @@ if __name__ == "__main__":
             loss_function=args.loss_function,
             focal_gamma=args.focal_gamma,
             focal_alpha=args.focal_alpha,
+            tta=args.tta,
+            tta_runs=args.tta_runs,
+            tta_method=args.tta_method,
         )
