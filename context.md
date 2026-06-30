@@ -147,6 +147,13 @@ brain-ai/
   - **Threshold Analysis:** Searches validation probabilities for boundaries maximizing Youden's J, F1, and Balanced Accuracy, logging them to `experiment_meta.json`.
   - **Central Comparison Logging:** Automates adding or updating rows in a parent `comparison.csv` file, providing an aggregated matrix of metrics across all experiments.
 
+### 13. Stage 6.5A Automated Hyperparameter Optimization (Optuna)
+- **Problem:** Manual tuning of learning rate, batch size, weight decay, dropout, and scheduler patient settings is slow and suboptimal. We need a modular, reusable hyperparameter search framework to maximize model generalization.
+- **Decision:**
+  - **Decoupled Engine (`training/hyperopt.py`):** Implemented an architecture-agnostic Optuna runner with seed-fixed TPESampler reproducibility.
+  - **Diagnostic Sweep Reports:** Logs complete studies to `optuna_trials.csv` and optimal configurations to `optuna_best.json`. Renders optimization history and parameter importance plots with basic matplotlib visual fallbacks.
+  - **CLI Search & Sandbox Isolation:** Added `--optuna-trials` CLI flag to `train_autism.py`. Suppresses WandB, plotting, and comparisons during intermediate trials, writing checkpoints to temporary trial-specific subdirectories that are immediately deleted upon completion to conserve gigabytes of disk space. Automatically kicks off a final, fully package-compiled baseline run using the best hyperparameters found.
+
 ---
 
 ## Pipeline Development Status
@@ -159,6 +166,7 @@ brain-ai/
 - **Stage 4 (Generic Training Framework & 4.5 Smoke Tests):** Completed & Verified (Trainer, Callbacks, Checkpointer, MetricsManager, EarlyStopping, Resumption, and ONNX model export validation)
 - **Stage 5 (Autism Model & Disease Modules):** Completed & Verified (3D DenseNet121 model training, preprocessed cache, 5-fold stratification, and generic compiler framework)
 - **Stage 6 (Clinical Robustness & Advanced Regularization):** Completed & Verified (Dropout, Label Smoothing, Smart Class Weighting, threshold analysis, validation backups, and central comparison logging)
+- **Stage 6.5A (Automated Hyperparameter Optimization):** Completed & Verified (Optuna integration, search spaces, trial plotting, and validation tests)
 - **Stage 7 (Optimal Thresholds, Calibration, & 5-Fold Evaluation):** Future (5-Fold cross-validation, ECE calibration plots, threshold calibrations)
 - **Stage 8 (Attribution & Explainability):** Future (Grad-CAM heatmaps, localized visualization)
 - **Stage 9 (Clinical Dashboard & Deployment):** Future (FastAPI, Streamlit, local offline deployment setup)

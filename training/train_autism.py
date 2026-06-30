@@ -272,7 +272,8 @@ def run_training_experiment(
     dropout_prob: float = 0.0,
     label_smoothing: float = 0.0,
     use_class_weights: bool = False,
-) -> None:
+    is_hyperopt: bool = False,
+) -> Dict[str, Any]:
     """Orchestrates full train/validation, checkpointers, and classification plots reports."""
     # Set reproducibility seeds
     import random
@@ -677,170 +678,176 @@ def run_training_experiment(
     
     # Handle single target class cases gracefully for evaluation plotting
     avg_precision = None
+    roc_auc = None
     if len(np.unique(y_true)) > 1:
         # ROC Curve
         fpr, tpr, roc_thresholds = roc_curve(y_true, y_prob[:, 1])
         roc_auc = auc(fpr, tpr)
         
-        plt.figure()
-        plt.plot(fpr, tpr, color="darkorange", lw=2, label=f"ROC curve (area = {roc_auc:.2f})")
-        plt.plot([0, 1], [0, 1], color="navy", lw=2, linestyle="--")
-        plt.xlim([0.0, 1.0])
-        plt.ylim([0.0, 1.05])
-        plt.xlabel("False Positive Rate")
-        plt.ylabel("True Positive Rate")
-        plt.title("Receiver Operating Characteristic")
-        plt.legend(loc="lower right")
-        plt.grid(True)
-        plt.savefig(exp_dir / "roc_curve.png", dpi=300, bbox_inches="tight")
-        plt.close()
+        if not is_hyperopt:
+            plt.figure()
+            plt.plot(fpr, tpr, color="darkorange", lw=2, label=f"ROC curve (area = {roc_auc:.2f})")
+            plt.plot([0, 1], [0, 1], color="navy", lw=2, linestyle="--")
+            plt.xlim([0.0, 1.0])
+            plt.ylim([0.0, 1.05])
+            plt.xlabel("False Positive Rate")
+            plt.ylabel("True Positive Rate")
+            plt.title("Receiver Operating Characteristic")
+            plt.legend(loc="lower right")
+            plt.grid(True)
+            plt.savefig(exp_dir / "roc_curve.png", dpi=300, bbox_inches="tight")
+            plt.close()
 
-        # Save ROC points to CSV
-        try:
-            import csv
-            roc_csv_path = exp_dir / "roc_points.csv"
-            with open(roc_csv_path, "w", newline="", encoding="utf-8") as csvfile:
-                writer = csv.writer(csvfile)
-                writer.writerow(["threshold", "tpr", "fpr"])
-                for f_val, t_val, th_val in zip(fpr, tpr, roc_thresholds):
-                    writer.writerow([f"{th_val:.4f}", f"{t_val:.4f}", f"{f_val:.4f}"])
-            logger.info(f"Saved ROC points to: {roc_csv_path}")
-        except Exception as e:
-            logger.error(f"Failed to save roc_points.csv: {e}")
+            # Save ROC points to CSV
+            try:
+                import csv
+                roc_csv_path = exp_dir / "roc_points.csv"
+                with open(roc_csv_path, "w", newline="", encoding="utf-8") as csvfile:
+                    writer = csv.writer(csvfile)
+                    writer.writerow(["threshold", "tpr", "fpr"])
+                    for f_val, t_val, th_val in zip(fpr, tpr, roc_thresholds):
+                        writer.writerow([f"{th_val:.4f}", f"{t_val:.4f}", f"{f_val:.4f}"])
+                logger.info(f"Saved ROC points to: {roc_csv_path}")
+            except Exception as e:
+                logger.error(f"Failed to save roc_points.csv: {e}")
         
         # Precision-Recall Curve
         precision_vals, recall_vals, pr_thresholds = precision_recall_curve(y_true, y_prob[:, 1])
         avg_precision = average_precision_score(y_true, y_prob[:, 1])
         
-        plt.figure()
-        plt.plot(recall_vals, precision_vals, color="blue", lw=2, label=f"PR curve (AP = {avg_precision:.2f})")
-        plt.xlim([0.0, 1.0])
-        plt.ylim([0.0, 1.05])
-        plt.xlabel("Recall")
-        plt.ylabel("Precision")
-        plt.title("Precision-Recall Curve")
-        plt.legend(loc="lower left")
-        plt.grid(True)
-        plt.savefig(exp_dir / "pr_curve.png", dpi=300, bbox_inches="tight")
-        plt.close()
-        logger.info(f"Saved PR curve plot (AP = {avg_precision:.4f}).")
+        if not is_hyperopt:
+            plt.figure()
+            plt.plot(recall_vals, precision_vals, color="blue", lw=2, label=f"PR curve (AP = {avg_precision:.2f})")
+            plt.xlim([0.0, 1.0])
+            plt.ylim([0.0, 1.05])
+            plt.xlabel("Recall")
+            plt.ylabel("Precision")
+            plt.title("Precision-Recall Curve")
+            plt.legend(loc="lower left")
+            plt.grid(True)
+            plt.savefig(exp_dir / "pr_curve.png", dpi=300, bbox_inches="tight")
+            plt.close()
+            logger.info(f"Saved PR curve plot (AP = {avg_precision:.4f}).")
 
-        # Save PR points to CSV
+            # Save PR points to CSV
+            try:
+                import csv
+                pr_csv_path = exp_dir / "pr_points.csv"
+                with open(pr_csv_path, "w", newline="", encoding="utf-8") as csvfile:
+                    writer = csv.writer(csvfile)
+                    writer.writerow(["threshold", "precision", "recall"])
+                    for idx, th_val in enumerate(pr_thresholds):
+                        writer.writerow([f"{th_val:.4f}", f"{precision_vals[idx]:.4f}", f"{recall_vals[idx]:.4f}"])
+                logger.info(f"Saved PR points to: {pr_csv_path}")
+            except Exception as e:
+                logger.error(f"Failed to save pr_points.csv: {e}")
+
+        if not is_hyperopt:
+            # Probability Histogram of ASD predictions (class 1) stratified by True Label
+            try:
+                plt.figure()
+                asd_probs_control = y_prob[y_true == 0, 1]
+                asd_probs_asd = y_prob[y_true == 1, 1]
+                
+                bins_arr = np.linspace(0.0, 1.0, 11)
+                plt.hist(asd_probs_control, bins=bins_arr, alpha=0.5, label="Control", color="blue", edgecolor="black")
+                plt.hist(asd_probs_asd, bins=bins_arr, alpha=0.5, label="Autism (ASD)", color="orange", edgecolor="black")
+                plt.xlabel("Predicted Probability of ASD")
+                plt.ylabel("Count")
+                plt.title("Distribution of Predicted ASD Probabilities")
+                plt.legend(loc="upper right")
+                plt.grid(True, linestyle="--", alpha=0.7)
+                plt.savefig(exp_dir / "probability_histogram.png", dpi=300, bbox_inches="tight")
+                plt.close()
+                logger.info("Saved probability histogram plot.")
+            except Exception as e:
+                logger.error(f"Failed to generate probability histogram: {e}")
+                
+            # Confusion Matrix
+            cm = confusion_matrix(y_true, y_pred)
+            plt.figure()
+            plt.imshow(cm, interpolation="nearest", cmap=plt.cm.Blues)
+            plt.title("Confusion Matrix")
+            plt.colorbar()
+            tick_marks = np.arange(2)
+            plt.xticks(tick_marks, ["Control", "Autism"])
+            plt.yticks(tick_marks, ["Control", "Autism"])
+            plt.ylabel("True Label")
+            plt.xlabel("Predicted Label")
+            
+            # Add labels
+            thresh = cm.max() / 2.
+            for i, j in np.ndindex(cm.shape):
+                plt.text(j, i, format(cm[i, j], 'd'),
+                         horizontalalignment="center",
+                         color="white" if cm[i, j] > thresh else "black")
+                         
+            plt.savefig(exp_dir / "confusion_matrix.png", dpi=300, bbox_inches="tight")
+            plt.close()
+    else:
+        if not is_hyperopt:
+            logger.warning("Val dataset contains only one label class. Skipping ROC, PR, Histogram, and Confusion Matrix plots.")
+
+    if not is_hyperopt:
+        # Save detailed predictions to CSV file
         try:
             import csv
-            pr_csv_path = exp_dir / "pr_points.csv"
-            with open(pr_csv_path, "w", newline="", encoding="utf-8") as csvfile:
+            pred_csv_path = exp_dir / "predictions.csv"
+            inv_label_map = {0: "Control", 1: "Autism"}
+            
+            with open(pred_csv_path, "w", newline="", encoding="utf-8") as csvfile:
                 writer = csv.writer(csvfile)
-                writer.writerow(["threshold", "precision", "recall"])
-                for idx, th_val in enumerate(pr_thresholds):
-                    writer.writerow([f"{th_val:.4f}", f"{precision_vals[idx]:.4f}", f"{recall_vals[idx]:.4f}"])
-            logger.info(f"Saved PR points to: {pr_csv_path}")
-        except Exception as e:
-            logger.error(f"Failed to save pr_points.csv: {e}")
-
-        # Probability Histogram of ASD predictions (class 1) stratified by True Label
-        try:
-            plt.figure()
-            asd_probs_control = y_prob[y_true == 0, 1]
-            asd_probs_asd = y_prob[y_true == 1, 1]
-            
-            bins_arr = np.linspace(0.0, 1.0, 11)
-            plt.hist(asd_probs_control, bins=bins_arr, alpha=0.5, label="Control", color="blue", edgecolor="black")
-            plt.hist(asd_probs_asd, bins=bins_arr, alpha=0.5, label="Autism (ASD)", color="orange", edgecolor="black")
-            plt.xlabel("Predicted Probability of ASD")
-            plt.ylabel("Count")
-            plt.title("Distribution of Predicted ASD Probabilities")
-            plt.legend(loc="upper right")
-            plt.grid(True, linestyle="--", alpha=0.7)
-            plt.savefig(exp_dir / "probability_histogram.png", dpi=300, bbox_inches="tight")
-            plt.close()
-            logger.info("Saved probability histogram plot.")
-        except Exception as e:
-            logger.error(f"Failed to generate probability histogram: {e}")
-            
-        # Confusion Matrix
-        cm = confusion_matrix(y_true, y_pred)
-        plt.figure()
-        plt.imshow(cm, interpolation="nearest", cmap=plt.cm.Blues)
-        plt.title("Confusion Matrix")
-        plt.colorbar()
-        tick_marks = np.arange(2)
-        plt.xticks(tick_marks, ["Control", "Autism"])
-        plt.yticks(tick_marks, ["Control", "Autism"])
-        plt.ylabel("True Label")
-        plt.xlabel("Predicted Label")
-        
-        # Add labels
-        thresh = cm.max() / 2.
-        for i, j in np.ndindex(cm.shape):
-            plt.text(j, i, format(cm[i, j], 'd'),
-                     horizontalalignment="center",
-                     color="white" if cm[i, j] > thresh else "black")
-                     
-        plt.savefig(exp_dir / "confusion_matrix.png", dpi=300, bbox_inches="tight")
-        plt.close()
-    else:
-        logger.warning("Val dataset contains only one label class. Skipping ROC, PR, Histogram, and Confusion Matrix plots.")
-
-    # Save detailed predictions to CSV file
-    try:
-        import csv
-        pred_csv_path = exp_dir / "predictions.csv"
-        inv_label_map = {0: "Control", 1: "Autism"}
-        
-        with open(pred_csv_path, "w", newline="", encoding="utf-8") as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow([
-                "Subject",
-                "True_Label",
-                "Pred_Label",
-                "Probability_ASD",
-                "Probability_Control",
-                "Logit_ASD",
-                "Logit_Control",
-                "Correct"
-            ])
-            
-            for idx, item in enumerate(val_dataset.items):
-                subj = item["subject_id"]
-                true_lbl = int(y_true[idx])
-                pred_lbl = int(y_pred[idx])
-                
-                true_label_str = inv_label_map.get(true_lbl, str(true_lbl))
-                pred_label_str = inv_label_map.get(pred_lbl, str(pred_lbl))
-                
-                prob_asd = float(y_prob[idx, 1])
-                prob_control = float(y_prob[idx, 0])
-                
-                logit_asd = float(y_logit[idx, 1])
-                logit_control = float(y_logit[idx, 0])
-                
-                correct_bool = bool(true_lbl == pred_lbl)
-                
                 writer.writerow([
-                    subj,
-                    true_label_str,
-                    pred_label_str,
-                    f"{prob_asd:.4f}",
-                    f"{prob_control:.4f}",
-                    f"{logit_asd:.4f}",
-                    f"{logit_control:.4f}",
-                    str(correct_bool)
+                    "Subject",
+                    "True_Label",
+                    "Pred_Label",
+                    "Probability_ASD",
+                    "Probability_Control",
+                    "Logit_ASD",
+                    "Logit_Control",
+                    "Correct"
                 ])
                 
-        logger.info(f"Saved validation predictions to: {pred_csv_path}")
-    except Exception as e:
-        logger.error(f"Failed to save predictions.csv: {e}")
+                for idx, item in enumerate(val_dataset.items):
+                    subj = item["subject_id"]
+                    true_lbl = int(y_true[idx])
+                    pred_lbl = int(y_pred[idx])
+                    
+                    true_label_str = inv_label_map.get(true_lbl, str(true_lbl))
+                    pred_label_str = inv_label_map.get(pred_lbl, str(pred_lbl))
+                    
+                    prob_asd = float(y_prob[idx, 1])
+                    prob_control = float(y_prob[idx, 0])
+                    
+                    logit_asd = float(y_logit[idx, 1])
+                    logit_control = float(y_logit[idx, 0])
+                    
+                    correct_bool = bool(true_lbl == pred_lbl)
+                    
+                    writer.writerow([
+                        subj,
+                        true_label_str,
+                        pred_label_str,
+                        f"{prob_asd:.4f}",
+                        f"{prob_control:.4f}",
+                        f"{logit_asd:.4f}",
+                        f"{logit_control:.4f}",
+                        str(correct_bool)
+                    ])
+                    
+            logger.info(f"Saved validation predictions to: {pred_csv_path}")
+        except Exception as e:
+            logger.error(f"Failed to save predictions.csv: {e}")
 
-    # Save probabilities and logits as numpy binaries
-    try:
-        prob_path = exp_dir / "val_probabilities.npy"
-        logit_path = exp_dir / "val_logits.npy"
-        np.save(prob_path, y_prob)
-        np.save(logit_path, y_logit)
-        logger.info(f"Saved validation probability and logit arrays to: {prob_path}, {logit_path}")
-    except Exception as e:
-        logger.error(f"Failed to save validation numpy arrays: {e}")
+        # Save probabilities and logits as numpy binaries
+        try:
+            prob_path = exp_dir / "val_probabilities.npy"
+            logit_path = exp_dir / "val_logits.npy"
+            np.save(prob_path, y_prob)
+            np.save(logit_path, y_logit)
+            logger.info(f"Saved validation probability and logit arrays to: {prob_path}, {logit_path}")
+        except Exception as e:
+            logger.error(f"Failed to save validation numpy arrays: {e}")
 
     # Append PR AUC details to meta config if computed
     best_val_pr_auc = None
@@ -885,134 +892,138 @@ def run_training_experiment(
         logger.info(f"Optimal threshold (Balanced Acc): {best_bal_acc_th:.2f} (Acc: {best_bal_acc_val:.4f})")
         logger.info(f"Optimal threshold (Youden's J): {best_youden_th:.2f} (J: {best_youden_val:.4f})")
         
-    if meta_path.exists():
-        try:
-            with open(meta_path, "r", encoding="utf-8") as f:
-                meta_config = json.load(f)
-        except Exception:
-            pass
-            
-    meta_config.update({
-        "best_epoch": best_epoch,
-        "best_val_loss": best_val_loss,
-        "best_val_accuracy": best_val_accuracy,
-        "best_val_pr_auc": best_val_pr_auc,
-        "optimal_threshold_f1": best_f1_th,
-        "optimal_threshold_f1_val": best_f1_val,
-        "optimal_threshold_balanced_acc": best_bal_acc_th,
-        "optimal_threshold_balanced_acc_val": best_bal_acc_val,
-        "optimal_threshold_youden": best_youden_th,
-        "optimal_threshold_youden_val": best_youden_val
-    })
-    
-    with open(meta_path, "w", encoding="utf-8") as f:
-        json.dump(meta_config, f, indent=4)
+    if not is_hyperopt:
+        if meta_path.exists():
+            try:
+                with open(meta_path, "r", encoding="utf-8") as f:
+                    meta_config = json.load(f)
+            except Exception:
+                pass
+                
+        meta_config.update({
+            "best_epoch": best_epoch,
+            "best_val_loss": best_val_loss,
+            "best_val_accuracy": best_val_accuracy,
+            "best_val_pr_auc": best_val_pr_auc,
+            "optimal_threshold_f1": best_f1_th,
+            "optimal_threshold_f1_val": best_f1_val,
+            "optimal_threshold_balanced_acc": best_bal_acc_th,
+            "optimal_threshold_balanced_acc_val": best_bal_acc_val,
+            "optimal_threshold_youden": best_youden_th,
+            "optimal_threshold_youden_val": best_youden_val
+        })
+        
+        with open(meta_path, "w", encoding="utf-8") as f:
+            json.dump(meta_config, f, indent=4)
         
     # Classification Report
     report = classification_report(y_true, y_pred, target_names=["Control", "Autism"] if len(np.unique(y_true)) > 1 else None, output_dict=True, zero_division=0)
-    with open(exp_dir / "classification_report.json", "w", encoding="utf-8") as f:
-        json.dump(report, f, indent=4)
+    if not is_hyperopt:
+        with open(exp_dir / "classification_report.json", "w", encoding="utf-8") as f:
+            json.dump(report, f, indent=4)
         
     # Update central comparison.csv in the parent experiment directory
-    try:
-        parent_dir = exp_dir.parent
-        comparison_path = parent_dir / "comparison.csv"
-        
-        # Read existing records if the file exists
-        records = []
-        fieldnames = [
-            "Experiment",
-            "Val_Loss",
-            "Val_Accuracy",
-            "ROC_AUC",
-            "PR_AUC",
-            "F1",
-            "Best_Epoch",
-            "Optimizer",
-            "Learning_Rate",
-            "Weight_Decay",
-            "Dropout_Prob",
-            "Label_Smoothing",
-            "Class_Weights",
-            "Augmentation"
-        ]
-        
-        import csv
-        existing_names = set()
-        if comparison_path.exists():
-            try:
-                with open(comparison_path, "r", newline="", encoding="utf-8") as csvfile:
-                    reader = csv.DictReader(csvfile)
-                    for row in reader:
-                        records.append(row)
-                        existing_names.add(row.get("Experiment"))
-            except Exception as e:
-                logger.warning(f"Failed to read existing comparison.csv: {e}")
-                
-        # Prepare the new record
-        new_record = {
-            "Experiment": experiment_name,
-            "Val_Loss": f"{best_val_loss:.4f}" if best_val_loss is not None else "N/A",
-            "Val_Accuracy": f"{best_val_accuracy:.4f}" if best_val_accuracy is not None else "N/A",
-            "ROC_AUC": f"{roc_auc:.4f}" if (len(np.unique(y_true)) > 1 and 'roc_auc' in locals()) else "N/A",
-            "PR_AUC": f"{avg_precision:.4f}" if (len(np.unique(y_true)) > 1 and avg_precision is not None) else "N/A",
-            "F1": f"{report.get('macro avg', {}).get('f1-score', 0.0):.4f}" if 'report' in locals() else "N/A",
-            "Best_Epoch": str(best_epoch) if best_epoch is not None else "N/A",
-            "Optimizer": optimizer_name,
-            "Learning_Rate": str(lr),
-            "Weight_Decay": str(weight_decay),
-            "Dropout_Prob": str(dropout_prob),
-            "Label_Smoothing": str(label_smoothing),
-            "Class_Weights": str(use_class_weights),
-            "Augmentation": str(augment)
-        }
-        
-        # Override if experiment already exists, else append
-        if experiment_name in existing_names:
-            for idx, rec in enumerate(records):
-                if rec.get("Experiment") == experiment_name:
-                    records[idx] = new_record
-                    break
-        else:
-            records.append(new_record)
+    if not is_hyperopt:
+        try:
+            parent_dir = exp_dir.parent
+            comparison_path = parent_dir / "comparison.csv"
             
-        with open(comparison_path, "w", newline="", encoding="utf-8") as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writeheader()
-            for rec in records:
-                filtered_rec = {k: rec.get(k, "N/A") for k in fieldnames}
-                writer.writerow(filtered_rec)
+            # Read existing records if the file exists
+            records = []
+            fieldnames = [
+                "Experiment",
+                "Val_Loss",
+                "Val_Accuracy",
+                "ROC_AUC",
+                "PR_AUC",
+                "F1",
+                "Best_Epoch",
+                "Optimizer",
+                "Learning_Rate",
+                "Weight_Decay",
+                "Dropout_Prob",
+                "Label_Smoothing",
+                "Class_Weights",
+                "Augmentation"
+            ]
+            
+            import csv
+            existing_names = set()
+            if comparison_path.exists():
+                try:
+                    with open(comparison_path, "r", newline="", encoding="utf-8") as csvfile:
+                        reader = csv.DictReader(csvfile)
+                        for row in reader:
+                            records.append(row)
+                            existing_names.add(row.get("Experiment"))
+                except Exception as e:
+                    logger.warning(f"Failed to read existing comparison.csv: {e}")
+                    
+            # Prepare the new record
+            new_record = {
+                "Experiment": experiment_name,
+                "Val_Loss": f"{best_val_loss:.4f}" if best_val_loss is not None else "N/A",
+                "Val_Accuracy": f"{best_val_accuracy:.4f}" if best_val_accuracy is not None else "N/A",
+                "ROC_AUC": f"{roc_auc:.4f}" if (len(np.unique(y_true)) > 1 and 'roc_auc' in locals()) else "N/A",
+                "PR_AUC": f"{avg_precision:.4f}" if (len(np.unique(y_true)) > 1 and avg_precision is not None) else "N/A",
+                "F1": f"{report.get('macro avg', {}).get('f1-score', 0.0):.4f}" if 'report' in locals() else "N/A",
+                "Best_Epoch": str(best_epoch) if best_epoch is not None else "N/A",
+                "Optimizer": optimizer_name,
+                "Learning_Rate": str(lr),
+                "Weight_Decay": str(weight_decay),
+                "Dropout_Prob": str(dropout_prob),
+                "Label_Smoothing": str(label_smoothing),
+                "Class_Weights": str(use_class_weights),
+                "Augmentation": str(augment)
+            }
+            
+            # Override if experiment already exists, else append
+            if experiment_name in existing_names:
+                for idx, rec in enumerate(records):
+                    if rec.get("Experiment") == experiment_name:
+                        records[idx] = new_record
+                        break
+            else:
+                records.append(new_record)
                 
-        logger.info(f"Updated experiment comparison table at: {comparison_path}")
-    except Exception as e:
-        logger.error(f"Failed to update comparison.csv: {e}")
+            with open(comparison_path, "w", newline="", encoding="utf-8") as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writeheader()
+                for rec in records:
+                    filtered_rec = {k: rec.get(k, "N/A") for k in fieldnames}
+                    writer.writerow(filtered_rec)
+                    
+            logger.info(f"Updated experiment comparison table at: {comparison_path}")
+        except Exception as e:
+            logger.error(f"Failed to update comparison.csv: {e}")
         
     # 7. ONNX Model Auto-Export
-    try:
-        onnx_path = exp_dir / "best_model.onnx"
-        sample_shape = train_dataset[0].image.shape # e.g. (1, 128, 128, 128)
-        dummy_shape = (1,) + tuple(sample_shape)
-        dummy_input = torch.randn(dummy_shape).to(device)
-        logger.info(f"Auto-exporting best checkpoint model to ONNX: {onnx_path}")
-        
-        # Export
-        export_model = model.module if isinstance(model, torch.nn.DataParallel) else model
-        torch.onnx.export(
-            export_model,
-            dummy_input,
-            onnx_path,
-            export_params=True,
-            opset_version=18,
-            do_constant_folding=True,
-            input_names=["input"],
-            output_names=["output"]
-        )
-        logger.info("ONNX auto-export completed successfully.")
-    except Exception as e:
-        logger.error(f"ONNX model export failed: {e}")
+    if not is_hyperopt:
+        try:
+            onnx_path = exp_dir / "best_model.onnx"
+            sample_shape = train_dataset[0].image.shape # e.g. (1, 128, 128, 128)
+            dummy_shape = (1,) + tuple(sample_shape)
+            dummy_input = torch.randn(dummy_shape).to(device)
+            logger.info(f"Auto-exporting best checkpoint model to ONNX: {onnx_path}")
+            
+            # Export
+            export_model = model.module if isinstance(model, torch.nn.DataParallel) else model
+            torch.onnx.export(
+                export_model,
+                dummy_input,
+                onnx_path,
+                export_params=True,
+                opset_version=18,
+                do_constant_folding=True,
+                input_names=["input"],
+                output_names=["output"]
+            )
+            logger.info("ONNX auto-export completed successfully.")
+        except Exception as e:
+            logger.error(f"ONNX model export failed: {e}")
         
     # 8. Copy outputs back to destination (e.g. Google Drive) if requested
-    if copy_outputs_to is not None:
+    if copy_outputs_to is not None and not is_hyperopt:
         dest_dir = Path(copy_outputs_to)
         logger.info(f"Copying final experiment outputs to destination: {dest_dir}")
         try:
@@ -1026,6 +1037,15 @@ def run_training_experiment(
             logger.info("Successfully copied final experiment outputs.")
         except Exception as e:
             logger.error(f"Failed to copy final experiment outputs: {e}")
+
+    return {
+        "best_epoch": best_epoch,
+        "best_val_loss": best_val_loss,
+        "best_val_accuracy": best_val_accuracy,
+        "best_val_pr_auc": best_val_pr_auc if 'best_val_pr_auc' in locals() else None,
+        "best_val_roc_auc": roc_auc if (len(np.unique(y_true)) > 1 and 'roc_auc' in locals()) else None,
+        "macro_f1": report.get('macro avg', {}).get('f1-score', 0.0) if 'report' in locals() else 0.0,
+    }
 
 
 if __name__ == "__main__":
@@ -1061,37 +1081,147 @@ if __name__ == "__main__":
     parser.add_argument("--dropout-prob", type=float, default=0.0, help="Dropout probability for DenseNet backbone blocks")
     parser.add_argument("--label-smoothing", type=float, default=0.0, help="Label smoothing regularization parameter")
     parser.add_argument("--use-class-weights", action="store_true", help="Enable dynamic class weighting for CrossEntropyLoss")
+    parser.add_argument("--optuna-trials", type=int, default=0, help="Number of Optuna trials for hyperparameter optimization search (0 to disable)")
 
     args = parser.parse_args()
 
-    run_training_experiment(
-        data_root=args.data_root,
-        index_file=args.index_file,
-        split_file=args.split_file,
-        preprocessed_dir=args.preprocessed_dir,
-        config_yaml=args.config_yaml,
-        experiment_dir=args.experiment_dir,
-        epochs=args.epochs,
-        batch_size=args.batch_size,
-        device=args.device,
-        lr=args.lr,
-        resume_from=args.resume_from,
-        skip_preprocess=args.skip_preprocess,
-        copy_outputs_to=args.copy_outputs_to,
-        strict_cache_validation=args.strict_cache_validation,
-        limit=args.limit,
-        full_cache_validation=args.full_cache_validation,
-        local_cache_dir=args.local_cache_dir,
-        augment=args.augment,
-        optimizer_name=args.optimizer,
-        weight_decay=args.weight_decay,
-        scheduler_patience=args.scheduler_patience,
-        scheduler_factor=args.scheduler_factor,
-        seed=args.seed,
-        experiment_name=args.experiment_name,
-        decision_threshold=args.decision_threshold,
-        early_stopping_patience=args.early_stopping_patience,
-        dropout_prob=args.dropout_prob,
-        label_smoothing=args.label_smoothing,
-        use_class_weights=args.use_class_weights,
-    )
+    if args.optuna_trials > 0:
+        from training.hyperopt import optimize_hyperparameters
+        import shutil
+        
+        def objective(trial):
+            # Suggest hyperparams
+            trial_lr = trial.suggest_float("lr", 1e-5, 1e-3, log=True)
+            trial_weight_decay = trial.suggest_float("weight_decay", 1e-6, 1e-2, log=True)
+            trial_batch_size = trial.suggest_categorical("batch_size", [8, 12, 16, 24])
+            trial_dropout = trial.suggest_float("dropout_prob", 0.0, 0.5)
+            trial_patience = trial.suggest_int("scheduler_patience", 3, 10)
+            trial_factor = trial.suggest_float("scheduler_factor", 0.1, 0.7)
+            
+            # Setup a unique trial directory to isolate runs
+            trial_dir = Path(args.experiment_dir) / f"trial_{trial.number}"
+            
+            try:
+                metrics = run_training_experiment(
+                    data_root=args.data_root,
+                    index_file=args.index_file,
+                    split_file=args.split_file,
+                    preprocessed_dir=args.preprocessed_dir,
+                    config_yaml=args.config_yaml,
+                    experiment_dir=trial_dir,
+                    epochs=args.epochs,
+                    batch_size=trial_batch_size,
+                    device=args.device,
+                    lr=trial_lr,
+                    resume_from="none",
+                    skip_preprocess=args.skip_preprocess,
+                    copy_outputs_to=None,
+                    strict_cache_validation=args.strict_cache_validation,
+                    limit=args.limit,
+                    full_cache_validation=args.full_cache_validation,
+                    local_cache_dir=args.local_cache_dir,
+                    augment=args.augment,
+                    optimizer_name=args.optimizer,
+                    weight_decay=trial_weight_decay,
+                    scheduler_patience=trial_patience,
+                    scheduler_factor=trial_factor,
+                    seed=args.seed,
+                    experiment_name=f"{args.experiment_name}_trial_{trial.number}",
+                    decision_threshold=args.decision_threshold,
+                    early_stopping_patience=args.early_stopping_patience,
+                    dropout_prob=trial_dropout,
+                    label_smoothing=args.label_smoothing,
+                    use_class_weights=args.use_class_weights,
+                    is_hyperopt=True,
+                )
+                
+                # Fetch ROC-AUC as optimization target
+                roc_auc = metrics.get("best_val_roc_auc")
+                if roc_auc is None:
+                    roc_auc = metrics.get("best_val_accuracy", 0.0)
+                    
+                return roc_auc
+                
+            finally:
+                if trial_dir.exists():
+                    try:
+                        shutil.rmtree(trial_dir)
+                    except Exception as e:
+                        logger.warning(f"Could not delete trial directory {trial_dir}: {e}")
+                        
+        best_results = optimize_hyperparameters(
+            objective_fn=objective,
+            n_trials=args.optuna_trials,
+            seed=args.seed,
+            output_dir=Path(args.experiment_dir)
+        )
+        
+        best_params = best_results["best_params"]
+        logger.info(f"Optimization completed. Best hyperparameters: {best_params}")
+        logger.info("Starting final training run using the best hyperparameters...")
+        
+        run_training_experiment(
+            data_root=args.data_root,
+            index_file=args.index_file,
+            split_file=args.split_file,
+            preprocessed_dir=args.preprocessed_dir,
+            config_yaml=args.config_yaml,
+            experiment_dir=args.experiment_dir,
+            epochs=args.epochs,
+            batch_size=best_params["batch_size"],
+            device=args.device,
+            lr=best_params["lr"],
+            resume_from=args.resume_from,
+            skip_preprocess=args.skip_preprocess,
+            copy_outputs_to=args.copy_outputs_to,
+            strict_cache_validation=args.strict_cache_validation,
+            limit=args.limit,
+            full_cache_validation=args.full_cache_validation,
+            local_cache_dir=args.local_cache_dir,
+            augment=args.augment,
+            optimizer_name=args.optimizer,
+            weight_decay=best_params["weight_decay"],
+            scheduler_patience=best_params["scheduler_patience"],
+            scheduler_factor=best_params["scheduler_factor"],
+            seed=args.seed,
+            experiment_name=args.experiment_name,
+            decision_threshold=args.decision_threshold,
+            early_stopping_patience=args.early_stopping_patience,
+            dropout_prob=best_params["dropout_prob"],
+            label_smoothing=args.label_smoothing,
+            use_class_weights=args.use_class_weights,
+            is_hyperopt=False,
+        )
+    else:
+        run_training_experiment(
+            data_root=args.data_root,
+            index_file=args.index_file,
+            split_file=args.split_file,
+            preprocessed_dir=args.preprocessed_dir,
+            config_yaml=args.config_yaml,
+            experiment_dir=args.experiment_dir,
+            epochs=args.epochs,
+            batch_size=args.batch_size,
+            device=args.device,
+            lr=args.lr,
+            resume_from=args.resume_from,
+            skip_preprocess=args.skip_preprocess,
+            copy_outputs_to=args.copy_outputs_to,
+            strict_cache_validation=args.strict_cache_validation,
+            limit=args.limit,
+            full_cache_validation=args.full_cache_validation,
+            local_cache_dir=args.local_cache_dir,
+            augment=args.augment,
+            optimizer_name=args.optimizer,
+            weight_decay=args.weight_decay,
+            scheduler_patience=args.scheduler_patience,
+            scheduler_factor=args.scheduler_factor,
+            seed=args.seed,
+            experiment_name=args.experiment_name,
+            decision_threshold=args.decision_threshold,
+            early_stopping_patience=args.early_stopping_patience,
+            dropout_prob=args.dropout_prob,
+            label_smoothing=args.label_smoothing,
+            use_class_weights=args.use_class_weights,
+            is_hyperopt=False,
+        )
