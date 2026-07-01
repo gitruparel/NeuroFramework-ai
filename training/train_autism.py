@@ -288,6 +288,8 @@ def run_training_experiment(
     freeze_epochs: int = 0,
     backbone_lr: Optional[float] = None,
     classifier_lr: Optional[float] = None,
+    kfold_file: Optional[str] = None,
+    fold_index: Optional[int] = None,
 ) -> Dict[str, Any]:
     """Orchestrates full train/validation, checkpointers, and classification plots reports."""
     # Set reproducibility seeds
@@ -392,15 +394,55 @@ def run_training_experiment(
         train_transform = get_mri_augmentations(profile=augmentation_profile, seed=seed)
         logger.info(f"MONAI 3D data augmentation enabled using profile '{augmentation_profile}'.")
 
-    train_dataset = ABIDEDataset(
-        index_file=index_path,
-        split_file=split_path,
-        split_name="train",
-        preprocessed_dir=preprocessed_path,
-        raw_dir=data_root,
-        label_map=label_map,
-        transform=train_transform
-    )
+    if kfold_file is not None and fold_index is not None:
+        kfold_path = Path(kfold_file)
+        if not kfold_path.exists():
+            raise FileNotFoundError(f"K-Fold split file not found: {kfold_path}")
+        with open(kfold_path, "r", encoding="utf-8") as f:
+            kfolds = json.load(f)
+        if fold_index < 0 or fold_index >= len(kfolds):
+            raise ValueError(f"Fold index {fold_index} is out of bounds (total folds: {len(kfolds)})")
+            
+        current_fold = kfolds[fold_index]
+        train_subs = set(current_fold["train"])
+        val_subs = set(current_fold["val"])
+        logger.info(f"Using K-Fold Cross Validation Fold {fold_index} (Train subjects: {len(train_subs)}, Val subjects: {len(val_subs)})")
+        
+        train_dataset = ABIDEDataset(
+            index_file=index_path,
+            preprocessed_dir=preprocessed_path,
+            raw_dir=data_root,
+            label_map=label_map,
+            transform=train_transform
+        )
+        val_dataset = ABIDEDataset(
+            index_file=index_path,
+            preprocessed_dir=preprocessed_path,
+            raw_dir=data_root,
+            label_map=label_map
+        )
+        
+        # Filter items manually
+        train_dataset.items = [item for item in train_dataset.all_items if item["subject_id"] in train_subs]
+        val_dataset.items = [item for item in val_dataset.all_items if item["subject_id"] in val_subs]
+    else:
+        train_dataset = ABIDEDataset(
+            index_file=index_path,
+            split_file=split_path,
+            split_name="train",
+            preprocessed_dir=preprocessed_path,
+            raw_dir=data_root,
+            label_map=label_map,
+            transform=train_transform
+        )
+        val_dataset = ABIDEDataset(
+            index_file=index_path,
+            split_file=split_path,
+            split_name="val",
+            preprocessed_dir=preprocessed_path,
+            raw_dir=data_root,
+            label_map=label_map
+        )
     
     # Generate augmentation preview if requested and not in hyperopt trial mode
     if augment and not is_hyperopt:
@@ -417,14 +459,6 @@ def run_training_experiment(
             logger.info(f"Generated data augmentation visual preview at: {preview_path}")
         except Exception as e:
             logger.error(f"Failed to generate data augmentation visual preview: {e}")
-    val_dataset = ABIDEDataset(
-        index_file=index_path,
-        split_file=split_path,
-        split_name="val",
-        preprocessed_dir=preprocessed_path,
-        raw_dir=data_root,
-        label_map=label_map
-    )
     
     if limit is not None:
         logger.info(f"Limiting train dataset to first {limit} subjects and val dataset to first {limit} subjects.")
@@ -1435,10 +1469,13 @@ if __name__ == "__main__":
     parser.add_argument("--backbone-lr", type=float, default=None, help="Differential learning rate for backbone parameters")
     parser.add_argument("--classifier-lr", type=float, default=None, help="Differential learning rate for classifier parameters")
     parser.add_argument("--benchmark-transfer", action="store_true", help="Sequentially train models under random init vs medicalnet vs monai init")
+    parser.add_argument("--cv", action="store_true", help="Execute full 5-fold cross-validation training and evaluation loop")
+    parser.add_argument("--kfold-file", default="data/abide_kfold.json", help="Path to JSON file containing stratified 5-fold splits")
+    parser.add_argument("--fold-index", type=int, default=None, help="Index of a single fold (0-4) to run in isolation")
 
     args = parser.parse_args()
 
-    # Consolidate transfer learning settings to pass to experiments
+    # Consolidate transfer learning and K-fold settings to pass to experiments
     extra_run_args = {
         "pretrained": args.pretrained or (args.pretrained_source != "none"),
         "pretrained_source": args.pretrained_source,
@@ -1447,6 +1484,8 @@ if __name__ == "__main__":
         "freeze_epochs": args.freeze_epochs,
         "backbone_lr": args.backbone_lr,
         "classifier_lr": args.classifier_lr,
+        "kfold_file": args.kfold_file,
+        "fold_index": args.fold_index,
     }
 
     if args.benchmark_losses:
@@ -1623,10 +1662,100 @@ if __name__ == "__main__":
                 freeze_epochs=args.freeze_epochs,
                 backbone_lr=args.backbone_lr,
                 classifier_lr=args.classifier_lr,
+                kfold_file=args.kfold_file,
+                fold_index=None,
             )
             
         aggregate_transfer_learning_benchmark(Path(args.experiment_dir), init_strategies)
         logger.info(f"Transfer Learning Benchmark Run completed successfully!")
+
+    elif args.cv:
+        from training.evaluation import assemble_oof_predictions, tune_optimal_thresholds, generate_cv_report
+        from training.calibration import plot_reliability_diagram
+        
+        logger.info(f"Starting 5-Fold Cross-Validation run using splits from: {args.kfold_file}")
+        
+        for f_idx in range(5):
+            logger.info(f"\n==================================================")
+            logger.info(f"TRAINING CROSS-VALIDATION FOLD: {f_idx + 1} / 5")
+            logger.info(f"==================================================")
+            
+            fold_dir = Path(args.experiment_dir) / f"fold_{f_idx}"
+            
+            fold_run_args = extra_run_args.copy()
+            fold_run_args["fold_index"] = f_idx
+            fold_run_args["kfold_file"] = args.kfold_file
+            
+            run_training_experiment(
+                data_root=args.data_root,
+                index_file=args.index_file,
+                split_file=args.split_file,
+                preprocessed_dir=args.preprocessed_dir,
+                config_yaml=args.config_yaml,
+                experiment_dir=fold_dir,
+                epochs=args.epochs,
+                batch_size=args.batch_size,
+                device=args.device,
+                lr=args.lr,
+                resume_from="none",
+                skip_preprocess=True,
+                copy_outputs_to=None,
+                strict_cache_validation=args.strict_cache_validation,
+                limit=args.limit,
+                full_cache_validation=False,
+                local_cache_dir=args.local_cache_dir,
+                augment=args.augment,
+                optimizer_name=args.optimizer,
+                weight_decay=args.weight_decay,
+                scheduler_patience=args.scheduler_patience,
+                scheduler_factor=args.scheduler_factor,
+                seed=args.seed + f_idx,
+                experiment_name=f"{args.experiment_name}_fold_{f_idx}",
+                decision_threshold=args.decision_threshold,
+                early_stopping_patience=args.early_stopping_patience,
+                dropout_prob=args.dropout_prob,
+                label_smoothing=args.label_smoothing,
+                use_class_weights=args.use_class_weights,
+                is_hyperopt=False,
+                augmentation_profile=args.augmentation_profile,
+                architecture=args.architecture,
+                loss_function=args.loss_function,
+                focal_gamma=args.focal_gamma,
+                focal_alpha=args.focal_alpha,
+                tta=args.tta,
+                tta_runs=args.tta_runs,
+                tta_method=args.tta_method,
+                **fold_run_args,
+            )
+            
+        # Assemble OOF predictions
+        logger.info("Assembling Out-of-Fold predictions...")
+        oof_df = assemble_oof_predictions(Path(args.experiment_dir), n_folds=5)
+        
+        # Calculate ECE and plot reliability diagram
+        logger.info("Computing calibration curves & Expected Calibration Error...")
+        y_true_oof = oof_df["True_Label"].map({"Control": 0, "Autism": 1, "0": 0, "1": 1, 0: 0, 1: 1}).values
+        y_prob_oof = oof_df["Probability_ASD"].values
+        
+        plot_reliability_diagram(
+            y_true=y_true_oof,
+            y_prob=y_prob_oof,
+            output_path=Path(args.experiment_dir) / "calibration_curve.png",
+            n_bins=10
+        )
+        
+        # Tune optimal thresholds
+        logger.info("Tuning optimal decision thresholds on Out-of-Fold predictions...")
+        tune_optimal_thresholds(
+            y_true=y_true_oof,
+            y_prob=y_prob_oof,
+            output_dir=Path(args.experiment_dir)
+        )
+        
+        # Generate aggregate CV summary metrics reports
+        logger.info("Compiling cross-validation summary report...")
+        generate_cv_report(Path(args.experiment_dir), n_folds=5)
+        logger.info("5-Fold Cross-Validation completed successfully!")
 
     elif args.optuna_trials > 0:
         from training.hyperopt import optimize_hyperparameters

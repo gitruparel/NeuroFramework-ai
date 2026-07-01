@@ -216,3 +216,107 @@ def generate_augmentation_preview(tensor: torch.Tensor, augment_fn: Callable[[to
         
     plt.savefig(output_path, dpi=300, bbox_inches="tight")
     plt.close("all")
+
+
+def generate_augmentation_plots(csv_path: Path, output_img_path: Path) -> None:
+    """Generates comparison bar plots ranking performance metrics across augmentation profiles."""
+    import pandas as pd
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    
+    if not csv_path.exists():
+        return
+        
+    try:
+        df = pd.read_csv(csv_path)
+    except Exception:
+        return
+        
+    plt.close("all")
+    fig, axes = plt.subplots(2, 3, figsize=(18, 10))
+    fig.suptitle("Augmentation Profile Benchmark Comparison", fontsize=16, fontweight="bold")
+    
+    metrics = [
+        ("Val_Accuracy", "Validation Accuracy", "royalblue"),
+        ("ROC_AUC", "ROC-AUC Score", "seagreen"),
+        ("PR_AUC", "PR-AUC Score", "orange"),
+        ("F1", "Macro F1-Score", "purple"),
+        ("Balanced_Accuracy", "Balanced Accuracy", "crimson"),
+        ("Training_Time", "Training Time (seconds)", "darkgrey")
+    ]
+    
+    for idx, (col, title, color) in enumerate(metrics):
+        ax = axes[idx // 3, idx % 3]
+        if col not in df.columns:
+            ax.text(0.5, 0.5, f"Metric '{col}' not found", ha="center", va="center")
+            ax.axis("off")
+            continue
+            
+        x_vals = df["Augmentation_Profile"]
+        y_vals = pd.to_numeric(df[col], errors='coerce').fillna(0.0)
+        
+        ax.bar(x_vals, y_vals, color=color, edgecolor="black", alpha=0.85, width=0.4)
+        ax.set_title(title, fontsize=12, fontweight="semibold")
+        ax.set_ylabel(col)
+        ax.grid(True, linestyle="--", alpha=0.5)
+        
+        if col != "Training_Time":
+            ax.set_ylim(0, 1.1)
+            
+        for i, val in enumerate(y_vals):
+            if col == "Training_Time":
+                ax.text(i, val + (val * 0.02) + 1e-5, f"{val:,.1f}", ha="center", va="bottom", fontsize=10)
+            else:
+                ax.text(i, val + 0.01, f"{val:.4f}", ha="center", va="bottom", fontsize=10)
+                
+    plt.tight_layout()
+    try:
+        output_img_path.parent.mkdir(parents=True, exist_ok=True)
+        plt.savefig(output_img_path, dpi=300, bbox_inches="tight")
+    except Exception:
+        pass
+    finally:
+        plt.close("all")
+
+
+def aggregate_augmentations_benchmark(experiment_dir: Path, profiles: list) -> None:
+    """Aggregates metadata across augmentation experiment folders, compiling CSV and plots."""
+    import json
+    records = []
+    for profile in profiles:
+        meta_path = experiment_dir / profile / "experiment_meta.json"
+        if meta_path.exists():
+            try:
+                with open(meta_path, "r", encoding="utf-8") as f:
+                    meta = json.load(f)
+                    
+                record = {
+                    "Augmentation_Profile": profile,
+                    "Val_Accuracy": meta.get("best_val_accuracy", 0.0),
+                    "ROC_AUC": meta.get("best_val_roc_auc", 0.0),
+                    "PR_AUC": meta.get("best_val_pr_auc", 0.0),
+                    "F1": meta.get("best_val_macro_f1", meta.get("macro_f1", 0.0)),
+                    "Balanced_Accuracy": meta.get("best_val_balanced_accuracy", 0.0),
+                    "Sensitivity": meta.get("best_val_sensitivity", 0.0),
+                    "Specificity": meta.get("best_val_specificity", 0.0),
+                    "Best_Epoch": meta.get("best_epoch", 0),
+                    "Training_Time": meta.get("training_time", 0.0),
+                }
+                records.append(record)
+            except Exception:
+                pass
+                
+    if not records:
+        return
+        
+    import pandas as pd
+    csv_path = experiment_dir / "augmentation_comparison.csv"
+    try:
+        df = pd.DataFrame(records)
+        df.to_csv(csv_path, index=False)
+        
+        plot_path = experiment_dir / "augmentation_comparison.png"
+        generate_augmentation_plots(csv_path, plot_path)
+    except Exception:
+        pass

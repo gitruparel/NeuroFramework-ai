@@ -191,6 +191,15 @@ brain-ai/
   - **Dynamic Optimizer Rebuilding (`training/trainer.py`):** Rebuilds optimizer parameter groups at unfreeze transitions (e.g. at epoch `freeze_epochs`), mapping backbone parameters to `backbone_lr` and classifier parameters to `classifier_lr` (differential learning rates).
   - **TL Comparison Sweeper & Plots (`training/transfer_learning.py`):** Added `--benchmark-transfer` running sequential random-init vs pretrained sweeps, exporting `transfer_learning_comparison.csv` and side-by-side comparative metric bar charts `transfer_learning_comparison.png`.
 
+### 19. Stage 7 Optimal Thresholds, Calibration, & 5-Fold Evaluation
+- **Problem:** Evaluating models on a single validation split does not provide statistical confidence intervals and can yield uncalibrated classifier predictions that are clinically risky.
+- **Decision:**
+  - **5-Fold CV Execution Loop (`train_autism.py`):** Implemented `--cv` looping sequentially across all 5 stratified splits loaded from `--kfold-file`, saving models/predictions inside fold-specific directories.
+  - **Out-of-Fold Assembly (`training/evaluation.py`):** Merges cross-validation outputs into `oof_predictions.csv` with fold identifiers.
+  - **Tuning Optimal Thresholds (`training/evaluation.py`):** Sweeps probability cutoffs (0.01 to 0.99) over OOF predictions to optimize Youden's J index, F1-score, and Balanced Accuracy, outputting `optimal_thresholds.json`.
+  - **Calibration curves (`training/calibration.py`):** Computes Expected Calibration Error (ECE) and plots reliability diagrams mapping actual bin accuracies against confidences.
+  - **5-Fold Summary Report (`training/evaluation.py`):** Calculates means and standard deviations of validation scores (ROC-AUC, accuracy, macro-F1, balanced accuracy, sensitivity, specificity) in `cv_summary.csv` and renders a comparative bar chart with error bounds `cv_summary.png`.
+
 ---
 
 ## Pipeline Development Status
@@ -209,20 +218,35 @@ brain-ai/
 - **Stage 6.5D (Advanced Loss Function Benchmark):** Completed & Verified (Custom vectorized Focal Loss, LossFactory, Sensitivity/Specificity computations, sequential loss sweeps, comparative bar plots, and unit tests)
 - **Stage 6.5E (Test-Time Augmentation & Robust Inference):** Completed & Verified (Deterministic TTA augmentor, PredictionAggregator, timing / metrics validation deltas logging, and grouped bar chart comparisons)
 - **Stage 6.5F (Transfer Learning & Pretrained Backbone Support):** Completed & Verified (Pretrained model loader, layer freezing hooks, differential learning rates, benchmark aggregations, comparison CSVs, and convergence speed plots)
-- **Stage 7 (Optimal Thresholds, Calibration, & 5-Fold Evaluation):** Future (5-Fold cross-validation, ECE calibration plots, threshold calibrations)
+- **Stage 7 (Optimal Thresholds, Calibration, & 5-Fold Evaluation):** Completed & Verified (5-Fold CV loop, out-of-fold predictions assembly, Youden's J threshold tuning, calibration curves ECE plots, and mean/std summary reports)
 - **Stage 8 (Attribution & Explainability):** Future (Grad-CAM heatmaps, localized visualization)
 - **Stage 9 (Clinical Dashboard & Deployment):** Future (FastAPI, Streamlit, local offline deployment setup)
 
 ---
 
-## Proposed Experiment Training Progression (After Stage 6.5F)
+## Proposed Experiment Training Progression (After Stage 7)
 
-1. **Experiment 1:** DenseNet | No Augmentations | Baseline
-2. **Experiment 2:** DenseNet | Moderate Augmentations
-3. **Experiment 3:** DenseNet | Best Optuna Hyperparameters
-4. **Experiment 4:** DenseNet | Best Optuna Hyperparameters + Best Augmentation Profile
-5. **Experiment 5:** ResNet10 | Same Settings as Experiment 4 (Architecture Comparison)
-6. **Experiment 6:** ResNet18 | Same Settings as Experiment 4 (Architecture Comparison)
-7. **Experiment 7:** Winner Architecture | Focal Loss Regularization
-8. **Experiment 8:** Winner Architecture | Test-Time Augmentation (TTA)
-9. *Proceed to Stage 7 (Calibration and 5-Fold Evaluation).*
+We execute the benchmark using the modular script suite under `scripts/`:
+
+1. **`run_architecture_benchmark.py`**:
+   - Trains baseline `densenet121`, `resnet10`, and `resnet18` sequentially (CE loss, no augmentations).
+   - Generates `architecture_comparison.csv` and `architecture_comparison.png`.
+   - **Action:** Inspect metrics and choose the winning architecture backbone (e.g. `resnet18`).
+
+2. **`run_loss_benchmark.py`**:
+   - Evaluates the selected architecture under all 5 loss criteria (`ce`, `weighted_ce`, `focal`, `ce_ls`, `focal_ls`).
+   - Generates `loss_comparison.csv` and `loss_comparison.png`.
+   - **Action:** Inspect metrics and select the winning loss function (e.g. `focal`).
+
+3. **`run_augmentation_benchmark.py`**:
+   - Evaluates the selected architecture and loss config under MONAI profiles (`none`, `minimal`, `moderate`, `strong`, `research`).
+   - Generates `augmentation_comparison.csv` and `augmentation_comparison.png`.
+   - **Action:** Inspect metrics and select the winning augmentation profile (e.g. `moderate`).
+
+4. **`run_tta.py`**:
+   - Evaluates the best model checkpoint from the augmentation benchmark stage with and without TTA (no retraining).
+   - Generates comparative metrics and latency reports `tta_comparison.csv` and `tta_comparison.png`.
+
+5. **`run_final_cv.py`**:
+   - Retrains the model from scratch on 5 independent folds using the finalized optimal setup.
+   - Generates out-of-fold `oof_predictions.csv`, calibration diagrams, tuned threshold boundaries, and summary statistics.
