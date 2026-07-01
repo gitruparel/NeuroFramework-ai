@@ -23,6 +23,8 @@ def main():
     parser.add_argument("--epochs", type=int, default=15, help="Number of epochs to train")
     parser.add_argument("--batch-size", type=int, default=8, help="Batch size")
     parser.add_argument("--limit", type=int, default=None, help="Limit number of samples for testing")
+    parser.add_argument("--lr", type=float, default=None, help="Learning rate")
+    parser.add_argument("--seed", type=int, default=None, help="Random seed")
     args = parser.parse_args()
 
     profiles = ["none", "minimal", "moderate", "strong", "research"]
@@ -53,6 +55,12 @@ def main():
             
         if args.limit is not None:
             run_args += ["--limit", str(args.limit)]
+            
+        if args.lr is not None:
+            run_args += ["--lr", str(args.lr)]
+            
+        if args.seed is not None:
+            run_args += ["--seed", str(args.seed)]
             
         result = run_experiment(run_args)
         if result.returncode != 0:

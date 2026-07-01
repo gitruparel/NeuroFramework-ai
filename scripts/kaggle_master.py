@@ -25,6 +25,8 @@ def main():
     parser.add_argument("--batch-size", type=int, default=8, help="Batch size")
     parser.add_argument("--limit", type=int, default=None, help="Limit number of samples for quick tests")
     parser.add_argument("--device", default="auto", help="Execution device")
+    parser.add_argument("--lr", type=float, default=None, help="Learning rate")
+    parser.add_argument("--seed", type=int, default=None, help="Random seed")
     
     # Path configuration overrides (with defaults pointing to Kaggle environment)
     parser.add_argument("--data-root", default="/kaggle/input/neuroframework-data", help="Raw dataset root directory")
@@ -138,11 +140,13 @@ def main():
         if args.tta:
             cmd.append("--tta")
 
-    # Forward limit flag if set
-    if args.limit is not None and args.stage != "tta":
+    # Forward common arguments
+    if args.limit is not None:
         cmd += ["--limit", str(args.limit)]
-    elif args.limit is not None:
-        cmd += ["--limit", str(args.limit)]
+    if args.lr is not None and args.stage != "tta":
+        cmd += ["--lr", str(args.lr)]
+    if args.seed is not None and args.stage != "tta":
+        cmd += ["--seed", str(args.seed)]
 
     # Execute
     print(f"Executing subprocess command:\n{' '.join(cmd)}\n")
