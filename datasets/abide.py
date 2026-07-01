@@ -26,10 +26,37 @@ def resolve_raw_path(path_str: str, raw_dir: Path | None) -> Path:
         # Include site directory (one level above 'sub-')
         start_idx = max(0, sub_idx - 1)
         rel_path = Path(*parts[start_idx:])
-        return Path(raw_dir) / rel_path
+        
+        # 1. Try direct resolution under raw_dir
+        direct_path = Path(raw_dir) / rel_path
+        if direct_path.exists():
+            return direct_path
+            
+        # 2. Check in immediate subdirectories of raw_dir (e.g. handle custom dataset uploads or nesting)
+        try:
+            for child in Path(raw_dir).iterdir():
+                if child.is_dir():
+                    nested_path = child / rel_path
+                    if nested_path.exists():
+                        return nested_path
+        except Exception:
+            pass
+            
+        # Fallback to direct path (which will fail cleanly with standard file missing exceptions)
+        return direct_path
     
     # Fallback to filename
-    return Path(raw_dir) / path.name
+    fallback_path = Path(raw_dir) / path.name
+    if not fallback_path.exists():
+        try:
+            for child in Path(raw_dir).iterdir():
+                if child.is_dir():
+                    nested_path = child / path.name
+                    if nested_path.exists():
+                        return nested_path
+        except Exception:
+            pass
+    return fallback_path
 
 
 @DatasetRegistry.register("abide")
