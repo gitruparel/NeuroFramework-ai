@@ -27,6 +27,7 @@ def main():
     parser.add_argument("--device", default="auto", help="Execution device")
     parser.add_argument("--lr", type=float, default=None, help="Learning rate")
     parser.add_argument("--seed", type=int, default=None, help="Random seed")
+    parser.add_argument("--skip-preprocess", action="store_true", help="Skip dataset preprocessing")
     
     # Path configuration overrides (with defaults pointing to Kaggle environment)
     parser.add_argument("--data-root", default="/kaggle/input/neuroframework-data", help="Raw dataset root directory")
@@ -61,6 +62,8 @@ def main():
             "--batch-size", str(args.batch_size),
             "--device", args.device
         ]
+        if args.skip_preprocess:
+            cmd.append("--skip-preprocess")
         
     elif args.stage == "loss":
         if not args.architecture:

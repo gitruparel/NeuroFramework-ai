@@ -2,6 +2,8 @@
 
 This document outlines the exact sequential workflow to execute your MRI ASD classification benchmarks on Kaggle.
 
+Since you have uploaded the **preprocessed cache** to Kaggle, you do not need raw NIfTI scans at all! All commands have been updated to point to your preprocessed cache directory `/kaggle/input/datasets/swayamruparel/abide-cache` and use the `--skip-preprocess` flag.
+
 ---
 
 ## 🚀 Environment Setup
@@ -58,12 +60,16 @@ print("\nSetup complete! You are ready to start training.")
 ## 🛠️ Step-by-Step Command Playbook
 
 ### Stage 1: Architecture Benchmark Sweep
-Compares baseline `densenet121`, `resnet10`, and `resnet18`.
+Compares baseline `densenet121`, `resnet10`, and `resnet18`. We pass `--skip-preprocess` to load directly from your preprocessed `.pt` cache.
 ```bash
 !python scripts/kaggle_master.py architecture \
     --epochs 15 \
     --batch-size 24 \
-    --device cuda
+    --device cuda \
+    --lr 2e-4 \
+    --seed 42 \
+    --preprocessed-dir /kaggle/input/datasets/swayamruparel/abide-cache \
+    --skip-preprocess
 ```
 * **Inspect Results:** Check `/kaggle/working/experiments/architecture/architecture_comparison.csv` and comparative plots. Select the winner backbone based on ROC-AUC, Macro F1, Sensitivity, and Specificity (e.g., `resnet18`).
 
@@ -77,7 +83,10 @@ Evaluates the winning architecture under CE, Weighted CE, Focal, CE + Label Smoo
     --architecture resnet18 \
     --epochs 15 \
     --batch-size 24 \
-    --device cuda
+    --device cuda \
+    --lr 2e-4 \
+    --seed 42 \
+    --preprocessed-dir /kaggle/input/datasets/swayamruparel/abide-cache
 ```
 * **Inspect Results:** Check `/kaggle/working/experiments/loss/loss_comparison.csv` and select the winning loss function (e.g., `focal`).
 
@@ -91,7 +100,10 @@ Evaluates MONAI augmentation profiles (`none`, `minimal`, `moderate`, `strong`, 
     --loss-function focal \
     --epochs 15 \
     --batch-size 24 \
-    --device cuda
+    --device cuda \
+    --lr 2e-4 \
+    --seed 42 \
+    --preprocessed-dir /kaggle/input/datasets/swayamruparel/abide-cache
 ```
 * **Inspect Results:** Check `/kaggle/working/experiments/augmentation/augmentation_comparison.csv` and select the winning profile (e.g., `moderate`).
 
@@ -116,6 +128,7 @@ Train the final production model using the selected optimal setup over 40 epochs
     --early-stopping-patience 8 \
     --seed 42 \
     --resume-from none \
+    --preprocessed-dir /kaggle/input/datasets/swayamruparel/abide-cache \
     --skip-preprocess \
     --experiment-dir /kaggle/working/experiments/final_model
 ```
@@ -130,7 +143,8 @@ Runs inference only (no training) comparing baseline metrics/latencies vs. TTA p
     --architecture resnet18 \
     --checkpoint-path /kaggle/working/experiments/final_model/best_model.pt \
     --batch-size 24 \
-    --device cuda
+    --device cuda \
+    --preprocessed-dir /kaggle/input/datasets/swayamruparel/abide-cache
 ```
 * **Decision:** Review `tta_comparison.csv`. If TTA improves performance metrics (ROC-AUC / F1-score) without unacceptable latency, enable it in the final CV evaluate stage.
 
@@ -146,7 +160,10 @@ Trains five independent folds from scratch to generate final metrics, OOF predic
     --augmentation-profile moderate \
     --epochs 30 \
     --batch-size 24 \
-    --device cuda
+    --device cuda \
+    --lr 2e-4 \
+    --seed 42 \
+    --preprocessed-dir /kaggle/input/datasets/swayamruparel/abide-cache
 ```
 * **Output:** Review the final compiled `cv_summary.csv` and `calibration_curve.png`.
 
@@ -159,5 +176,4 @@ Trains five independent folds from scratch to generate final metrics, OOF predic
   * Start execution using **`batch-size = 24`** (highly optimized for Dual T4 GPUs).
   * If an Out-Of-Memory (OOM) error occurs, stop the cell and immediately drop down to **`batch-size = 16`**.
 * **Preprocessed Cache Sharing:**
-  * Offline preprocessing is executed exactly once during the very first run.
-  * All subsequent runner scripts are configured to pass `--skip-preprocess` to reuse `/kaggle/temp/cache/abide`. This is a critical optimization that will save several hours.
+  * Since the preprocessed cache directory is pointing directly to your Kaggle datasets mount path `/kaggle/input/datasets/swayamruparel/abide-cache`, the training starts immediately without executing any raw file loading or transform computation.

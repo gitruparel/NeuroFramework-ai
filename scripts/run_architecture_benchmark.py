@@ -23,6 +23,7 @@ def main():
     parser.add_argument("--limit", type=int, default=None, help="Limit number of samples for testing")
     parser.add_argument("--lr", type=float, default=None, help="Learning rate")
     parser.add_argument("--seed", type=int, default=None, help="Random seed")
+    parser.add_argument("--skip-preprocess", action="store_true", help="Skip dataset preprocessing")
     args = parser.parse_args()
 
     architectures = ["densenet121", "resnet10", "resnet18"]
@@ -56,8 +57,8 @@ def main():
         if args.seed is not None:
             run_args += ["--seed", str(args.seed)]
             
-        # Re-use cache for runs index > 0
-        if idx > 0:
+        # Re-use cache for runs index > 0 or if explicitly requested
+        if idx > 0 or args.skip_preprocess:
             run_args.append("--skip-preprocess")
             
         result = run_experiment(run_args)
