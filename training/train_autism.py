@@ -1372,7 +1372,7 @@ def run_training_experiment(
             onnx_path = exp_dir / "best_model.onnx"
             sample_shape = train_dataset[0].image.shape # e.g. (1, 128, 128, 128)
             dummy_shape = (1,) + tuple(sample_shape)
-            dummy_input = torch.randn(dummy_shape).to(device)
+            dummy_input = torch.randn(dummy_shape).to(resolved_device)
             logger.info(f"Auto-exporting best checkpoint model to ONNX: {onnx_path}")
             
             # Export
