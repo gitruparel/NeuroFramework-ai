@@ -8,8 +8,12 @@ from schemas.dataset import DatasetSample
 from engine.readers.nifti import NiftiReader
 
 
+_RESOLVED_RAW_ROOT = None
+
+
 def resolve_raw_path(path_str: str, raw_dir: Path | None) -> Path:
     """Resolves raw filepath relative to the new raw directory if provided."""
+    global _RESOLVED_RAW_ROOT
     path = Path(path_str)
     if raw_dir is None:
         return path
@@ -27,35 +31,32 @@ def resolve_raw_path(path_str: str, raw_dir: Path | None) -> Path:
         start_idx = max(0, sub_idx - 1)
         rel_path = Path(*parts[start_idx:])
         
+        # If we have already resolved the root directory, reuse it
+        if _RESOLVED_RAW_ROOT is not None:
+            return _RESOLVED_RAW_ROOT / rel_path
+            
         # 1. Try direct resolution under raw_dir
         direct_path = Path(raw_dir) / rel_path
         if direct_path.exists():
+            _RESOLVED_RAW_ROOT = Path(raw_dir)
             return direct_path
             
-        # 2. Check in immediate subdirectories of raw_dir (e.g. handle custom dataset uploads or nesting)
+        # 2. Check in subdirectories of raw_dir recursively for sub-*
         try:
-            for child in Path(raw_dir).iterdir():
-                if child.is_dir():
-                    nested_path = child / rel_path
-                    if nested_path.exists():
-                        return nested_path
+            for p in Path(raw_dir).rglob("sub-*"):
+                if p.is_dir():
+                    candidate_root = p.parent.parent
+                    if (candidate_root / rel_path).exists():
+                        _RESOLVED_RAW_ROOT = candidate_root
+                        return candidate_root / rel_path
         except Exception:
             pass
             
-        # Fallback to direct path (which will fail cleanly with standard file missing exceptions)
+        # Fallback to direct path
         return direct_path
     
     # Fallback to filename
     fallback_path = Path(raw_dir) / path.name
-    if not fallback_path.exists():
-        try:
-            for child in Path(raw_dir).iterdir():
-                if child.is_dir():
-                    nested_path = child / path.name
-                    if nested_path.exists():
-                        return nested_path
-        except Exception:
-            pass
     return fallback_path
 
 
