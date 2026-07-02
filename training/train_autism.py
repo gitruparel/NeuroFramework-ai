@@ -1092,6 +1092,19 @@ def run_training_experiment(
                 plt.savefig(exp_dir / "probability_histogram.png", dpi=300, bbox_inches="tight")
                 plt.close()
                 logger.info("Saved probability histogram plot.")
+                
+                # Print text-based ASCII histograms to console
+                def log_ascii_histogram(data: np.ndarray, group_name: str, bins: int = 10, max_width: int = 30):
+                    counts, edges = np.histogram(data, bins=np.linspace(0.0, 1.0, bins + 1))
+                    max_count = max(counts) if len(counts) > 0 and max(counts) > 0 else 1
+                    logger.info(f"--- {group_name} ASD Probability Distribution ---")
+                    for i in range(bins):
+                        w = int((counts[i] / max_count) * max_width)
+                        bar = "█" * w
+                        logger.info(f"  [{edges[i]:.1f} - {edges[i+1]:.1f}]: {bar} ({counts[i]})")
+                
+                log_ascii_histogram(asd_probs_control, "Control")
+                log_ascii_histogram(asd_probs_asd, "Autism")
             except Exception as e:
                 logger.error(f"Failed to generate probability histogram: {e}")
                 
