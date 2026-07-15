@@ -1,44 +1,50 @@
-cache_version: "2026-06-baseline"
+cache_version: "brainnorm_v1_5"
 
 profiles:
   autism:
     - transform: reorient
       params: { target: "RAS" }
-    - transform: bias_correction
-      params: { strategy: "n4", mode: "fast", convergence_threshold: 0.000001 }
     - transform: skull_strip
-      params: { strategy: "threshold" }
-    - transform: normalize
-      params: { mode: "z_score" }
+      params: { strategy: "morphological" }
     - transform: crop_foreground
       params: {}
+    - transform: bias_correction
+      params: { strategy: "n4", mode: "fast", convergence_threshold: 0.000001 }
     - transform: resample
-      params: { spacing: [1.0, 1.0, 1.0] }
-    - transform: resize
+      params: { spacing: [1.5, 1.5, 1.5] }
+    - transform: normalize
+      params: { mode: "z_score" }
+    - transform: pad
+      params: { target_shape: [128, 128, 128] }
+    - transform: center_crop
       params: { target_shape: [128, 128, 128] }
 
   alzheimer:
     - transform: reorient
       params: { target: "RAS" }
-    - transform: bias_correction
-      params: { strategy: "n4", mode: "fast", convergence_threshold: 0.000001 }
     - transform: skull_strip
-      params: { strategy: "threshold" }
+      params: { strategy: "morphological" }
     - transform: crop_foreground
       params: {}
+    - transform: bias_correction
+      params: { strategy: "n4", mode: "fast", convergence_threshold: 0.000001 }
     - transform: resample
       params: { spacing: [1.0, 1.0, 1.0] }
-    - transform: resize
-      params: { target_shape: [128, 128, 128] }
     - transform: normalize
       params: { mode: "z_score" }
+    - transform: pad
+      params: { target_shape: [128, 128, 128] }
+    - transform: center_crop
+      params: { target_shape: [128, 128, 128] }
 
   tumor:
     - transform: reorient
       params: { target: "RAS" }
     - transform: resample
-      params: { spacing: [1.0, 1.0, 1.0] }
-    - transform: resize
-      params: { target_shape: [128, 128, 128] }
+      params: { spacing: [1.0, 1.0, 2.0] }
     - transform: normalize
       params: { mode: "min_max" }
+    - transform: pad
+      params: { target_shape: [128, 128, 128] }
+    - transform: center_crop
+      params: { target_shape: [128, 128, 128] }

@@ -21,15 +21,26 @@ class IntensityNormalizer(BaseTransform):
         mode = self.params.get("mode", "z_score")
         
         if mode == "z_score":
-            mean = np.mean(tensor)
-            std = np.std(tensor)
-            new_tensor = (tensor - mean) / (std + 1e-8)
+            non_zero_mask = tensor != 0
+            if np.any(non_zero_mask):
+                mean = np.mean(tensor[non_zero_mask])
+                std = np.std(tensor[non_zero_mask])
+                new_tensor = np.zeros_like(tensor)
+                new_tensor[non_zero_mask] = (tensor[non_zero_mask] - mean) / (std + 1e-8)
+            else:
+                new_tensor = tensor
         elif mode == "min_max":
-            t_min = np.min(tensor)
-            t_max = np.max(tensor)
-            new_tensor = (tensor - t_min) / (t_max - t_min + 1e-8)
+            non_zero_mask = tensor != 0
+            if np.any(non_zero_mask):
+                t_min = np.min(tensor[non_zero_mask])
+                t_max = np.max(tensor[non_zero_mask])
+                new_tensor = np.zeros_like(tensor)
+                new_tensor[non_zero_mask] = (tensor[non_zero_mask] - t_min) / (t_max - t_min + 1e-8)
+            else:
+                new_tensor = tensor
         else:
             raise ValueError(f"IntensityNormalizer: Unsupported normalization mode '{mode}'. Use 'z_score' or 'min_max'.")
+
             
         mri_copy = mri_data.model_copy(deep=True)
         mri_copy.image = new_tensor

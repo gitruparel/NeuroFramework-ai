@@ -22,9 +22,29 @@ class BaseTransformStrategy(ABC):
     """Abstract Base Class for toolkit-specific algorithms (e.g. SimpleITK, MONAI)."""
 
     @abstractmethod
-    def execute(self, mri_data: MRIData, context: ExecutionContext, params: Dict[str, Any]) -> MRIData:
+    def execute(self, mri_data: MRIData, context: ExecutionContext, params: Dict[str, Any]) -> Any:
         """Executes strategy algorithm block on the MRIData object."""
         pass
+
+
+class VoxelValidator:
+    """Validates structural properties, intensity integrity, and boundaries of MRI tensors."""
+
+    @staticmethod
+    def validate(mri_data: MRIData, context: ExecutionContext, expected_shape: tuple[int, ...] = None) -> None:
+        tensor = mri_data.image if mri_data.image is not None else mri_data.raw.tensor
+        import numpy as np
+        
+        # 1. NaN and Inf check
+        if np.any(np.isnan(tensor)):
+            raise ValueError("VoxelValidator: NaNs detected in MRI voxels.")
+        if np.any(np.isinf(tensor)):
+            raise ValueError("VoxelValidator: Infs detected in MRI voxels.")
+
+        # 2. Shape check
+        if expected_shape is not None:
+            if tuple(tensor.shape) != tuple(expected_shape):
+                raise ValueError(f"VoxelValidator: Shape mismatch. Expected {expected_shape}, got {tensor.shape}.")
 
 
 class TransformRegistry:
@@ -47,6 +67,47 @@ class TransformRegistry:
         if name_lower not in cls._registry:
             raise ValueError(f"Transform '{name}' is not registered. Available: {list(cls._registry.keys())}")
         return cls._registry[name_lower](**kwargs)
+
+
+class PreprocessingFactory:
+    """Factory compiling and building the pipeline sequence from configurations."""
+
+    @staticmethod
+    def create_pipeline(yaml_path: Any, profile_name: str) -> "PreprocessingPipeline":
+        """Compiles PreprocessingPipeline from specified disease profile configuration in YAML file."""
+        import yaml
+        from pathlib import Path
+        from core.exceptions import ConfigurationError
+        from preprocessing.pipeline import PreprocessingPipeline
+
+        path = Path(yaml_path)
+        if not path.exists():
+            raise FileNotFoundError(f"Preprocessing configuration file not found: {path}")
+            
+        with open(path, encoding="utf-8") as f:
+            config = yaml.safe_load(f) or {}
+
+        profiles = config.get("profiles", {})
+        if profile_name not in profiles:
+            raise ConfigurationError(
+                f"Profile '{profile_name}' is not defined. Available: {list(profiles.keys())}"
+            )
+
+        steps_configs = profiles[profile_name]
+        steps = []
+        
+        for step_cfg in steps_configs:
+            transform_name = step_cfg.get("transform")
+            params = step_cfg.get("params", {})
+            if not transform_name:
+                raise ConfigurationError("Preprocessing configuration step is missing 'transform' key.")
+            
+            # Instantiate dynamically via registry
+            transform = TransformRegistry.create(transform_name, **params)
+            steps.append(transform)
+
+        return PreprocessingPipeline(steps)
+
 
 
 def mri_data_to_sitk(mri_data: MRIData) -> "sitk.Image":

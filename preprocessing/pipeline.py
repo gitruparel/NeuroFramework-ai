@@ -24,33 +24,9 @@ class PreprocessingPipeline:
     @classmethod
     def from_yaml(cls, yaml_path: str | Path, profile_name: str) -> "PreprocessingPipeline":
         """Compiles pipeline from specified disease profile configuration in YAML file."""
-        path = Path(yaml_path)
-        if not path.exists():
-            raise FileNotFoundError(f"Preprocessing configuration file not found: {path}")
-            
-        with open(path, encoding="utf-8") as f:
-            config = yaml.safe_load(f) or {}
+        from preprocessing.base import PreprocessingFactory
+        return PreprocessingFactory.create_pipeline(yaml_path, profile_name)
 
-        profiles = config.get("profiles", {})
-        if profile_name not in profiles:
-            raise ConfigurationError(
-                f"Profile '{profile_name}' is not defined. Available: {list(profiles.keys())}"
-            )
-
-        steps_configs = profiles[profile_name]
-        steps = []
-        
-        for step_cfg in steps_configs:
-            transform_name = step_cfg.get("transform")
-            params = step_cfg.get("params", {})
-            if not transform_name:
-                raise ConfigurationError("Preprocessing configuration step is missing 'transform' key.")
-            
-            # Instantiate dynamically via registry
-            transform = TransformRegistry.create(transform_name, **params)
-            steps.append(transform)
-
-        return cls(steps)
 
     def register_pre_hook(self, hook_func: Callable[[MRIData, ExecutionContext], MRIData]) -> None:
         """Registers callback executed before pipeline starts."""

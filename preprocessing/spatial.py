@@ -48,6 +48,16 @@ class ForegroundCropper(BaseTransform):
         mri_copy.affine = new_affine
         mri_copy.metadata.image.dimensions = list(new_tensor.shape)
         
+        # Crop mask if present
+        if mri_data.brain_mask is not None:
+            mask = mri_data.brain_mask
+            if len(mask.shape) == 4:
+                new_mask = mask[:, min_idx[0]:max_idx[0]+1, min_idx[1]:max_idx[1]+1, min_idx[2]:max_idx[2]+1]
+            else:
+                new_mask = mask[min_idx[0]:max_idx[0]+1, min_idx[1]:max_idx[1]+1, min_idx[2]:max_idx[2]+1]
+            mri_copy.brain_mask = new_mask
+
+        
         # Recalculate statistics
         mri_copy.statistics = ScanStatistics(
             min=float(np.min(new_tensor)),
@@ -109,6 +119,16 @@ class Pad(BaseTransform):
         mri_copy.affine = new_affine
         mri_copy.metadata.image.dimensions = list(new_tensor.shape)
         
+        # Pad mask if present
+        if mri_data.brain_mask is not None:
+            mask = mri_data.brain_mask
+            if len(mask.shape) == 4:
+                new_mask = np.pad(mask, [(0, 0)] + pad_width, mode="constant", constant_values=0)
+            else:
+                new_mask = np.pad(mask, pad_width, mode="constant", constant_values=0)
+            mri_copy.brain_mask = new_mask
+
+        
         mri_copy.statistics = ScanStatistics(
             min=float(np.min(new_tensor)),
             max=float(np.max(new_tensor)),
@@ -163,6 +183,16 @@ class CenterCrop(BaseTransform):
         mri_copy.image = new_tensor
         mri_copy.affine = new_affine
         mri_copy.metadata.image.dimensions = list(new_tensor.shape)
+        
+        # Crop mask if present
+        if mri_data.brain_mask is not None:
+            mask = mri_data.brain_mask
+            if len(mask.shape) == 4:
+                new_mask = mask[:, slices[0], slices[1], slices[2]]
+            else:
+                new_mask = mask[slices[0], slices[1], slices[2]]
+            mri_copy.brain_mask = new_mask
+
         
         mri_copy.statistics = ScanStatistics(
             min=float(np.min(new_tensor)),
@@ -227,6 +257,29 @@ class Resize(BaseTransform):
         self.params["original_spacing"] = str(list(original_spacing))
 
         mri_copy = sitk_to_mri_data(resized_img, mri_data)
+        
+        # Resize mask if present
+        if mri_data.brain_mask is not None:
+            mask_3d = mri_data.brain_mask[0] if len(mri_data.brain_mask.shape) == 4 else mri_data.brain_mask
+            sitk_mask = sitk.GetImageFromArray(np.transpose(mask_3d.astype(np.uint8), (2, 1, 0)))
+            sitk_mask.SetOrigin(sitk_img.GetOrigin())
+            sitk_mask.SetSpacing(sitk_img.GetSpacing())
+            sitk_mask.SetDirection(sitk_img.GetDirection())
+            
+            resample_mask = sitk.ResampleImageFilter()
+            resample_mask.SetInterpolator(sitk.sitkNearestNeighbor)
+            resample_mask.SetOutputSpacing(new_spacing)
+            resample_mask.SetSize(target_shape)
+            resample_mask.SetOutputDirection(sitk_img.GetDirection())
+            resample_mask.SetOutputOrigin(sitk_img.GetOrigin())
+            resample_mask.SetTransform(sitk.Transform())
+            
+            resized_mask = resample_mask.Execute(sitk_mask)
+            mask_arr = np.transpose(sitk.GetArrayFromImage(resized_mask), (2, 1, 0)).astype(np.float32)
+            if len(mri_data.brain_mask.shape) == 4:
+                mask_arr = np.expand_dims(mask_arr, axis=0)
+            mri_copy.brain_mask = mask_arr
+
 
         # Recalculate statistics
         new_tensor = mri_copy.image

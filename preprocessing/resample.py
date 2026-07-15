@@ -55,6 +55,29 @@ class Resampler(BaseTransform):
         # Convert back
         mri_copy = sitk_to_mri_data(resampled_img, mri_data)
         
+        # Resample brain mask if present
+        if mri_data.brain_mask is not None:
+            mask_3d = mri_data.brain_mask[0] if len(mri_data.brain_mask.shape) == 4 else mri_data.brain_mask
+            sitk_mask = sitk.GetImageFromArray(np.transpose(mask_3d.astype(np.uint8), (2, 1, 0)))
+            sitk_mask.SetOrigin(sitk_img.GetOrigin())
+            sitk_mask.SetSpacing(sitk_img.GetSpacing())
+            sitk_mask.SetDirection(sitk_img.GetDirection())
+            
+            resample_mask = sitk.ResampleImageFilter()
+            resample_mask.SetInterpolator(sitk.sitkNearestNeighbor)
+            resample_mask.SetOutputSpacing(target_spacing)
+            resample_mask.SetSize(new_size)
+            resample_mask.SetOutputDirection(sitk_img.GetDirection())
+            resample_mask.SetOutputOrigin(sitk_img.GetOrigin())
+            resample_mask.SetTransform(sitk.Transform())
+            
+            resampled_mask = resample_mask.Execute(sitk_mask)
+            mask_arr = np.transpose(sitk.GetArrayFromImage(resampled_mask), (2, 1, 0)).astype(np.float32)
+            if len(mri_data.brain_mask.shape) == 4:
+                mask_arr = np.expand_dims(mask_arr, axis=0)
+            mri_copy.brain_mask = mask_arr
+
+        
         # Recalculate statistics
         new_tensor = mri_copy.image
         mri_copy.statistics = ScanStatistics(

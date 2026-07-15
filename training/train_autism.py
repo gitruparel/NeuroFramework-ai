@@ -117,16 +117,24 @@ def validate_cache_data(
         "missing_subjects": [],
         "invalid_shapes": [],
         "invalid_dtypes": [],
-        "corrupt_subjects": []
+        "corrupt_subjects": [],
+        "nan_inf_subjects": [],
+        "invalid_spacing_subjects": [],
+        "invalid_volume_subjects": []
     }
     
-    # 1. Compute expected hash
+    # 1. Compute expected hash and spacing
     expected_steps = []
+    expected_spacing = [1.5, 1.5, 1.5]
     if config_yaml.exists():
         try:
             with open(config_yaml, encoding="utf-8") as f:
                 cfg = yaml.safe_load(f) or {}
             expected_steps = cfg.get("profiles", {}).get("autism", [])
+            for step in expected_steps:
+                if step.get("transform") == "resample":
+                    expected_spacing = step.get("params", {}).get("spacing", [1.5, 1.5, 1.5])
+                    break
         except Exception as e:
             logger.error(f"Failed to read preprocessing config for validation: {e}")
             
@@ -177,7 +185,7 @@ def validate_cache_data(
     subjects_to_check = list(set(subjects_to_check))
     report["subjects_checked"] = len(subjects_to_check)
     
-    # Build a set of all files in the directory to do O(1) local checks instead of sequential exists() FUSE roundtrips
+    # Build a set of all files in the directory
     import os
     cached_files = set()
     if preprocessed_dir.exists():
@@ -196,12 +204,10 @@ def validate_cache_data(
             report["valid"] = False
             continue
             
-        if not full_validation:
-            continue
-            
         try:
             cache = torch.load(pt_path, map_location="cpu", weights_only=False)
             tensor = cache.get("image")
+            metadata = cache.get("metadata", {})
             
             if tensor is None:
                 report["corrupt_subjects"].append(sub_id)
@@ -216,6 +222,40 @@ def validate_cache_data(
                     "actual": list(actual_shape)
                 })
                 report["valid"] = False
+                
+            if full_validation:
+                # 1. NaN / Inf validation
+                if torch.isnan(tensor).any() or torch.isinf(tensor).any():
+                    report["nan_inf_subjects"].append(sub_id)
+                    report["valid"] = False
+                    
+                # 2. Spacing alignment validation
+                voxel_dims = metadata.get("image", {}).get("voxel_dims", [1.5, 1.5, 1.5])
+                if not np.allclose(voxel_dims, expected_spacing, atol=1e-3):
+                    report["invalid_spacing_subjects"].append({
+                        "subject_id": sub_id,
+                        "expected": expected_spacing,
+                        "actual": voxel_dims
+                    })
+                    report["valid"] = False
+                    
+                # 3. Brain volume threshold validation
+                non_zero_count = float((tensor != 0).sum())
+                voxel_vol_ml = (voxel_dims[0] * voxel_dims[1] * voxel_dims[2]) / 1000.0
+                volume_ml = non_zero_count * voxel_vol_ml
+                
+                is_morphological = False
+                for step in expected_steps:
+                    if step.get("transform") == "skull_strip" and step.get("params", {}).get("strategy") == "morphological":
+                        is_morphological = True
+                        break
+                        
+                if is_morphological and (volume_ml < 350.0 or volume_ml > 2500.0):
+                    report["invalid_volume_subjects"].append({
+                        "subject_id": sub_id,
+                        "volume_ml": volume_ml
+                    })
+                    report["valid"] = False
                 
             if hasattr(tensor, "dtype"):
                 dtype_str = str(tensor.dtype)
@@ -240,6 +280,7 @@ def validate_cache_data(
             report["valid"] = False
             
     return report
+
 
 
 def run_training_experiment(

@@ -46,32 +46,45 @@ def get_git_commit() -> str:
 
 
 def write_cache_metadata(preprocessed_dir: Path, config_yaml: Path, dataset_name: str = "ABIDE_I") -> None:
-    """Generates and writes metadata.json fingerprint to cache folder directory."""
+    """Generates and writes metadata.json and pipeline.json fingerprint to cache folder directory."""
     import time
     import yaml
     
     with open(config_yaml, encoding="utf-8") as f:
         cfg = yaml.safe_load(f) or {}
     steps = cfg.get("profiles", {}).get("autism", [])
+    cache_version = str(cfg.get("cache_version", "v1"))
     
-    # Extract target shape size
+    # 1. Gather pipeline parameters dynamically
+    skull_strip_strategy = "threshold"
+    spacing = [1.0, 1.0, 1.0]
+    normalize_mode = "z_score"
+    crop_active = False
+    pad_active = False
     target_shape = [128, 128, 128]
-    for step in reversed(steps):
-        if step.get("transform") in ("resize", "pad", "center_crop"):
-            params = step.get("params", {})
+    n4_active = False
+    
+    for step in steps:
+        transform = step.get("transform")
+        params = step.get("params", {})
+        if transform == "skull_strip":
+            skull_strip_strategy = params.get("strategy", "threshold")
+        elif transform == "resample":
+            spacing = params.get("spacing", [1.0, 1.0, 1.0])
+        elif transform == "normalize":
+            normalize_mode = params.get("mode", "z_score")
+        elif transform == "crop_foreground":
+            crop_active = True
+        elif transform in ("pad", "center_crop", "resize"):
+            pad_active = True
             if "target_shape" in params:
                 target_shape = params["target_shape"]
-                break
-                
-    # Detect N4
-    n4_active = False
-    for step in steps:
-        if step.get("transform") == "bias_correction":
-            mode = step.get("params", {}).get("mode", "fast").lower()
+        elif transform == "bias_correction":
+            mode = params.get("mode", "fast").lower()
             if mode != "off":
                 n4_active = True
-            break
-            
+                
+    # 2. Write metadata.json
     metadata = {
         "pipeline_hash": compute_pipeline_hash(steps),
         "git_commit": get_git_commit(),
@@ -84,7 +97,24 @@ def write_cache_metadata(preprocessed_dir: Path, config_yaml: Path, dataset_name
     meta_path = preprocessed_dir / "metadata.json"
     with open(meta_path, "w", encoding="utf-8") as f:
         json.dump(metadata, f, indent=4)
-    logger.info(f"Saved preprocessed cache metadata fingerprint to: {meta_path}")
+        
+    # 3. Write pipeline.json fingerprint
+    pipeline_fingerprint = {
+        "skull_strip": skull_strip_strategy,
+        "spacing": spacing,
+        "normalize": normalize_mode,
+        "crop": crop_active,
+        "pad": pad_active,
+        "version": cache_version
+    }
+    
+    pipe_path = preprocessed_dir / "pipeline.json"
+    with open(pipe_path, "w", encoding="utf-8") as f:
+        json.dump(pipeline_fingerprint, f, indent=4)
+        
+    logger.info(f"Saved cache metadata.json to: {meta_path}")
+    logger.info(f"Saved pipeline.json fingerprint to: {pipe_path}")
+
 
 
 def wrap_raw_mri(raw_mri: RawMRI) -> MRIData:

@@ -52,8 +52,12 @@ vcache/
 # Virtual environment
 venv/
 .venv/
+.venv_wsl/
+.venv_dml/
 env/
 ENV/
+test.py
+reports/qc_*.png
 
 # Project-specific paths
 data/
