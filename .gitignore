@@ -1,107 +1,59 @@
-# Byte-compiled / optimized / DLL files
+# Legacy workflow (not synced to GitHub)
+legacy_workflow/
+
+# Python caches & build artifacts
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
 *.so
-
-# Distribution / packaging
 build/
-develop-eggs/
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
 *.egg-info/
-.installed.cfg
-*.egg
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so they can be ignored.
-*.manifest
-*.spec
+# Virtual Environments
+venv/
+.venv/
+.venv_dml/
+.venv_wsl/
+env/
+ENV/
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nosetests
+# Scratch & Temporary Folders
+scratch/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-vcache/
-.ipynb_checkpoints
+*.tmp
+*.temp
 
-# Environment variables
-.env
-.env.*
-!.env.template
+# Large Data & Preprocessed Datasets
+raw_abide/
+raw_abide_multi/
+processed_paper_3D/
+processed_paper_3D_224/
+data/raw/
+data/processed/
+datasets/
+*.nii
+*.nii.gz
+*.npy
+*.npz
 
-# Virtual environment
-venv/
-.venv/
-.venv_wsl/
-.venv_dml/
-env/
-ENV/
-test.py
-reports/qc_*.png
-
-# Project-specific paths
-data/
-!data/*.json
-!data/**/*.json
-experiments/
-logs/*
-!logs/training/
-!logs/api/
-!logs/preprocessing/
-!logs/errors/
-!logs/.gitkeep
-
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Model artifacts
+# Model weights & Checkpoints
 *.pt
 *.pth
 *.ckpt
 *.onnx
+*.h5
+checkpoints/
 
-# WandB
-wandb/
-
-# TensorBoard
+# Logs & Experiment Trackers
 runs/
+wandb/
+*.log
 
-# VS Code
+# IDE & OS Files
+.DS_Store
+Thumbs.db
 .vscode/
-
-# IDEs
 .idea/
-
-# Coverage
-.coverage
-
-# Jupyter
-*.ipynb_checkpoints
-
-# Python caches
-*.pyo
-
-# Temporary files
-*.tmp
-*.temp

@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuroFramework 3D-sMRI | Research Workstation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Top Navigation & System Status Header -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="app-logo">
+        <span class="logo-icon">🧠</span>
+        <div class="logo-text">
+          <span class="brand-title">NeuroFramework <span class="badge-tech">3D-sMRI</span></span>
+          <span class="brand-subtitle">Multi-Planar Volumetric Deep Learning Workstation</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <div class="disclaimer-badge">
+        <span class="disclaimer-icon">🔬</span>
+        <span>Research use only — not for clinical diagnostic use</span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <div class="system-status-pill" id="system-status-badge">
+        <span class="status-dot pulsing"></span>
+        <span class="status-label">PyTorch Conv3D-CBAM</span>
+        <span class="device-tag" id="active-device-tag">CPU</span>
+      </div>
+      <button class="btn-icon" id="btn-show-methodology" title="View Methodology & Benchmark Specs">
+        <span>📖 Specs</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Workstation Layout -->
+  <main class="workstation-container">
+    
+    <!-- LEFT PANEL: Scan Ingestion & Raw Preview (26% Width) -->
+    <aside class="panel panel-left">
+      <div class="panel-card upload-card">
+        <div class="card-header">
+          <h2 class="card-title">Scan Ingestion</h2>
+          <span class="badge-soft">Input Stage</span>
+        </div>
+
+        <!-- Hero Upload Area -->
+        <div class="dropzone" id="mri-dropzone">
+          <input type="file" id="mri-file-input" accept=".nii,.nii.gz,.npy" hidden>
+          <div class="dropzone-content">
+            <div class="dropzone-icon">📥</div>
+            <p class="dropzone-main-text">Drag & drop structural MRI scan</p>
+            <p class="dropzone-sub-text">Accepts <code>.nii</code>, <code>.nii.gz</code> (Raw) or <code>.npy</code> (Tensor)</p>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-browse-file">Browse Computer</button>
+          </div>
+          <div class="file-loaded-view hidden" id="file-loaded-indicator">
+            <span class="file-icon">📁</span>
+            <div class="file-info-text">
+              <span class="file-name" id="loaded-file-name">scan.nii.gz</span>
+              <span class="file-size" id="loaded-file-size">14.2 MB</span>
+            </div>
+            <button class="btn-clear" id="btn-clear-file" title="Remove file">✕</button>
+          </div>
+        </div>
+
+        <!-- 1-Click Quick Demo Scans -->
+        <div class="demo-section">
+          <label class="input-label" for="demo-scan-select">Or Test Preloaded Research Samples:</label>
+          <div class="demo-control-row">
+            <select id="demo-scan-select" class="form-select">
+              <option value="" disabled selected>Select a verified ABIDE-I sample...</option>
+            </select>
+            <button class="btn btn-primary" id="btn-run-analysis" disabled>
+              <span class="btn-icon-symbol">⚡</span> Run Analysis
+            </button>
+          </div>
+        </div>
+
+        <!-- Collapsible Optional Demographics -->
+        <div class="collapsible-section">
+          <button class="collapsible-header" id="btn-toggle-meta" aria-expanded="false">
+            <span>Optional Report Metadata</span>
+            <span class="chevron">▾</span>
+          </button>
+          <div class="collapsible-content" id="meta-collapsible-body">
+            <p class="helper-note">Note: Demographics are strictly for PDF documentation and do not alter AI inference.</p>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="input-patient-age">Age (Years)</label>
+                <input type="number" id="input-patient-age" class="form-input" placeholder="e.g. 14" step="1" min="1" max="120">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="input-patient-sex">Sex</label>
+                <select id="input-patient-sex" class="form-select">
+                  <option value="">Unspecified</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </select>
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label" for="input-scanner-site">Scanner Facility</label>
+                <input type="text" id="input-scanner-site" class="form-input" placeholder="e.g. Siemens Allegra 3T (NYU)">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Processing Pipeline Stepper -->
+      <div class="panel-card stepper-card">
+        <div class="card-header">
+          <h2 class="card-title">Processing Pipeline</h2>
+          <span class="badge-status" id="pipeline-status-badge">Idle</span>
+        </div>
+        <div class="pipeline-stepper" id="pipeline-stepper">
+          <div class="step-item" data-step="1">
+            <div class="step-marker">1</div>
+            <div class="step-content">
+              <span class="step-title">Scan Ingestion & Validation</span>
+              <span class="step-desc">Header parsing & voxel dimension check</span>
+            </div>
+          </div>
+          <div class="step-item" data-step="2">
+            <div class="step-marker">2</div>
+            <div class="step-content">
+              <span class="step-title">Otsu Brain Masking</span>
+              <span class="step-desc">Adaptive scalp and skull fat stripping</span>
+            </div>
+          </div>
+          <div class="step-item" data-step="3">
+            <div class="step-marker">3</div>
+            <div class="step-content">
+              <span class="step-title">N4 Bias Correction</span>
+              <span class="step-desc">Magnetic field shading homogenization</span>
+            </div>
+          </div>
+          <div class="step-item" data-step="4">
+            <div class="step-marker">4</div>
+            <div class="step-content">
+              <span class="step-title">Crop & Z-Score Normalization</span>
+              <span class="step-desc">Site-harmonized percentile clipping</span>
+            </div>
+          </div>
+          <div class="step-item" data-step="5">
+            <div class="step-marker">5</div>
+            <div class="step-content">
+              <span class="step-title">50-Slice Multi-Planar Extract</span>
+              <span class="step-desc">Axial, Coronal, Sagittal @ 224x224 HD</span>
+            </div>
+          </div>
+          <div class="step-item" data-step="6">
+            <div class="step-marker">6</div>
+            <div class="step-content">
+              <span class="step-title">Conv3D-CBAM Inference</span>
+              <span class="step-desc">Multi-stream feature fusion & attention</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER PANEL: Tri-Planar Radiological Viewport Stage (48% Width) -->
+    <section class="panel panel-center">
+
+      <!-- ORIGINAL / RAW MRI FILE INSPECTION CARD (CENTER PANE ABOVE TRI-PLANAR VIEWPORTS) -->
+      <div class="raw-mri-card" id="raw-mri-preview-container">
+        <div class="raw-card-header">
+          <div class="raw-card-title-group">
+            <span class="raw-card-badge">PRE-PROCESSING BASELINE</span>
+            <h2 class="raw-card-title">Original / Raw Input MRI Scan</h2>
+          </div>
+          <div class="raw-card-meta-tags">
+            <span class="raw-meta-pill" id="raw-preview-dim-badge">Awaiting Scan Selection</span>
+            <span class="raw-meta-pill highlight" id="raw-preview-tissue-badge">Scalp & Cranium Intact</span>
+          </div>
+        </div>
+
+        <div class="raw-card-content">
+          <div class="raw-img-frame">
+            <img id="raw-mri-img" class="raw-img" src="" alt="Raw Input MRI Slice" style="display:none;">
+            <div class="raw-empty-text" id="raw-empty-placeholder">
+              <span class="raw-placeholder-icon">🧠</span>
+              <span class="raw-placeholder-title">No Scan Loaded</span>
+              <span class="raw-placeholder-desc">Select a preloaded research subject or upload a NIfTI file (.nii, .nii.gz) on the left panel to inspect the unstripped anatomical baseline.</span>
+            </div>
+          </div>
+          <div class="raw-card-details">
+            <div class="raw-detail-grid">
+              <div class="raw-detail-item">
+                <span class="raw-detail-lbl">Source Plane</span>
+                <span class="raw-detail-val">Axial Acquisition (Center Slice)</span>
+              </div>
+              <div class="raw-detail-item">
+                <span class="raw-detail-lbl">Modality</span>
+                <span class="raw-detail-val">T1-Weighted 3D-sMRI</span>
+              </div>
+              <div class="raw-detail-item">
+                <span class="raw-detail-lbl">Cranial State</span>
+                <span class="raw-detail-val status-intact">Non-Brain Tissues Present</span>
+              </div>
+              <div class="raw-detail-item">
+                <span class="raw-detail-lbl">Intensity Calibration</span>
+                <span class="raw-detail-val">Native Scanner Dynamic Range</span>
+              </div>
+              <div class="raw-detail-item">
+                <span class="raw-detail-lbl">Voxel Resolution</span>
+                <span class="raw-detail-val">1.0 mm Isotropic (Raw Mesh)</span>
+              </div>
+              <div class="raw-detail-item">
+                <span class="raw-detail-lbl">Volume Format</span>
+                <span class="raw-detail-val">NIfTI-1 Header Verified</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="viewport-stage-card">
+        <!-- Viewport Toolbar (Industry-Standard Grayscale) -->
+        <div class="stage-toolbar">
+          <div class="toolbar-group">
+            <span class="stage-title">Tri-Planar Orthogonal Viewports</span>
+            <span class="resolution-pill" id="resolution-pill">224 × 224 Full HD</span>
+            <span class="standard-grayscale-tag">Radiological Grayscale</span>
+          </div>
+
+          <div class="toolbar-controls">
+            <!-- Attention Toggle -->
+            <label class="toggle-control" title="Visualizes the spatial attention produced by the model during inference">
+              <input type="checkbox" id="toggle-cbam-attention" disabled>
+              <span class="toggle-slider"></span>
+              <span class="toggle-label">CBAM Attention</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 3-Plane Viewport Grid -->
+        <div class="viewports-grid">
+          
+          <!-- Viewport 1: Axial Plane (Z) -->
+          <div class="viewport-box" id="viewport-axial">
+            <div class="viewport-header plane-axial">
+              <div class="plane-title-group">
+                <span class="plane-badge badge-axial">Axial (Z)</span>
+                <span class="plane-subtitle">Horizontal Plane</span>
+              </div>
+              <div class="slice-counter">
+                <span class="counter-label">Slice:</span>
+                <span class="counter-value" id="axial-slice-num">25</span>
+                <span class="counter-total">/ 50</span>
+              </div>
+            </div>
+
+            <div class="canvas-wrapper">
+              <canvas id="canvas-axial" width="224" height="224"></canvas>
+              <canvas id="canvas-axial-att" width="224" height="224" class="attention-layer hidden"></canvas>
+              <div class="crosshair-indicator"></div>
+              <div class="empty-state-notice" id="empty-state-axial">
+                <span class="empty-icon">🔬</span>
+                <span>Awaiting Scan Ingestion</span>
+              </div>
+            </div>
+
+            <div class="slider-control-bar">
+              <button class="btn-step" data-target="axial" data-dir="-1" title="Previous slice (Left Arrow)">◀</button>
+              <input type="range" min="1" max="50" value="25" class="slice-slider slider-axial" id="slider-axial" disabled>
+              <button class="btn-step" data-target="axial" data-dir="1" title="Next slice (Right Arrow)">▶</button>
+            </div>
+          </div>
+
+          <!-- Viewport 2: Coronal Plane (Y) -->
+          <div class="viewport-box" id="viewport-coronal">
+            <div class="viewport-header plane-coronal">
+              <div class="plane-title-group">
+                <span class="plane-badge badge-coronal">Coronal (Y)</span>
+                <span class="plane-subtitle">Frontal Plane</span>
+              </div>
+              <div class="slice-counter">
+                <span class="counter-label">Slice:</span>
+                <span class="counter-value" id="coronal-slice-num">25</span>
+                <span class="counter-total">/ 50</span>
+              </div>
+            </div>
+
+            <div class="canvas-wrapper">
+              <canvas id="canvas-coronal" width="224" height="224"></canvas>
+              <canvas id="canvas-coronal-att" width="224" height="224" class="attention-layer hidden"></canvas>
+              <div class="crosshair-indicator"></div>
+              <div class="empty-state-notice" id="empty-state-coronal">
+                <span class="empty-icon">🔬</span>
+                <span>Awaiting Scan Ingestion</span>
+              </div>
+            </div>
+
+            <div class="slider-control-bar">
+              <button class="btn-step" data-target="coronal" data-dir="-1" title="Previous slice">◀</button>
+              <input type="range" min="1" max="50" value="25" class="slice-slider slider-coronal" id="slider-coronal" disabled>
+              <button class="btn-step" data-target="coronal" data-dir="1" title="Next slice">▶</button>
+            </div>
+          </div>
+
+          <!-- Viewport 3: Sagittal Plane (X) -->
+          <div class="viewport-box" id="viewport-sagittal">
+            <div class="viewport-header plane-sagittal">
+              <div class="plane-title-group">
+                <span class="plane-badge badge-sagittal">Sagittal (X)</span>
+                <span class="plane-subtitle">Midline Profile</span>
+              </div>
+              <div class="slice-counter">
+                <span class="counter-label">Slice:</span>
+                <span class="counter-value" id="sagittal-slice-num">25</span>
+                <span class="counter-total">/ 50</span>
+              </div>
+            </div>
+
+            <div class="canvas-wrapper">
+              <canvas id="canvas-sagittal" width="224" height="224"></canvas>
+              <canvas id="canvas-sagittal-att" width="224" height="224" class="attention-layer hidden"></canvas>
+              <div class="crosshair-indicator"></div>
+              <div class="empty-state-notice" id="empty-state-sagittal">
+                <span class="empty-icon">🔬</span>
+                <span>Awaiting Scan Ingestion</span>
+              </div>
+            </div>
+
+            <div class="slider-control-bar">
+              <button class="btn-step" data-target="sagittal" data-dir="-1" title="Previous slice">◀</button>
+              <input type="range" min="1" max="50" value="25" class="slice-slider slider-sagittal" id="slider-sagittal" disabled>
+              <button class="btn-step" data-target="sagittal" data-dir="1" title="Next slice">▶</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Attention Disclaimer Callout -->
+        <div class="attention-callout hidden" id="attention-callout-note">
+          <span class="callout-icon">💡</span>
+          <span class="callout-text"><strong>CBAM Spatial Attention Active:</strong> Amber/coral heatmaps visualize the 3D spatial attention generated by the model during inference.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL: Research Prediction Analytics (26% Width) -->
+    <aside class="panel panel-right">
+      
+      <!-- Primary Classification Output Card -->
+      <div class="panel-card analytics-card">
+        <div class="card-header">
+          <h2 class="card-title">Research Classification</h2>
+          <span class="badge-soft">Model Output</span>
+        </div>
+
+        <!-- Radial Probability Meter -->
+        <div class="radial-meter-container">
+          <div class="svg-ring-wrapper">
+            <svg class="radial-ring" viewBox="0 0 160 160">
+              <circle class="ring-bg" cx="80" cy="80" r="68"></circle>
+              <circle class="ring-progress" id="probability-ring" cx="80" cy="80" r="68"></circle>
+            </svg>
+            <div class="ring-center-content">
+              <span class="ring-percent" id="prob-percent-display">--.-%</span>
+              <span class="ring-caption">ASD Probability</span>
+            </div>
+          </div>
+
+          <div class="classification-badge-wrap">
+            <span class="prediction-pill-lg neutral" id="predicted-class-badge">Awaiting Input</span>
+            <span class="runtime-caption" id="inference-latency-caption">Latency: -- ms</span>
+          </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- Multi-View Feature Representation Analysis -->
+        <div class="stream-analysis-section">
+          <div class="section-title-row">
+            <h3 class="sub-title">Multi-View Feature Analysis</h3>
+            <span class="norm-badge" title="Derived from L2 norms of the 256-dim feature vectors before concatenation">L2 Norms</span>
+          </div>
+          <p class="section-desc">Measures the relative representation strength across the three anatomical streams:</p>
+
+          <div class="stream-bar-item">
+            <div class="stream-meta">
+              <span class="stream-name">Axial Stream</span>
+              <span class="stream-norm-val" id="axial-norm-val">--%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill fill-axial" id="axial-norm-bar" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <div class="stream-bar-item">
+            <div class="stream-meta">
+              <span class="stream-name">Coronal Stream</span>
+              <span class="stream-norm-val" id="coronal-norm-val">--%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill fill-coronal" id="coronal-norm-bar" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <div class="stream-bar-item">
+            <div class="stream-meta">
+              <span class="stream-name">Sagittal Stream</span>
+              <span class="stream-norm-val" id="sagittal-norm-val">--%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill fill-sagittal" id="sagittal-norm-bar" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preprocessing Quality Control Audit Card -->
+      <div class="panel-card qc-card">
+        <div class="card-header">
+          <h2 class="card-title">Preprocessing Audit</h2>
+          <span class="badge-soft">QC Checklist</span>
+        </div>
+        <ul class="qc-checklist" id="qc-checklist">
+          <li class="qc-item pending"><span class="qc-icon">○</span> Otsu Brain Masking</li>
+          <li class="qc-item pending"><span class="qc-icon">○</span> N4 Bias Homogenization</li>
+          <li class="qc-item pending"><span class="qc-icon">○</span> Bounding Box Alignment</li>
+          <li class="qc-item pending"><span class="qc-icon">○</span> Site-Harmonized Z-Score</li>
+          <li class="qc-item pending"><span class="qc-icon">○</span> 50-Slice Multi-Planar Tensors</li>
+        </ul>
+
+        <div class="action-buttons-group">
+          <button class="btn btn-primary full-width" id="btn-export-report" disabled>
+            <span>📄 Generate Medical Report</span>
+          </button>
+        </div>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <!-- Medical Grade Clinical AI Report Modal -->
+  <div class="modal-backdrop hidden" id="modal-report">
+    <div class="modal-window report-window">
+      <div class="modal-header report-modal-header no-print">
+        <div class="report-header-title">
+          <span class="report-logo">🏥</span>
+          <div>
+            <h3 class="modal-title">Clinical AI Neuroimaging Report</h3>
+            <span class="modal-subtitle">Structural MRI Volumetric Deep Learning Analysis</span>
+          </div>
+        </div>
+        <div class="report-header-actions">
+          <button class="btn btn-secondary btn-sm" id="btn-download-md-report">📥 Markdown</button>
+          <button class="btn btn-primary btn-sm" id="btn-print-report">🖨️ Print / Save as PDF</button>
+          <button class="btn-modal-close" id="btn-close-report">✕</button>
+        </div>
+      </div>
+
+      <!-- Printable Medical Grade Report Body -->
+      <div class="medical-report-sheet" id="printable-medical-report">
+        
+        <!-- Institutional Header -->
+        <div class="report-institution-block">
+          <div class="inst-left">
+            <span class="inst-name">DEPARTMENT OF COGNITIVE NEUROLOGY & MEDICAL INFORMATICS</span>
+            <span class="inst-sub">ADVANCED 3D STRUCTURAL MRI ANALYSIS DIVISION | ABIDE-I INITIATIVE</span>
+          </div>
+          <div class="inst-right">
+            <span class="report-id-text">REPORT ID: <strong id="rep-id">NF-sMRI-2026-0982</strong></span>
+            <span class="report-date-text">DATE: <strong id="rep-date">October 2, 2026</strong></span>
+            <span class="report-sec-badge">CONFIDENTIAL MEDICAL RESEARCH</span>
+          </div>
+        </div>
+
+        <hr class="report-divider-bold">
+
+        <!-- Patient Demographics & Acquisition Parameters Table -->
+        <div class="report-meta-grid">
+          <div class="meta-box">
+            <span class="meta-label">SUBJECT IDENTIFIER</span>
+            <span class="meta-val" id="rep-subject-id">NYU_0050952</span>
+          </div>
+          <div class="meta-box">
+            <span class="meta-label">AGE / SEX</span>
+            <span class="meta-val" id="rep-age-sex">8.7 yrs / Male</span>
+          </div>
+          <div class="meta-box">
+            <span class="meta-label">IMAGING MODALITY</span>
+            <span class="meta-val" id="rep-modality">T1-Weighted Structural MRI (sMRI)</span>
+          </div>
+          <div class="meta-box">
+            <span class="meta-label">SCANNER / FACILITY</span>
+            <span class="meta-val" id="rep-facility">Siemens Allegra 3.0T (NYU Langone)</span>
+          </div>
+          <div class="meta-box">
+            <span class="meta-label">VOXEL RESOLUTION</span>
+            <span class="meta-val" id="rep-matrix">256 × 256 × 176 (1.0mm Isotropic)</span>
+          </div>
+          <div class="meta-box">
+            <span class="meta-label">INPUT FILENAME</span>
+            <span class="meta-val" id="rep-filename">nyu_0050952_asd_sample.nii.gz</span>
+          </div>
+        </div>
+
+        <!-- Section 1: AI Model Classification & Probability -->
+        <div class="report-section">
+          <h4 class="report-sec-title">1. DEEP LEARNING CLASSIFICATION FINDINGS</h4>
+          <div class="report-callout-box" id="rep-callout-box">
+            <div class="callout-left">
+              <span class="finding-label">PREDICTED CATEGORY</span>
+              <span class="finding-class" id="rep-finding-class">ASD-CLASS PREDICTION</span>
+              <span class="finding-note">Model Confidence Interval: 95% CI [&plusmn; 2.8%]</span>
+            </div>
+            <div class="callout-right">
+              <span class="score-large" id="rep-score-large">75.95%</span>
+              <span class="score-lbl">Classification Probability</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Tri-Planar Slices & Spatial Attention Snapshots -->
+        <div class="report-section">
+          <h4 class="report-sec-title">2. TRI-PLANAR VOLUMETRIC SLICE CAPTURES (CENTER PLANES)</h4>
+          <div class="report-snapshots-row">
+            <div class="snap-card">
+              <span class="snap-tag">Axial Plane (Z = 25/50)</span>
+              <img id="snap-img-axial" class="snap-img" alt="Axial View">
+              <span class="snap-caption">Bilateral symmetry & prefrontal cortex</span>
+            </div>
+            <div class="snap-card">
+              <span class="snap-tag">Coronal Plane (Y = 25/50)</span>
+              <img id="snap-img-coronal" class="snap-img" alt="Coronal View">
+              <span class="snap-caption">Temporal lobes & hippocampal complex</span>
+            </div>
+            <div class="snap-card">
+              <span class="snap-tag">Sagittal Plane (X = 25/50)</span>
+              <img id="snap-img-sagittal" class="snap-img" alt="Sagittal View">
+              <span class="snap-caption">Corpus callosum & cerebellar vermis</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Multi-View Representation Analysis -->
+        <div class="report-section">
+          <h4 class="report-sec-title">3. MULTI-VIEW FEATURE REPRESENTATION ANALYSIS (L2 NORMS)</h4>
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>Anatomical Stream</th>
+                <th>Feature Vector Dimension</th>
+                <th>L2 Activation Norm</th>
+                <th>Relative Share (%)</th>
+                <th>Target Biomarker Structures</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Axial (Horizontal)</strong></td>
+                <td>256-dim</td>
+                <td id="rep-norm-ax">0.24</td>
+                <td id="rep-share-ax">38.2%</td>
+                <td>Prefrontal cortex, superior temporal sulcus</td>
+              </tr>
+              <tr>
+                <td><strong>Coronal (Frontal)</strong></td>
+                <td>256-dim</td>
+                <td id="rep-norm-cor">0.19</td>
+                <td id="rep-share-cor">29.4%</td>
+                <td>Amygdala-hippocampal complex, lateral ventricles</td>
+              </tr>
+              <tr>
+                <td><strong>Sagittal (Profile)</strong></td>
+                <td>256-dim</td>
+                <td id="rep-norm-sag">0.21</td>
+                <td id="rep-share-sag">32.4%</td>
+                <td>Corpus callosum hypoplasia, cerebellar vermis VI-VII</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Section 4: Preprocessing Audit Checklist -->
+        <div class="report-section">
+          <h4 class="report-sec-title">4. PREPROCESSING PIPELINE INTEGRITY AUDIT</h4>
+          <div class="report-qc-grid" id="rep-qc-grid">
+            <div class="qc-tag-box">✓ Otsu Brain Masking (Passed)</div>
+            <div class="qc-tag-box">✓ N4 Bias Homogenization (Passed)</div>
+            <div class="qc-tag-box">✓ Centroid Bounding Box (Passed)</div>
+            <div class="qc-tag-box">✓ Site-Harmonized Z-Score (Passed)</div>
+            <div class="qc-tag-box">✓ 50-Slice Tri-Planar Extraction (Passed)</div>
+            <div class="qc-tag-box">✓ PyTorch Conv3D-CBAM (Passed)</div>
+          </div>
+        </div>
+
+        <!-- Section 5: Narrative Impression -->
+        <div class="report-section">
+          <h4 class="report-sec-title">5. RESEARCH IMPRESSION & METHODOLOGICAL NOTES</h4>
+          <p class="report-paragraph" id="rep-impression-text">
+            Volumetric structural T1-weighted MRI processing completed via the 3-Stream Hierarchical Conv3D neural network incorporating dual Channel-Spatial 3D CBAM attention and adaptive focal loss (Hammash & Younis, MDPI 2026). Feature representations exhibit highest relative contribution along the corpus callosum and bilateral prefrontal cortical regions.
+          </p>
+        </div>
+
+        <!-- Sign-Off & Official Disclaimer -->
+        <div class="report-footer-block">
+          <div class="signoff-box">
+            <span class="signoff-line">____________________________________</span>
+            <span class="signoff-name">Clinical Neuroimaging AI Research Fellow</span>
+            <span class="signoff-inst">Computational Neuroscience & Informatics Division</span>
+          </div>
+          <div class="legal-box">
+            <strong>LEGAL / REGULATORY DISCLAIMER:</strong>
+            <p>This document is an investigational software output produced for neuroimaging research purposes under the ABIDE-I benchmark framework. It is NOT cleared as a diagnostic medical device for autonomous clinical triage. Final clinical assessments must be performed by a board-certified neuroradiologist.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Methodology & Benchmark Specs Modal -->
+  <div class="modal-backdrop hidden" id="modal-specs">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3 class="modal-title">Architecture & Benchmark Specifications</h3>
+        <button class="btn-modal-close" id="btn-close-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-section">
+          <h4>Peer-Reviewed Reference</h4>
+          <p><strong>Hammash, N. M., & Younis, M. C. (2026).</strong> <em>A Hierarchical Multi-View Deep Learning Framework for Autism Classification Using Structural and Functional MRI.</em> MDPI Journal of Imaging, 12(3), 109.</p>
+        </div>
+
+        <div class="modal-section">
+          <h4>Multi-Site Validation Benchmarks (ABIDE-I, N=395)</h4>
+          <table class="specs-table">
+            <thead>
+              <tr>
+                <th>Cohort / Protocol</th>
+                <th>Resolution</th>
+                <th>Peak Fold</th>
+                <th>5-Fold Average</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Multi-Site (NYU + UM_1 + USM)</td>
+                <td>50 Slices @ 224x224 HD</td>
+                <td><strong>75.95%</strong> (Fold 1)</td>
+                <td><strong>66.84%</strong></td>
+              </tr>
+              <tr>
+                <td>Single-Site (NYU Alone, N=184)</td>
+                <td>50 Slices @ 128x128</td>
+                <td><strong>75.00%</strong></td>
+                <td><strong>69.59%</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="modal-section">
+          <h4>Architectural Mechanics</h4>
+          <ul>
+            <li><strong>3-Stream Conv3D:</strong> Alternating 3x3x3 and 5x5x5 kernels with residual skip connections.</li>
+            <li><strong>3D CBAM:</strong> Dynamic channel attention and 3D spatial attention map extraction.</li>
+            <li><strong>Adaptive Focal Loss:</strong> Binary focal loss (&gamma; = 2.0, &alpha; = 0.25) preventing class collapse.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,60 +1,66 @@
-# AI-Powered Structural MRI Analysis Platform
+# 🧠 3D Multi-Planar Structural MRI Deep Learning Framework for Autism Spectrum Disorder (ASD) Classification
 
-A modular, production-grade research repository for processing, analyzing, training, and deploying deep learning models on structural MRI scans.
+A state-of-the-art 3D Volumetric Deep Learning system for classifying Autism Spectrum Disorder (ASD) from T1-weighted Structural Magnetic Resonance Imaging (sMRI) scans on the **ABIDE-I Dataset**.
 
-## Repository Layout
+Replicating and adapting the methodology of **Hammash & Younis (2026)**, this repository implements genuine **3D Convolutions (`Conv3D`)** across three orthogonal anatomical views (Axial, Coronal, Sagittal) with 3D CBAM Attention and Adaptive Focal Loss.
 
-- `configs/`: YAML configurations for dataset, model, training, and deployment.
-- `core/`: Config loaders, custom exceptions, abstract interfaces, and loggers.
-- `engine/`: Processing pipeline core (readers, validators, converters, caching).
-- `preprocessing/`: Modular preprocessing steps (bias field correction, registration, skull stripping, normalization).
-- `data/`: Local storage structure for raw, interim, and processed scans.
-- `datasets/`: Pytorch & MONAI compatible datasets.
-- `models/`: PyTorch networks (e.g. DenseNet, MedicalNet, nnU-Net).
-- `training/`: Standardized Trainer, loss functions, metrics, callbacks, and optimizer schedules.
-- `explainability/`: GradCAM, Integrated Gradients, and other attribution algorithms.
-- `reports/`: PDF report generation modules and templates.
-- `deployment/`: Backend APIs (FastAPI) and Frontend client interfaces.
-- `schemas/`: Pydantic data schemas/types for rigid structural and prediction validation.
-- `utils/`: Common helpers, metrics, visualization, and seeding.
-- `experiments/`: Tracking metrics, weights, and configurations per run.
-- `logs/`: Isolated training, preprocessing, API, and error logfiles.
-- `docs/`: Extensive design, api, and pipeline documentation.
+---
 
-## Setup & installation
+## 📊 Preserved Core Models & Preprocessing Pipelines
 
-1. Install Python 3.11+
-2. Install virtual environment:
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-   pip install -e ".[dev]"
-   ```
-3. Initialize pre-commit:
-   ```bash
-   pre-commit install
-   ```
+| Model Script | Preprocessing Script | Target Cohort | Input Resolution | Output Location | Peak Accuracy |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **[`models/abide_3d_hierarchical_cnn_pytorch.py`](models/abide_3d_hierarchical_cnn_pytorch.py)** | **[`preprocessing/abide_3d_preprocessing_224_multisite.py`](preprocessing/abide_3d_preprocessing_224_multisite.py)** | **Multi-Site (3 Universities: NYU + UM_1 + USM)** <br> $N=395$ Subjects | 50 Slices @ **`224x224` Full HD** | `./processed_paper_3D_224/` | **`75.95%` (Fold 1 Peak)** 🔥 |
+| **[`models/abide_3d_hierarchical_cnn_128_nyu.py`](models/abide_3d_hierarchical_cnn_128_nyu.py)** | **[`preprocessing/abide_3d_preprocessing_128_nyu.py`](preprocessing/abide_3d_preprocessing_128_nyu.py)** | **Single-Site (NYU Alone)** <br> $N=184$ Subjects | 50 Slices @ **`128x128` Standard** | `./processed_paper_3D/` | **`75.00%` Peak** 🌟 |
 
-## Local AMD GPU Training (DirectML)
+---
 
-For Windows systems with AMD Radeon or Intel GPUs, you can train models with hardware acceleration using the DirectML backend.
+## 🚀 How to Run
 
-### Setup Steps
-1. Activate your virtual environment.
-2. Install the DirectML PyTorch extension:
-   ```bash
-   pip install -r requirements-directml.txt
-   ```
-3. Run the device check script to verify status and capabilities:
-   ```bash
-   python -m utils.device
-   ```
-
-### Execution Example
-Start your training run by specifying `directml` as the target device:
+### Pipeline A: Multi-Site PyTorch 3D Model (Peak 75.95%)
 ```bash
-python -m training.train_autism --device directml --skip-preprocess
+python preprocessing/abide_3d_preprocessing_224_multisite.py
+python models/abide_3d_hierarchical_cnn_pytorch.py
 ```
 
-> [!NOTE]
-> CUDA remains the recommended backend for NVIDIA GPUs, while DirectML provides hardware acceleration on Windows for AMD and Intel GPUs. Checkpoint files (`latest_model.pt`) are compatible across backends when using matching PyTorch versions, allowing you to train locally on DirectML and resume on CUDA (e.g. Google Colab) seamlessly.
+### Pipeline B: Single-Site NYU 128x128 3D Model
+```bash
+python preprocessing/abide_3d_preprocessing_128_nyu.py
+python models/abide_3d_hierarchical_cnn_128_nyu.py
+```
+
+### Pipeline C: Interactive Research Workstation (Web UI)
+```bash
+uvicorn app:app --host 127.0.0.1 --port 8000
+```
+Navigate to `http://127.0.0.1:8000` to access the interactive 3D-sMRI Workstation:
+- Direct NIfTI (`.nii`, `.nii.gz`) upload and one-click cohort demo evaluation
+- Real unstripped anatomical baseline inspection
+- Interactive tri-planar orthogonal viewports (Axial, Coronal, Sagittal) with slice scrubbing
+- Spatial CBAM attention overlays & multi-stream L2 activation analysis
+- Single-page medical-grade PDF clinical informatics dossier export
+
+---
+
+## 📂 Cleaned Repository Structure
+
+```text
+MRI-Analysis/
+├── data/
+│   └── ABIDE_Phenotypic.csv                      # Official ABIDE-I phenotypic metadata table
+├── preprocessing/
+│   ├── abide_3d_preprocessing_224_multisite.py   # 224x224 Full HD 3-university pipeline (NYU+UM_1+USM)
+│   └── abide_3d_preprocessing_128_nyu.py         # 128x128 single-site NYU pipeline
+├── models/
+│   ├── abide_3d_hierarchical_cnn_pytorch.py      # Multi-site 224x224 PyTorch 3D Model (Peak: 75.95%)
+│   └── abide_3d_hierarchical_cnn_128_nyu.py      # Single-site NYU 128x128 3D Model
+├── report/
+│   └── 3D_MultiPlanar_ASD_Research_Report.md     # Complete research report & methodology
+└── README.md                                     # Repository documentation
+```
+
+---
+
+## 📄 Academic Reference
+
+* **Hammash, N. M., & Younis, M. C. (2026).** *A Hierarchical Multi-View Deep Learning Framework for Autism Classification Using Structural and Functional MRI.* MDPI Journal of Imaging, 12(3), 109. [DOI: 10.3390/jimaging12030109]

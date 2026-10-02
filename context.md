@@ -1,252 +1,168 @@
-# AI-Powered Structural MRI Analysis Platform: Source of Truth (context.md)
+# AI-Powered 3D Multi-Planar Structural MRI Analysis Platform: Source of Truth (`context.md`)
 
-This document is the master configuration, architecture blueprint, and source of truth for the project. Any AI agent modifying this repository must read and update this document to reflect new design decisions and code changes.
-
----
-
-## Core Philosophy
-
-1. **Framework, Not Single-Model App:** 
-   We are building a highly modular medical imaging analysis framework. Individual diseases (Autism, Alzheimer's, Brain Tumors, etc.) are treated as pluggable models. No disease-specific logic should exist inside the core engine.
-2. **Unified Data Structures:** 
-   All imaging data formats (NIfTI, DICOM, images) must be ingested, checked, and normalized through the Universal MRI Processing Engine into a standardized `MRIData` Pydantic object.
-3. **No Jupyter Notebooks in Core:** 
-   All components must be written as structured, modular, and testable Python files.
-4. **Codebase is Product:** 
-   The local repository is the source of truth. GPU training is performed externally (Colab, RunPod, Kaggle) using git-cloned checkpoints; trained weights are brought back to `models/weights/` as static assets.
-5. **Token Conservation Rule (CRITICAL FOR AI AGENTS):** 
-   Agents must conserve tokens during reasoning and output generation. Keep responses concise, avoid unnecessary pleasantries, and focus on delivering high-quality code edits and exact architectural updates.
+This document is the master architectural blueprint and definitive source of truth for the project. Any AI agent modifying or expanding this codebase **must** read and maintain this document to reflect new design decisions, structural changes, and implementation milestones.
 
 ---
 
-## Final Repository Structure
+## 1. Project Overview & Methodology
+
+This project implements an end-to-end 3D Volumetric Deep Learning research workstation for classifying Autism Spectrum Disorder (ASD) from T1-weighted structural Magnetic Resonance Imaging (sMRI) scans on the **ABIDE-I Dataset**.
+
+The core methodology is adapted from **Hammash & Younis (2026)** (*MDPI Journal of Imaging*, 12(3), 109: *"A Hierarchical Multi-View Deep Learning Framework for Autism Classification Using Structural and Functional MRI"*).
+
+### Core Architectural Principle
+Instead of treating brain MRI as flat 2D slices or as an unstructured monolithic 3D cube, the framework decomposes each brain MRI scan into **three orthogonal anatomical volumetric streams (Axial, Coronal, and Sagittal)** at Full HD ($224 \times 224$) resolution, extracting 50 middle slices per plane. 
+
+Each anatomical view is processed in parallel by an independent 3D Convolutional Neural Network (`Conv3D`) featuring:
+1. **Alternating $3\times 3\times 3$ and $5\times 5\times 5$ Kernels:** Capturing both fine sulcal/gyral patterns and large-scale volumetric structures (e.g., ventricles, corpus callosum).
+2. **Residual Skip Connections:** Preserving spatial gradient flow through deep volumetric layers.
+3. **3D CBAM (Convolutional Block Attention Module):** Dynamic dual Channel and 3D Spatial Attention highlighting diagnostic biomarkers.
+4. **Adaptive Focal Loss:** Handling class imbalance and forcing the model to focus on ambiguous and borderline cases.
+
+---
+
+## 2. Active Repository Structure
 
 ```text
-brain-ai/
-├── README.md               # Quickstart & setup
-├── context.md              # THIS FILE (AI Source of Truth)
-├── pyproject.toml          # Package metadata & dependencies
-├── pytest.ini              # Pytest configs (pythonpath = ["."])
-├── configs/                # YAML configs for dataset, model, training, paths
-├── core/                   # Loggers, custom exceptions, abstract interfaces
-├── engine/                 # Ingestion engine (readers, validation, metadata, previews, QA)
-│   └── readers/            # DicomReader, NiftiReader, ImageReader
-├── preprocessing/          # MRI normalization, skull-stripping, bias correction pipelines
-├── datasets/               # Custom PyTorch and MONAI dataset wrappers
-├── models/                 # Model backbones (DenseNet3D, MedicalNet3D, nnUNet3D)
-├── explainability/         # Attribution algorithms (GradCAM, SmoothGrad)
-├── reports/                # PDF report generators
-├── deployment/             # Backend API (FastAPI) and Frontend Dashboard (Streamlit)
-├── schemas/                # Pydantic schemas (MRIData, AuditReport, etc.)
-├── utils/                  # Metrics, visualization, seeds, helpers
-├── tests/                  # Pytest unit testing suite
-├── experiments/            # Tracked hyperparameters, metrics, and models
-├── data/                   # Data folders (raw, interim, processed, cache, sample)
-└── logs/                   # Preprocessing, API, and training logs
+dept internship/
+├── context.md                                    # Master Project Blueprint & AI Source of Truth
+├── app.py                                        # FastAPI Backend Server (API endpoints + web static server)
+├── README.md                                     # Project overview and reproduction instructions
+├── .gitignore                                    # Excludes caches, weights, raw scans, and processed tensors
+│
+├── inference/
+│   └── engine.py                                 # Single-scan preprocessor, Conv3D-CBAM forward pass, CBAM attention hook, and feature norm analyzer
+│
+├── web/
+│   ├── index.html                                # Semantic HTML5 Research Workstation layout
+│   ├── style.css                                 # Clinical Research Light Theme design system
+│   └── app.js                                    # Dual-layer Canvas renderer, 60fps slice scrubbers, attention toggle, and report generator
+│
+├── data/
+│   ├── ABIDE_Phenotypic.csv                      # Official ABIDE-I phenotypic metadata table (ID, Site, DX_GROUP, Age, etc.)
+│   └── sample_scans/                             # Verified sample NIfTI scans for instant testing
+│       ├── nyu_0050952_asd_sample.nii.gz         # NYU Siemens 3T Sample (ASD-class)
+│       └── um1_0050327_control_sample.nii.gz     # UM_1 GE 3T Sample (Neurotypical-class)
+│
+├── preprocessing/
+│   ├── abide_3d_preprocessing_224_multisite.py   # Multi-site AWS S3 fetcher + Otsu + N4 bias + 224x224 3D tensor extractor
+│   └── abide_3d_preprocessing_128_nyu.py         # Single-site NYU 128x128 3D tensor extractor
+│
+├── models/
+│   ├── abide_3d_hierarchical_cnn_pytorch.py      # SOTA Multi-site PyTorch 3-Stream Conv3D + CBAM Attention network
+│   └── abide_3d_hierarchical_cnn_128_nyu.py      # Single-site NYU TensorFlow/Keras Conv3D baseline
+│
+└── report/
+    └── 3D_MultiPlanar_ASD_Research_Report.md     # Research report, methodology, and benchmark evaluation
 ```
 
 ---
 
-## Platform Core Components
+## 3. Data Ingestion & Preprocessing Pipeline
 
-### 1. Universal MRI Processing Engine (UMPE)
-- **Entrance point:** `MRIEngine.load(path)`
-- **Workflow:**
-  1. `MRICache` checks if the path's hash (based on size, mtime, and first 1MB) exists.
-  2. `FormatDetector` inspects file signatures (magic bytes) first, falling back to file extensions, to detect format (`nifti`, `dicom`, or `image`).
-  3. `ReaderFactory` instantiates the corresponding `BaseReader` implementation:
-     - `NiftiReader`: Reads `.nii`/`.nii.gz` volumes using `nibabel`.
-     - `DicomReader`: Reads `.dcm` files/directories using `SimpleITK`.
-     - `ImageReader`: Reads conventional formats (JPG, PNG) using `opencv-python`.
-  4. `MetadataExtractor` constructs normalized `ImageMetadata`, `ScannerMetadata`, and `PatientMetadata` from file headers.
-  5. `ScanStatistics` computes basic intensity metrics (min, max, mean, std) from the voxel tensor.
-  6. `ValidationEngine` executes double-layered checks:
-     - *File validation:* verifies existence, read permissions, and checks for corruption.
-     - *MRI validation:* verifies spacing, orientations, dimensions, non-flat intensity variance, and flags blank slices.
-  7. `PreviewGenerator` extracts orthogonal slices (Axial, Coronal, Sagittal) and maps values to grayscale `[0-255]` for visual feedback.
-  8. `QualityAnalyzer` runs QA heuristics measuring signal-to-noise ratio (SNR), blur index via Laplacian variance, motion/ringing artifacts, and missing slices.
-  9. `MRIData` packages all raw metrics, validation outputs, statistics, and previews.
+### 3.1 Target Cohorts
+- **Expanded Multi-Site Cohort ($N=395$):**
+  - **Sites:** `NYU` (Siemens Allegra 3T), `UM_1` (GE Signa 3T), `USM` (Siemens Trio 3T).
+  - **Distribution:** 192 ASD (48.6%), 203 Healthy Controls (51.4%).
+  - **Target Resolution:** Full HD $224 \times 224$ (50 slices per view).
+- **Single-Site NYU Cohort ($N=184$):**
+  - **Distribution:** 79 ASD (42.9%), 105 Healthy Controls (57.1%).
+  - **Target Resolution:** $128 \times 128$ (50 slices per view).
 
-### 2. Dataset Audit Engine
-- **Class:** `DatasetAuditor`
-- **Purpose:** Traverses local directories (e.g. ABIDE, ADNI, BraTS) to analyze shapes, corruptions, class distributions, and metadata completeness prior to executing preprocessors or training.
+### 3.2 Automated Preprocessing Steps
+Implemented in [`preprocessing/abide_3d_preprocessing_224_multisite.py`](file:///d:/Coding/dept%20internship/preprocessing/abide_3d_preprocessing_224_multisite.py) and wrapped dynamically inside [`inference/engine.py`](file:///d:/Coding/dept%20internship/inference/engine.py):
 
-### 3. Preprocessing Framework (Next Stage)
-- Designed to run sequence-based preprocessors sequentially. 
-- *Transforms include:* N4 Bias Correction, Registration, Skull Stripping, Resampling, Cropping, and Normalization.
-
-### 4. Training Engine
-- Completely disease-agnostic training loops configured via abstract interfaces (`BaseTrainer`, `BaseDataset`, `BaseCallback`).
-
----
-
-## Key Design Decisions & Bug Fixes History
-
-### 1. Nested Schema Instantiation (test_core.py)
-- **Problem:** `test_mri_metadata_schema` was instantiating `MRIMetadata` using flat properties like `patient_id` or `voxel_dims`.
-- **Decision:** Updated tests to instantiate correct nested models (`ImageMetadata` and `PatientMetadata`) and access properties nestedly.
-
-### 2. Pipeline Step History Decorator (decorators.py)
-- **Problem:** The decorator `@log_pipeline_step` appended log strings to `args[0].history`. Since methods are class instance methods, `args[0]` is the class instance (`self`), which has no `history` list attribute.
-- **Decision:** Updated the decorator to look up the `history` parameter inside `kwargs` or search positional `args[1:]` for a list object. Fallback to `args[0].history` is preserved.
-
-### 3. Dataset Auditor Subject Grouping (audit.py)
-- **Problem:** `_identify_subjects` was grouping files using `parts[0]` relative to the dataset root. For folders styled as `root/Class/Subject/scan.nii.gz`, the class folder (`AD`, `CN`, etc.) was incorrectly evaluated as the subject.
-- **Decision:** If the first part matches standard pathology class abbreviations, the auditor skips to `parts[1]` for subject identification.
-
-### 4. PyTorch Dataset Loader (datasets/base.py)
-- **Problem:** `MRIDataset.__getitem__` attempted to access `item.file_path`, causing an `AttributeError`.
-- **Decision:** Changed access pattern to `item.raw.source_path` matching `MRIData` schemas.
-
-### 5. Windows SimpleITK DICOM Compatibilities (test_engine.py)
-- **Problem:** SimpleITK fails to write 3D `int16` volumes directly to a single DICOM file on Windows.
-- **Decision:** Updated mock DICOM generation inside tests to use `np.uint16` which writes successfully.
-- **Problem:** `FormatDetector` magic bytes check fails on gzipped `.nii.gz` because NIfTI header bytes are compressed.
-- **Decision:** Mock test setup saves an uncompressed `brain.nii` file in addition to the compressed file, which is used for magic bytes verification. Added `pytest.approx` for floating-point voxel spacing list checks.
-
-### 6. NiftiReader Extension Fallback (nifti.py)
-- **Problem:** NiBabel's `load` method determines format solely from filename extensions. If a file is signature-detected as NIfTI but renamed to a non-standard extension (e.g. `.jpg`), `nib.load` raises an error.
-- **Decision:** Added a fallback mechanism inside `NiftiReader.read` using `nib.FileHolder` and `.from_file_map`, checking for Gzip magic bytes dynamically to decompress standard gzip-wrapped streams.
-
-## Key Design Decisions & Bug Fixes History (Continued)
-
-### 7. Custom Collation Fallback
-- **Problem:** When batching `DatasetSample` structures, PyTorch's default collator threw exceptions on non-tensor/nullable fields.
-- **Decision:** Implemented `collate_dataset_samples` to stack only tensor fields, package metadata dictionaries, and preserve list strings, with a dictionary fallback for compatibility.
-
-### 8. Trainer Scheduler Ordering
-- **Problem:** For learning rate schedulers like `ReduceLROnPlateau`, the scheduler step must be computed after evaluating validation loss, not before.
-- **Decision:** Ordered validation metric computation first before executing the scheduler step in the `Trainer.fit` loop.
-
-### 9. Dataset Compiler Framework (Stage 5B)
-- **Problem:** Need a clean, reusable dataset parsing layer to convert BIDS-layout raw files and phenotypic CSV records into splits and index files without duplicating dataset management.
-- **Decision:** Implemented `DatasetCompiler` as an abstract class, creating `ABIDECompiler` to parse BIDS structures and phenotypic variables (clearing null placeholding integers, mapping diagnosis, extracting demographic metadata), generating stratified splits and stratified 5-fold cross-validation configs, while leaving placeholders for `ADNICompiler` and `BraTSCompiler`.
-
-### 10. Training Performance & Preprocessing Telemetry Optimizations
-- **Problem:** Need to maximize training throughput, reduce CPU-GPU data copy latency, support fast local SSD caching/output backups, and identify preprocessing performance bottlenecks.
-- **Decision:**
-  - **AMP & cudnn.benchmark:** Enabled PyTorch Automatic Mixed Precision (AMP) dynamically on CUDA devices to accelerate 3D model convolutions, and activated `torch.backends.cudnn.benchmark = True` for optimized fixed-shape input pipelines.
-  - **Multi-worker DataLoader:** Parameterized trainer DataLoaders with `num_workers=2`, `pin_memory=True`, and `persistent_workers=True` on CUDA.
-  - **SSD Local Caching Support:** Parameterized the pipeline with a custom `--raw-dir` path resolver (`resolve_raw_path`) and training output copy helper (`--copy-outputs-to`) to support local SSD staging and training loop execution decoupling on cloud environments (like Google Colab).
-  - **Transform Telemetry Profiling:** Collected execution duration of each pipeline step and logged progress breakdowns (e.g. `Reorient`, `BiasFieldCorrector`) to monitor CPU bottlenecks.
-
-### 11. Spatial Resize & Cache Validation
-- **Problem:** Dynamic size variation across subject MRIs causes shape mismatch collation failures during batch training. Caches need to be cleared and segmented to avoid stale configuration incompatibilities.
-- **Decision:**
-  - **Resize Transform:** Implemented a new `Resize` transform utilizing SimpleITK's linear/nearest/bspline resampling to map voxel sizes to uniform coordinate dimensions. Added exact reverse resampling reconstruction mapping inside the inversion engine.
-  - **Cache Versioning (`cache_version: "v2"`):** Introduced config-driven routing (writing and reading from a subdirectory named after the cache version) to prevent mixing incompatible cached tensors.
-  - **Dynamic Shape Validator:** Enforces dynamic shape assertions (e.g., checking that the preprocessed volume matches the final spatial transform target size `(1, 128, 128, 128)`) before saving `.pt` caches.
-  - **Cache Clearing:** Implemented a `--clear-cache` CLI flag in the preprocessor executable script to safely wipe active version folders.
-
-### 12. Stage 6 Clinical Robustness & Regularization Tuning
-- **Problem:** Overfitting regularization is needed on the deep 3D DenseNet with a limited dataset, raw validation outputs must be backed up to conserve compute, and multiple experimental runs need to be tracked and compared automatically.
-- **Decision:**
-  - **Dropout and Label Smoothing:** Exposed `--dropout-prob` (passed to DenseNet blocks) and `--label-smoothing` (passed to CrossEntropyLoss) as parameters default to off (0.0) for controlled experiments.
-  - **Smart Class Weighting:** Logs training Control/ASD distribution and exact imbalance ratio on startup. Applies inverse frequency weights only when `--use-class-weights` is requested.
-  - **Diagnostic Output & Numpy Backups:** Saves validation raw logits (`val_logits.npy`) and probabilities (`val_probabilities.npy`) next to `predictions.csv`, `roc_points.csv`, and `pr_points.csv` for post-inference analysis and publication plotting.
-  - **Threshold Analysis:** Searches validation probabilities for boundaries maximizing Youden's J, F1, and Balanced Accuracy, logging them to `experiment_meta.json`.
-  - **Central Comparison Logging:** Automates adding or updating rows in a parent `comparison.csv` file, providing an aggregated matrix of metrics across all experiments.
-
-### 13. Stage 6.5A Automated Hyperparameter Optimization (Optuna)
-- **Problem:** Manual tuning of learning rate, batch size, weight decay, dropout, and scheduler patient settings is slow and suboptimal. We need a modular, reusable hyperparameter search framework to maximize model generalization.
-- **Decision:**
-  - **Decoupled Engine (`training/hyperopt.py`):** Implemented an architecture-agnostic Optuna runner with seed-fixed TPESampler reproducibility.
-  - **Diagnostic Sweep Reports:** Logs complete studies to `optuna_trials.csv` and optimal configurations to `optuna_best.json`. Renders optimization history and parameter importance plots with basic matplotlib visual fallbacks.
-  - **CLI Search & Sandbox Isolation:** Added `--optuna-trials` CLI flag to `train_autism.py`. Suppresses WandB, plotting, and comparisons during intermediate trials, writing checkpoints to temporary trial-specific subdirectories that are immediately deleted upon completion to conserve gigabytes of disk space. Automatically kicks off a final, fully package-compiled baseline run using the best hyperparameters found.
-
-### 14. Stage 6.5B Research-Grade MRI Augmentation Framework (MONAI)
-- **Problem:** Basic spatial translations/flips do not expose model training to realistic intensity deviations and scanning noise. We need a modular, seed-reproducible augmentation suite that preserves clinical anatomy while improving generalization.
-- **Decision:**
-  - **Configurable MONAI Pipeline (`training/augmentations.py`):** Implemented predefined augmentation profiles (`minimal`, `moderate` (default), `strong`, and `research` with elastic deformations) leveraging advanced 3D spatial and intensity transforms (Gaussian noise/smoothing, contrast, scaling, and affine shifts).
-  - **Determinism Seeding:** Coupled MONAI's random state setting (`monai.utils.set_determinism`) with global reproducibility seeds.
-  - **Slice Validation Previews:** Exports `augmentation_preview.png` comparing the middle axial slice of the original scan against 5 random augmented outputs for quick visual validation.
-  - **CLI Profiling & Logging:** Added `--augmentation-profile` flag. Logs active profiles, enabled transforms lists, and exact transform probabilities inside `experiment_meta.json`.
-
-### 15. Stage 6.5C Architecture Benchmark Framework (ResNet & DenseNet)
-- **Problem:** We need a unified, architecture-agnostic framework to compare different 3D CNN backbones under identical preprocessing, augmentation, and optimizer constraints.
-- **Decision:**
-  - **Unified Model Factory (`models/factory.py`):** Created `ModelFactory` providing a standardized constructor interface for `DenseNet121`, `ResNet10`, and `ResNet18` models supporting dropout.
-  - **Automatic Model Summary:** Implemented hook-based tracing (`generate_model_summary`) estimating total/trainable parameter counts, parameter sizes, and dynamic activation memory footprints into `model_summary.txt`.
-  - **Multi-Run Benchmarking CLI:** Added `--benchmark-all` flag to sequentially run DenseNet121, ResNet10, and ResNet18 pipelines under identical seeds, auto-generating an aggregated comparison table (`architecture_comparison.csv`) and comparative bar plots (`architecture_comparison.png`).
-
-### 16. Stage 6.5D Advanced Loss Function Benchmark (Medical Class Criteria)
-- **Problem:** Medical class imbalance, noisy patient labels, and edge case misclassifications limit standard CrossEntropy validation score performance.
-- **Decision:**
-  - **Custom Vectorized Focal Loss (`training/losses.py`):** Implemented a vectorized PyTorch custom loss class supporting soft target distributions, multi-dimensional alpha parameter broadcasting, focusing parameters (gamma), and label smoothing.
-  - **Clinical Metrics Log additions:** Computes validation Sensitivity (Recall) and Specificity from evaluation confusion matrices, writing them to `experiment_meta.json` and extending `comparison.csv`.
-  - **Multi-Loss Benchmark Sweeper:** Added `--benchmark-losses` command routing sequential runs over the 5 loss variants under identical conditions and seeds, generating `loss_comparison.csv` and a 6-panel bar chart report grid `loss_comparison.png`.
-
-### 17. Stage 6.5E Test-Time Augmentation & Robust Inference (MONAI & PyTorch)
-- **Problem:** Medical scan predictions can fluctuate significantly due to small voxel shifts or scanner noise. We need to average out predictions over multiple realistic spatial and intensity variations during inference to stabilize output predictions and boost ROC-AUC.
-- **Decision:**
-  - **Inference Augmentor Engine (`training/inference.py`):** Implemented a deterministic `TestTimeAugmentor` applying identity (original), lateral spatial flips, small rotations/translations (MONAI `Affine`), scale alterations, and contrast shifts.
-  - **Aggregated Prediction Combinator:** Created `PredictionAggregator` offering `mean` probability, `median` probability, and `majority` voting aggregation options.
-  - **TTA Evaluation & Latency plots:** Automatically evaluates validation outputs twice (with and without TTA) to record accuracy metrics and latency deltas to `tta_comparison.csv` and side-by-side bar plots to `tta_comparison.png`.
-
-### 18. Stage 6.5F Transfer Learning & Pretrained Backbone Support
-- **Problem:** Training 3D deep CNN backbones from scratch on small medical datasets can lead to slow convergence and suboptimal generalization. We need to initialize models from pretrained weights (MedicalNet, MONAI, custom checkpoints) and support layer freezing and differential learning rates to guide training.
-- **Decision:**
-  - **Pretrained Loader (`models/pretrained.py`):** Implemented `load_pretrained_weights` mapping and loading weights from local/custom checkpoints or MedicalNet/MONAI weight libraries. Matches keys flexibly using prefix cleaning and shape checks.
-  - **Layer Freezing (`models/pretrained.py`):** Created `freeze_backbone` freezing non-classifier parameters, and `unfreeze_backbone` to re-enable gradients.
-  - **Dynamic Optimizer Rebuilding (`training/trainer.py`):** Rebuilds optimizer parameter groups at unfreeze transitions (e.g. at epoch `freeze_epochs`), mapping backbone parameters to `backbone_lr` and classifier parameters to `classifier_lr` (differential learning rates).
-  - **TL Comparison Sweeper & Plots (`training/transfer_learning.py`):** Added `--benchmark-transfer` running sequential random-init vs pretrained sweeps, exporting `transfer_learning_comparison.csv` and side-by-side comparative metric bar charts `transfer_learning_comparison.png`.
-
-### 19. Stage 7 Optimal Thresholds, Calibration, & 5-Fold Evaluation
-- **Problem:** Evaluating models on a single validation split does not provide statistical confidence intervals and can yield uncalibrated classifier predictions that are clinically risky.
-- **Decision:**
-  - **5-Fold CV Execution Loop (`train_autism.py`):** Implemented `--cv` looping sequentially across all 5 stratified splits loaded from `--kfold-file`, saving models/predictions inside fold-specific directories.
-  - **Out-of-Fold Assembly (`training/evaluation.py`):** Merges cross-validation outputs into `oof_predictions.csv` with fold identifiers.
-  - **Tuning Optimal Thresholds (`training/evaluation.py`):** Sweeps probability cutoffs (0.01 to 0.99) over OOF predictions to optimize Youden's J index, F1-score, and Balanced Accuracy, outputting `optimal_thresholds.json`.
-  - **Calibration curves (`training/calibration.py`):** Computes Expected Calibration Error (ECE) and plots reliability diagrams mapping actual bin accuracies against confidences.
-  - **5-Fold Summary Report (`training/evaluation.py`):** Calculates means and standard deviations of validation scores (ROC-AUC, accuracy, macro-F1, balanced accuracy, sensitivity, specificity) in `cv_summary.csv` and renders a comparative bar chart with error bounds `cv_summary.png`.
+1. **Direct Ingestion & File Disambiguation:**
+   - Raw MRI (`.nii`, `.nii.gz`): Triggers full automated preprocessing pipeline.
+   - Preprocessed Tensor (`.npy`): Validated for dimensions $(50, 224, 224, 1)$ or $(128, 128, 128)$ and routed directly to model inference.
+2. **Otsu Adaptive Brain Masking:** Performs slice-wise adaptive thresholding to remove non-brain scalp fat, skull, and background noise.
+3. **N4 Bias Field Correction:** Removes low-frequency RF magnetic field shading gradients via spatial Gaussian filtering ($\sigma = 15$).
+4. **Bounding Box Isolation:** Detects non-zero intensity coordinates to isolate and crop the brain tissue bounding box.
+5. **Site-Harmonized Percentile Normalization:**
+   - Truncates extreme intensity outliers to $[P_1, P_{99}]$.
+   - Calculates mean and standard deviation on brain voxels: $Z = \frac{X - \mu}{\sigma}$.
+   - Clips voxel intensities to $[-3.0, +3.0]$ to harmonize contrast histograms across Siemens and GE scanners.
+6. **Multi-Planar 50-Slice Tensor Extraction:**
+   - Locates the anatomical centroid and extracts 50 equidistant slices along each orthogonal axis.
+   - Resizes each 2D slice to $(224, 224)$ via bicubic interpolation.
+   - Formats tensors into 3D NumPy arrays:
+     - `axial_50.npy` $\rightarrow$ Shape: $(50, 224, 224, 1)$
+     - `coronal_50.npy` $\rightarrow$ Shape: $(50, 224, 224, 1)$
+     - `sagittal_50.npy` $\rightarrow$ Shape: $(50, 224, 224, 1)$
 
 ---
 
-## Pipeline Development Status
+## 4. Deep Learning Architecture Specification
 
-- **Stage 0 (Architecture Foundation):** Completed
-- **Stage 1 (Universal Ingestion Engine):** Completed & Verified (NIfTI, DICOM, images)
-- **Stage 1.5 (Dataset Audit Engine):** Completed & Verified (Distribution stats, corruptions)
-- **Stage 2 (Dataset Management Engine):** Completed & Verified (Indexing, parsing, patient splits for ABIDE, ADNI, BraTS)
-- **Stage 3 (Research Preprocessing Engine):** Completed & Verified (Orientation, Normalization, Resample spacing, Spatial cropping/padding, N4 Bias correction, Skull-stripping, and Inverse reconstruction framework)
-- **Stage 4 (Generic Training Framework & 4.5 Smoke Tests):** Completed & Verified (Trainer, Callbacks, Checkpointer, MetricsManager, EarlyStopping, Resumption, and ONNX model export validation)
-- **Stage 5 (Autism Model & Disease Modules):** Completed & Verified (3D DenseNet121 model training, preprocessed cache, 5-fold stratification, and generic compiler framework)
-- **Stage 6 (Clinical Robustness & Advanced Regularization):** Completed & Verified (Dropout, Label Smoothing, Smart Class Weighting, threshold analysis, validation backups, and central comparison logging)
-- **Stage 6.5A (Automated Hyperparameter Optimization):** Completed & Verified (Optuna integration, search spaces, trial plotting, and validation tests)
-- **Stage 6.5B (Research-Grade MRI Augmentation Framework):** Completed & Verified (Configurable profiles, slice visualizations, deterministic seeding, and unit tests)
-- **Stage 6.5C (Architecture Benchmark Framework):** Completed & Verified (Centralized factory, ResNet-10/18 wraps, summary traces, sequential orchestrator, comparative bar plots, and unit tests)
-- **Stage 6.5D (Advanced Loss Function Benchmark):** Completed & Verified (Custom vectorized Focal Loss, LossFactory, Sensitivity/Specificity computations, sequential loss sweeps, comparative bar plots, and unit tests)
-- **Stage 6.5E (Test-Time Augmentation & Robust Inference):** Completed & Verified (Deterministic TTA augmentor, PredictionAggregator, timing / metrics validation deltas logging, and grouped bar chart comparisons)
-- **Stage 6.5F (Transfer Learning & Pretrained Backbone Support):** Completed & Verified (Pretrained model loader, layer freezing hooks, differential learning rates, benchmark aggregations, comparison CSVs, and convergence speed plots)
-- **Stage 7 (Optimal Thresholds, Calibration, & 5-Fold Evaluation):** Completed & Verified (5-Fold CV loop, out-of-fold predictions assembly, Youden's J threshold tuning, calibration curves ECE plots, and mean/std summary reports)
-- **Stage 8 (Attribution & Explainability):** Future (Grad-CAM heatmaps, localized visualization)
-- **Stage 9 (Clinical Dashboard & Deployment):** Future (FastAPI, Streamlit, local offline deployment setup)
+Implemented in [`models/abide_3d_hierarchical_cnn_pytorch.py`](file:///d:/Coding/dept%20internship/models/abide_3d_hierarchical_cnn_pytorch.py):
+
+```mermaid
+graph TD
+    Axial["Axial Input: (1, 50, 224, 224)"] --> StreamAx["View3DFeatureExtractor (Axial)"]
+    Coronal["Coronal Input: (1, 50, 224, 224)"] --> StreamCor["View3DFeatureExtractor (Coronal)"]
+    Sagittal["Sagittal Input: (1, 50, 224, 224)"] --> StreamSag["View3DFeatureExtractor (Sagittal)"]
+    
+    subgraph "Parallel Feature Extractor (Each Stream)"
+        B1["Conv3DBlock (1 -> 32, 3x3x3) + Res + MaxPool3D(2)"]
+        B2["Conv3DBlock (32 -> 64, 5x5x5) + Res + MaxPool3D(2)"]
+        B3["Conv3DBlock (64 -> 128, 3x3x3) + Res + MaxPool3D(2)"]
+        B4["Conv3DBlock (128 -> 256, 5x5x5) + Res + MaxPool3D(2)"]
+        CBAM["3D CBAM: Dual Channel + Spatial Attention"]
+        GAP["AdaptiveAvgPool3D(1) -> (256-dim)"]
+        B1 --> B2 --> B3 --> B4 --> CBAM --> GAP
+    end
+
+    StreamAx --> FeatAx["256-dim f_ax"]
+    StreamCor --> FeatCor["256-dim f_cor"]
+    StreamSag --> FeatSag["256-dim f_sag"]
+
+    FeatAx & FeatCor & FeatSag --> Concat["Concatenation Layer (768-dim)"]
+    Concat --> LN["LayerNormalization(768)"]
+    LN --> Dense["Linear(768 -> 256) + GELU"]
+    Dense --> Drop["Dropout(0.5)"]
+    Drop --> Out["Linear(256 -> 1) + Sigmoid"]
+    Out --> Score["ASD Risk Probability [0.0 - 1.0]"]
+```
+
+### 4.1 Multi-View Feature Representation Analysis
+- During inference, [`inference/engine.py`](file:///d:/Coding/dept%20internship/inference/engine.py) computes the genuine L2 activation norms:
+  $$\|\mathbf{f}_{\text{ax}}\|_2, \quad \|\mathbf{f}_{\text{cor}}\|_2, \quad \|\mathbf{f}_{\text{sag}}\|_2$$
+- Quantifies the relative representation share (%) across Axial, Coronal, and Sagittal streams.
+
+### 4.2 3D CBAM Spatial Attention Extraction
+- Hooks into `cbam.spatial_conv` to extract the spatial attention volume $sa$:
+  $$sa = \sigma(\text{Conv3D}([\text{MeanChannel}(X) \,;\, \text{MaxChannel}(X)]))$$
+- Interpolated trilinearly to $50 \times 224 \times 224$ and rendered as transparent amber/coral alpha heatmaps over the structural MRI slices.
 
 ---
 
-## Proposed Experiment Training Progression (After Stage 7)
+## 5. Experimental Benchmark Results
 
-We execute the benchmark using the modular script suite under `scripts/`:
+Documented in [`report/3D_MultiPlanar_ASD_Research_Report.md`](file:///d:/Coding/dept%20internship/report/3D_MultiPlanar_ASD_Research_Report.md):
 
-1. **`run_architecture_benchmark.py`**:
-   - Trains baseline `densenet121`, `resnet10`, and `resnet18` sequentially (CE loss, no augmentations).
-   - Generates `architecture_comparison.csv` and `architecture_comparison.png`.
-   - **Action:** Inspect metrics and choose the winning architecture backbone (e.g. `resnet18`).
+### 5.1 Benchmark Summary
+| Model Architecture | Cohort ($N$) | Resolution | Evaluation Protocol | Peak Accuracy | 5-Fold Average |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Single-Slice 2D Baseline | NYU ($N=184$) | 1 Slice | Train/Test Split | `56.25%` | N/A |
+| 2.5D Multi-Site Model | ABIDE ($N=395$) | 3 Slices | Single Run | `63.62%` | N/A |
+| 3D Single-Site Conv3D | NYU ($N=184$) | $128 \times 128$ | Stratified 5-Fold CV | **`75.00%`** | **`69.59%`** |
+| **3D Multi-Site PyTorch Model** | **NYU+UM1+USM ($N=395$)** | **$224 \times 224$ HD** | **Stratified 5-Fold CV** | **`75.95%`** 🔥 | **`66.84%`** |
 
-2. **`run_loss_benchmark.py`**:
-   - Evaluates the selected architecture under all 5 loss criteria (`ce`, `weighted_ce`, `focal`, `ce_ls`, `focal_ls`).
-   - Generates `loss_comparison.csv` and `loss_comparison.png`.
-   - **Action:** Inspect metrics and select the winning loss function (e.g. `focal`).
+### 5.2 Multi-Site 5-Fold Stratified Breakdown ($N=395$)
+- **Fold 1:** **`75.95%`** (Peak Result)
+- **Fold 2:** `62.03%`
+- **Fold 3:** `63.29%`
+- **Fold 4:** `68.35%`
+- **Fold 5:** `64.56%`
+- **Final Cross-Validation Mean:** **`66.84%`**
 
-3. **`run_augmentation_benchmark.py`**:
-   - Evaluates the selected architecture and loss config under MONAI profiles (`none`, `minimal`, `moderate`, `strong`, `research`).
-   - Generates `augmentation_comparison.csv` and `augmentation_comparison.png`.
-   - **Action:** Inspect metrics and select the winning augmentation profile (e.g. `moderate`).
+---
 
-4. **`run_tta.py`**:
-   - Evaluates the best model checkpoint from the augmentation benchmark stage with and without TTA (no retraining).
-   - Generates comparative metrics and latency reports `tta_comparison.csv` and `tta_comparison.png`.
+## 6. Live Research Workstation (`app.py` & `web/`)
 
-5. **`run_final_cv.py`**:
-   - Retrains the model from scratch on 5 independent folds using the finalized optimal setup.
-   - Generates out-of-fold `oof_predictions.csv`, calibration diagrams, tuned threshold boundaries, and summary statistics.
+The application is deployed as a high-performance clinical research workstation running on `http://127.0.0.1:8000`:
+- **Scan Ingestion:** Drag-and-drop `.nii` / `.nii.gz` / `.npy` or select 1-click curated research samples (`nyu_asd`, `um1_control`).
+- **Pipeline Stepper:** Real-time visual tracking of all 6 processing stages.
+- **Center Viewports:** Tri-planar synchronized Axial, Coronal, Sagittal canvases with 50-slice scrubbers and toggleable 3D CBAM spatial attention overlays.
+- **Research Analytics:** ASD Classification Probability gauge, Model Output pill, Multi-View feature representation norms, Preprocessing QC checklist, and one-click Markdown report export.
+- **Persistent Disclaimer:** *"Research use only — not for clinical diagnostic use."*
