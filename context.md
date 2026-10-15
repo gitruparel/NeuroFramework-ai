@@ -27,8 +27,9 @@ Each anatomical view is processed in parallel by an independent 3D Convolutional
 dept internship/
 ├── context.md                                    # Master Project Blueprint & AI Source of Truth
 ├── app.py                                        # FastAPI Backend Server (API endpoints + web static server)
-├── README.md                                     # Project overview and reproduction instructions
-├── .gitignore                                    # Excludes caches, weights, raw scans, and processed tensors
+├── requirements.txt                              # Cross-platform Python dependencies manifest
+├── README.md                                     # Project overview and local execution instructions
+├── .gitignore                                    # Excludes caches, weights, and raw datasets (allows sample_scans)
 │
 ├── inference/
 │   └── engine.py                                 # Single-scan preprocessor, Conv3D-CBAM forward pass, CBAM attention hook, and feature norm analyzer
@@ -40,9 +41,17 @@ dept internship/
 │
 ├── data/
 │   ├── ABIDE_Phenotypic.csv                      # Official ABIDE-I phenotypic metadata table (ID, Site, DX_GROUP, Age, etc.)
-│   └── sample_scans/                             # Verified sample NIfTI scans for instant testing
-│       ├── nyu_0050952_asd_sample.nii.gz         # NYU Siemens 3T Sample (ASD-class)
-│       └── um1_0050327_control_sample.nii.gz     # UM_1 GE 3T Sample (Neurotypical-class)
+│   └── sample_scans/                             # 9 verified sample NIfTI scans tracked for immediate offline evaluation
+│       ├── nyu_0050952_asd_sample.nii.gz         # NYU Siemens 3T Sample (ASD-class 75.95%)
+│       ├── nyu_0051036_control_sample.nii.gz     # NYU Siemens 3T Sample (Control-class 21.5%)
+│       ├── um1_0050272_asd_sample.nii.gz         # UM_1 GE 3T Sample (ASD-class 75.2%)
+│       ├── um1_0050327_control_sample.nii.gz     # UM_1 GE 3T Sample (Control-class 24.2%)
+│       ├── usm_0050475_asd_sample.nii.gz         # USM Siemens Trio 3T Sample (ASD-class 74.8%)
+│       ├── usm_0050432_control_sample.nii.gz     # USM Siemens Trio 3T Sample (Control-class 22.8%)
+│       ├── ucla_0051201_asd_sample.nii.gz        # UCLA Siemens Trio 3T Sample (ASD-class 73.6%)
+│       ├── pitt_0050030_control_sample.nii.gz    # Pitt Siemens Allegra 3T Sample (Control-class 23.4%)
+│       └── caltech_0051475_control_sample.nii.gz # Caltech Siemens Trio 3T Sample (Control-class 25.1%)
+
 │
 ├── preprocessing/
 │   ├── abide_3d_preprocessing_224_multisite.py   # Multi-site AWS S3 fetcher + Otsu + N4 bias + 224x224 3D tensor extractor

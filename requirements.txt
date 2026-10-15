@@ -1,0 +1,25 @@
+# ==============================================================================
+# NeuroFramework 3D-sMRI: Python Dependencies
+# ==============================================================================
+
+# Core Web API & Workstation Server
+fastapi>=0.110.0
+uvicorn[standard]>=0.28.0
+python-multipart>=0.0.9
+
+# Scientific Computing & Data Processing
+numpy>=1.24.0,<2.3.0
+scipy>=1.10.0
+pandas>=2.0.0
+scikit-learn>=1.3.0
+
+# Medical Neuroimaging & Computer Vision
+nibabel>=5.0.0
+opencv-python-headless>=4.8.0
+
+# Deep Learning Engine (PyTorch)
+# Default wheel installs standard PyTorch (supports CPU, Apple MPS, or CUDA if installed via conda/pip index)
+torch>=2.0.0
+
+# Optional: TensorFlow (required only if running the legacy 128x128 NYU model)
+# tensorflow>=2.15.0

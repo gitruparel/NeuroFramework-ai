@@ -39,6 +39,11 @@ datasets/
 *.npy
 *.npz
 
+# Allow sample dataset scans to be committed to GitHub
+!data/sample_scans/
+!data/sample_scans/**
+
+
 # Model weights & Checkpoints
 *.pt
 *.pth

@@ -32,6 +32,13 @@ class InferenceEngine:
         self.weights_loaded = False
         self.weights_path = weights_path
 
+        if weights_path is None:
+            # Check default locations for trained model checkpoints
+            for cand in ['models/best_hierarchical_3d_cbam.pt', 'models/PyTorch_3D_Fold1.pt', 'checkpoints/best_model.pt']:
+                if os.path.exists(cand):
+                    weights_path = cand
+                    break
+
         if weights_path and os.path.exists(weights_path):
             try:
                 state_dict = torch.load(weights_path, map_location=self.device)
@@ -42,6 +49,9 @@ class InferenceEngine:
                 print(f"[InferenceEngine] Warning: Could not load weights ({e}). Using initialized model.")
         else:
             print("[InferenceEngine] Operating in research prototype mode (deterministic evaluation model).")
+            # Zero out final output bias to ensure a neutral baseline for unweighted models
+            nn.init.zeros_(self.model.out.bias)
+
 
         self.model.eval()
 
