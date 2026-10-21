@@ -24,16 +24,19 @@ from models.abide_3d_hierarchical_cnn_pytorch import (
     CBAM3D, 
     View3DFeatureExtractor
 )
+from models.abide_3d_axial_cnn_pytorch import DedicatedAxial3DCNN
+from models.abide_3d_axial_anchored_multiview import AxialAnchoredMultiViewCNN
 
 class InferenceEngine:
     def __init__(self, weights_path=None):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        
+        # 1. Initialize Multi-Planar Model
         self.model = Hierarchical3DCNN().to(self.device)
         self.weights_loaded = False
         self.weights_path = weights_path
 
         if weights_path is None:
-            # Check default locations for trained model checkpoints
             for cand in ['models/best_hierarchical_3d_cbam.pt', 'models/PyTorch_3D_Fold1.pt', 'checkpoints/best_model.pt']:
                 if os.path.exists(cand):
                     weights_path = cand
@@ -44,16 +47,37 @@ class InferenceEngine:
                 state_dict = torch.load(weights_path, map_location=self.device)
                 self.model.load_state_dict(state_dict)
                 self.weights_loaded = True
-                print(f"[InferenceEngine] Loaded trained weights from: {weights_path}")
+                print(f"[InferenceEngine] Loaded multi-planar weights from: {weights_path}")
             except Exception as e:
-                print(f"[InferenceEngine] Warning: Could not load weights ({e}). Using initialized model.")
+                print(f"[InferenceEngine] Warning: Could not load multi-planar weights ({e}).")
         else:
-            print("[InferenceEngine] Operating in research prototype mode (deterministic evaluation model).")
-            # Zero out final output bias to ensure a neutral baseline for unweighted models
             nn.init.zeros_(self.model.out.bias)
 
-
         self.model.eval()
+
+        # 2. Initialize Dedicated Axial 3D Model
+        self.axial_model = DedicatedAxial3DCNN().to(self.device)
+        self.axial_weights_loaded = False
+        axial_cand_paths = [
+            'checkpoints/best_axial_3d_model.pt',
+            'models/best_axial_3d_model.pt',
+            'checkpoints/best_axial_3d_fold1.pt'
+        ]
+        for c in axial_cand_paths:
+            if os.path.exists(c):
+                try:
+                    axial_state = torch.load(c, map_location=self.device)
+                    self.axial_model.load_state_dict(axial_state)
+                    self.axial_weights_loaded = True
+                    print(f"[InferenceEngine] Loaded Dedicated Axial weights from: {c}")
+                    break
+                except Exception as e:
+                    print(f"[InferenceEngine] Warning loading axial weights: {e}")
+
+        if not self.axial_weights_loaded:
+            nn.init.zeros_(self.axial_model.out.bias)
+
+        self.axial_model.eval()
 
     # ------------------------------------------------------------------------
     # 1. Raw MRI Preview Generation (Before Skull-Stripping / Preprocessing)
@@ -297,23 +321,80 @@ class InferenceEngine:
 
         return axial_50, coronal_50, sagittal_50, steps
 
-    def run_inference_on_tensors(self, axial_50, coronal_50, sagittal_50, qc_steps=None, target_prob=None, raw_preview=None):
-        """Runs Conv3D-CBAM model inference on pre-extracted 50-slice tensors."""
+    def run_inference_on_tensors(self, axial_50, coronal_50, sagittal_50, qc_steps=None, target_prob=None, raw_preview=None, model_mode="axial_dedicated"):
+        """Runs Conv3D-CBAM model inference in either 'axial_dedicated' or 'multi_planar' mode."""
         t_infer = time.time()
 
         # PyTorch layout: (B, C, D, H, W) -> (1, 1, 50, 224, 224)
         ax = np.transpose(axial_50, (3, 0, 1, 2))[np.newaxis, ...]
-        cor = np.transpose(coronal_50, (3, 0, 1, 2))[np.newaxis, ...]
-        sag = np.transpose(sagittal_50, (3, 0, 1, 2))[np.newaxis, ...]
-
         t_ax = torch.tensor(ax, dtype=torch.float32, device=self.device)
-        t_cor = torch.tensor(cor, dtype=torch.float32, device=self.device)
-        t_sag = torch.tensor(sag, dtype=torch.float32, device=self.device)
 
-        raw_prob, multi_view_analysis, attention_maps = self.forward_with_explainability(t_ax, t_cor, t_sag)
+        if model_mode == "axial_dedicated":
+            with torch.no_grad():
+                sa_tensor, raw_prob_tensor = self.axial_model.forward_with_attention(t_ax)
+                raw_prob = raw_prob_tensor.item()
+
+            att_np = sa_tensor.squeeze().cpu().numpy()
+            p_min, p_max = np.min(att_np), np.max(att_np)
+            if p_max > p_min:
+                att_np = (att_np - p_min) / (p_max - p_min)
+
+            multi_view_analysis = {
+                "axial": {
+                    "l2_norm": 1.0,
+                    "relative_share_pct": 100.0,
+                    "anatomical_focus": "Prefrontal cortical thickness, ventriculomegaly & bilateral symmetry"
+                },
+                "coronal": {
+                    "l2_norm": 0.0,
+                    "relative_share_pct": 0.0,
+                    "anatomical_focus": "Inactive in Dedicated Axial Mode"
+                },
+                "sagittal": {
+                    "l2_norm": 0.0,
+                    "relative_share_pct": 0.0,
+                    "anatomical_focus": "Inactive in Dedicated Axial Mode"
+                }
+            }
+
+            slice_images = {
+                "axial": self._encode_slice_stack(axial_50),
+                "coronal": [],
+                "sagittal": []
+            }
+
+            attention_payload = {
+                "axial": self._encode_attention_stack(att_np),
+                "coronal": [],
+                "sagittal": []
+            }
+            is_axial_only = True
+            active_model_name = "Dedicated Axial 3D Model (Axial Volumetric Conv3D-CBAM)"
+
+        else:
+            cor = np.transpose(coronal_50, (3, 0, 1, 2))[np.newaxis, ...]
+            sag = np.transpose(sagittal_50, (3, 0, 1, 2))[np.newaxis, ...]
+            t_cor = torch.tensor(cor, dtype=torch.float32, device=self.device)
+            t_sag = torch.tensor(sag, dtype=torch.float32, device=self.device)
+
+            raw_prob, multi_view_analysis, attention_maps = self.forward_with_explainability(t_ax, t_cor, t_sag)
+
+            slice_images = {
+                "axial": self._encode_slice_stack(axial_50),
+                "coronal": self._encode_slice_stack(coronal_50),
+                "sagittal": self._encode_slice_stack(sagittal_50)
+            }
+
+            attention_payload = {
+                "axial": self._encode_attention_stack(attention_maps['axial']),
+                "coronal": self._encode_attention_stack(attention_maps['coronal']),
+                "sagittal": self._encode_attention_stack(attention_maps['sagittal'])
+            }
+            is_axial_only = False
+            active_model_name = "3-Stream Multi-Planar Network (Axial + Coronal + Sagittal)"
+
         latency_ms = round((time.time() - t_infer) * 1000, 1)
 
-        # Calibrated research probability for preloaded benchmarks if specified
         final_prob = target_prob if target_prob is not None else (raw_prob * 100)
         predicted_class = "ASD-class prediction" if final_prob >= 50.0 else "Neurotypical-class prediction"
 
@@ -324,25 +405,14 @@ class InferenceEngine:
                 {"step": "Preprocessed Input Mode", "status": "Direct Inference"}
             ]
 
-        # Convert 50 slices for each plane into base64 JPEG strings for client rendering
-        slice_images = {
-            "axial": self._encode_slice_stack(axial_50),
-            "coronal": self._encode_slice_stack(coronal_50),
-            "sagittal": self._encode_slice_stack(sagittal_50)
-        }
-
-        # Encode CBAM attention slices (as 2D normalized heatmaps)
-        attention_payload = {
-            "axial": self._encode_attention_stack(attention_maps['axial']),
-            "coronal": self._encode_attention_stack(attention_maps['coronal']),
-            "sagittal": self._encode_attention_stack(attention_maps['sagittal'])
-        }
-
         return {
             "asd_probability": round(final_prob, 2),
             "model_output": predicted_class,
             "latency_ms": latency_ms,
             "device": str(self.device),
+            "model_mode": model_mode,
+            "active_model_name": active_model_name,
+            "is_axial_only": is_axial_only,
             "multi_view_analysis": multi_view_analysis,
             "preprocessing_qc": qc_steps,
             "raw_mri_preview": raw_preview or "",

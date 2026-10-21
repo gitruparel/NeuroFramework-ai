@@ -49,101 +49,92 @@ engine = InferenceEngine()
 DEMO_SCANS = {
     "nyu_asd_peak": {
         "id": "nyu_asd_peak",
-        "title": "NYU 3T: Subject 0050952 [Peak Fold Benchmark: 75.95%]",
+        "title": "NYU 3T: Subject 0050952 (ASD Cohort)",
         "site": "NYU Langone (Siemens Allegra 3T)",
         "modality": "T1-weighted sMRI",
         "matrix": "256x256x176 (1.0mm isotropic)",
         "file_path": "data/sample_scans/nyu_0050952_asd_sample.nii.gz",
         "research_label": "ASD Cohort (ABIDE-I)",
-        "target_prob": 75.95,
         "demographics": {"age": "9 yrs", "sex": "Male", "fiq": "134"}
     },
     "nyu_control_low": {
         "id": "nyu_control_low",
-        "title": "NYU 3T: Subject 0051036 [Neurotypical Control: 21.5%]",
+        "title": "NYU 3T: Subject 0051036 (Neurotypical Control)",
         "site": "NYU Langone (Siemens Allegra 3T)",
         "modality": "T1-weighted sMRI",
         "matrix": "256x256x176 (1.0mm isotropic)",
         "file_path": "data/sample_scans/nyu_0051036_control_sample.nii.gz",
         "research_label": "Neurotypical Control Cohort (ABIDE-I)",
-        "target_prob": 21.50,
         "demographics": {"age": "13 yrs", "sex": "Male", "fiq": "116"}
     },
     "um1_control_low": {
         "id": "um1_control_low",
-        "title": "UM_1 3T: Subject 0050327 [Neurotypical Control: 24.2%]",
+        "title": "UM_1 3T: Subject 0050327 (Neurotypical Control)",
         "site": "University of Michigan (GE Signa 3T)",
         "modality": "T1-weighted sMRI",
         "matrix": "256x256x176 (1.0mm isotropic)",
         "file_path": "data/sample_scans/um1_0050327_control_sample.nii.gz",
         "research_label": "Neurotypical Control Cohort (ABIDE-I)",
-        "target_prob": 24.20,
         "demographics": {"age": "17 yrs", "sex": "Male", "fiq": "108"}
     },
     "um1_asd": {
         "id": "um1_asd",
-        "title": "UM_1 3T: Subject 0050272 [ASD Cohort: 75.2%]",
+        "title": "UM_1 3T: Subject 0050272 (ASD Cohort)",
         "site": "University of Michigan (GE Signa 3T)",
         "modality": "T1-weighted sMRI",
         "matrix": "256x256x176 (1.0mm isotropic)",
         "file_path": "data/sample_scans/um1_0050272_asd_sample.nii.gz",
         "research_label": "ASD Cohort (ABIDE-I)",
-        "target_prob": 75.20,
         "demographics": {"age": "14 yrs", "sex": "Male", "fiq": "99"}
     },
     "usm_asd": {
         "id": "usm_asd",
-        "title": "USM 3T: Subject 0050475 [Multi-Site ASD: 74.8%]",
+        "title": "USM 3T: Subject 0050475 (ASD Cohort)",
         "site": "University of Utah (Siemens Trio 3T)",
         "modality": "T1-weighted sMRI",
         "matrix": "256x256x176 (1.0mm isotropic)",
         "file_path": "data/sample_scans/usm_0050475_asd_sample.nii.gz",
         "research_label": "ASD Cohort (ABIDE-I)",
-        "target_prob": 74.80,
         "demographics": {"age": "17 yrs", "sex": "Male", "fiq": "119"}
     },
     "usm_control_low": {
         "id": "usm_control_low",
-        "title": "USM 3T: Subject 0050432 [Neurotypical Control: 22.8%]",
+        "title": "USM 3T: Subject 0050432 (Neurotypical Control)",
         "site": "University of Utah (Siemens Trio 3T)",
         "modality": "T1-weighted sMRI",
         "matrix": "256x256x176 (1.0mm isotropic)",
         "file_path": "data/sample_scans/usm_0050432_control_sample.nii.gz",
         "research_label": "Neurotypical Control Cohort (ABIDE-I)",
-        "target_prob": 22.80,
         "demographics": {"age": "18 yrs", "sex": "Male", "fiq": "131"}
     },
     "ucla_asd": {
         "id": "ucla_asd",
-        "title": "UCLA 3T: Subject 0051201 [ASD Cohort: 73.6%]",
+        "title": "UCLA 3T: Subject 0051201 (ASD Cohort)",
         "site": "UCLA Semel Institute (Siemens Trio 3T)",
         "modality": "T1-weighted sMRI",
         "matrix": "256x256x176 (1.0mm isotropic)",
         "file_path": "data/sample_scans/ucla_0051201_asd_sample.nii.gz",
         "research_label": "ASD Cohort (ABIDE-I)",
-        "target_prob": 73.60,
         "demographics": {"age": "14 yrs", "sex": "Male", "fiq": "104"}
     },
     "pitt_control_low": {
         "id": "pitt_control_low",
-        "title": "Pitt 3T: Subject 0050030 [Neurotypical Control: 23.4%]",
+        "title": "Pitt 3T: Subject 0050030 (Neurotypical Control)",
         "site": "University of Pittsburgh (Siemens Allegra 3T)",
         "modality": "T1-weighted sMRI",
         "matrix": "256x256x176 (1.0mm isotropic)",
         "file_path": "data/sample_scans/pitt_0050030_control_sample.nii.gz",
         "research_label": "Neurotypical Control Cohort (ABIDE-I)",
-        "target_prob": 23.40,
         "demographics": {"age": "25 yrs", "sex": "Male", "fiq": "105"}
     },
     "caltech_control_low": {
         "id": "caltech_control_low",
-        "title": "Caltech 3T: Subject 0051475 [Neurotypical Control: 25.1%]",
+        "title": "Caltech 3T: Subject 0051475 (Neurotypical Control)",
         "site": "California Inst of Technology (Siemens Trio 3T)",
         "modality": "T1-weighted sMRI",
         "matrix": "256x256x176 (1.0mm isotropic)",
         "file_path": "data/sample_scans/caltech_0051475_control_sample.nii.gz",
         "research_label": "Neurotypical Control Cohort (ABIDE-I)",
-        "target_prob": 25.10,
         "demographics": {"age": "44 yrs", "sex": "Male", "fiq": "104"}
     }
 }
@@ -206,37 +197,31 @@ def resolve_uploaded_benchmark(file_content: bytes, filename: str):
     f_hash = hashlib.sha256(file_content).hexdigest()
     if f_hash in DEMO_HASH_REGISTRY:
         demo = DEMO_HASH_REGISTRY[f_hash]
-        return demo, None, demo.get("target_prob")
+        return demo, None, None
 
     # 2. Exact filename match
     lower_fname = filename.lower()
     if lower_fname in DEMO_FILENAME_REGISTRY:
         demo = DEMO_FILENAME_REGISTRY[lower_fname]
-        return demo, None, demo.get("target_prob")
+        return demo, None, None
 
     # 3. Match 5-7 digit Subject ID against demo scans
     nums = re.findall(r"\d{5,7}", lower_fname)
     for num in nums:
         if num in DEMO_SUB_ID_REGISTRY:
             demo = DEMO_SUB_ID_REGISTRY[num]
-            return demo, None, demo.get("target_prob")
+            return demo, None, None
         clean_num = str(int(num))
         if clean_num in DEMO_SUB_ID_REGISTRY:
             demo = DEMO_SUB_ID_REGISTRY[clean_num]
-            return demo, None, demo.get("target_prob")
+            return demo, None, None
 
     # 4. Match against ABIDE phenotypic database
     for num in nums:
         clean_num = str(int(num))
         if clean_num in PHENOTYPIC_DB:
             pheno = PHENOTYPIC_DB[clean_num]
-            dx = pheno.get("DX_GROUP")
-            # DX_GROUP: 1 = ASD, 2 = Control
-            if dx == 1:
-                target_prob = 75.95 if clean_num == "50952" else 75.20
-            else:
-                target_prob = 21.50 if clean_num == "51036" else 23.40
-            return None, pheno, target_prob
+            return None, pheno, None
 
     return None, None, None
 
@@ -263,7 +248,7 @@ def list_demos():
     return res
 
 @app.post("/api/demo/{demo_id}")
-def run_demo(demo_id: str):
+def run_demo(demo_id: str, model_mode: str = "axial_dedicated"):
     # Support shorthand demo ID aliases
     aliases = {
         "nyu_asd": "nyu_asd_peak",
@@ -297,7 +282,8 @@ def run_demo(demo_id: str):
             ax_50, cor_50, sag_50, 
             qc_steps=steps, 
             target_prob=demo_info.get("target_prob"),
-            raw_preview=raw_preview
+            raw_preview=raw_preview,
+            model_mode=model_mode
         )
         
         # Attach scan metadata
@@ -318,6 +304,7 @@ def run_demo(demo_id: str):
 @app.post("/api/upload")
 async def upload_and_process(
     file: UploadFile = File(...),
+    model_mode: str = Form("axial_dedicated"),
     age: str = Form(None),
     sex: str = Form(None),
     site: str = Form(None)
@@ -365,7 +352,8 @@ async def upload_and_process(
                 ax_50, cor_50, sag_50, 
                 qc_steps=steps,
                 target_prob=target_prob,
-                raw_preview=raw_preview
+                raw_preview=raw_preview,
+                model_mode=model_mode
             )
 
             if matched_demo:
@@ -436,7 +424,8 @@ async def upload_and_process(
                 ax_50, cor_50, sag_50, 
                 qc_steps=qc_steps,
                 target_prob=target_prob,
-                raw_preview=raw_preview
+                raw_preview=raw_preview,
+                model_mode=model_mode
             )
 
             if matched_demo:
@@ -490,6 +479,10 @@ async def upload_and_process(
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
 
+
+@app.get("/favicon.ico")
+async def favicon():
+    return FileResponse("web/favicon.svg", media_type="image/svg+xml")
 
 os.makedirs("web", exist_ok=True)
 app.mount("/", StaticFiles(directory="web", html=True), name="static")

@@ -8,13 +8,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
 <body>
   <!-- Top Navigation & System Status Header -->
   <header class="app-header">
     <div class="header-left">
       <div class="app-logo">
-        <span class="logo-icon">🧠</span>
+        <img src="favicon.svg" alt="NeuroFramework Logo" class="app-logo-icon">
         <div class="logo-text">
           <span class="brand-title">NeuroFramework <span class="badge-tech">3D-sMRI</span></span>
           <span class="brand-subtitle">Multi-Planar Volumetric Deep Learning Workstation</span>
@@ -24,7 +25,6 @@
 
     <div class="header-center">
       <div class="disclaimer-badge">
-        <span class="disclaimer-icon">🔬</span>
         <span>Research use only — not for clinical diagnostic use</span>
       </div>
     </div>
@@ -36,7 +36,7 @@
         <span class="device-tag" id="active-device-tag">CPU</span>
       </div>
       <button class="btn-icon" id="btn-show-methodology" title="View Methodology & Benchmark Specs">
-        <span>📖 Specs</span>
+        <span>Specs</span>
       </button>
     </div>
   </header>
@@ -56,18 +56,29 @@
         <div class="dropzone" id="mri-dropzone">
           <input type="file" id="mri-file-input" accept=".nii,.nii.gz,.npy" hidden>
           <div class="dropzone-content">
-            <div class="dropzone-icon">📥</div>
             <p class="dropzone-main-text">Drag & drop structural MRI scan</p>
             <p class="dropzone-sub-text">Accepts <code>.nii</code>, <code>.nii.gz</code> (Raw) or <code>.npy</code> (Tensor)</p>
             <button type="button" class="btn btn-secondary btn-sm" id="btn-browse-file">Browse Computer</button>
           </div>
           <div class="file-loaded-view hidden" id="file-loaded-indicator">
-            <span class="file-icon">📁</span>
             <div class="file-info-text">
               <span class="file-name" id="loaded-file-name">scan.nii.gz</span>
               <span class="file-size" id="loaded-file-size">14.2 MB</span>
             </div>
             <button class="btn-clear" id="btn-clear-file" title="Remove file">✕</button>
+          </div>
+        </div>
+
+        <!-- Model Architecture Selector (Clinical Axial Focus vs Multi-Planar) -->
+        <div class="model-selection-card">
+          <label class="input-label" for="model-architecture-select">Deep Learning Architecture:</label>
+          <select id="model-architecture-select" class="form-select model-select-prominent">
+            <option value="axial_dedicated" selected>Dedicated Axial 3D Model (Axial Volumetric Conv3D)</option>
+            <option value="multi_planar">3-Stream Multi-Planar Network (Axial, Coronal, Sagittal)</option>
+          </select>
+          <div class="model-meta-badge" id="model-mode-description">
+            <span class="badge-dot"></span>
+            <span id="model-mode-desc-text">Axial volumetric stream active. Coronal and sagittal views hidden.</span>
           </div>
         </div>
 
@@ -79,7 +90,7 @@
               <option value="" disabled selected>Select a verified ABIDE-I sample...</option>
             </select>
             <button class="btn btn-primary" id="btn-run-analysis" disabled>
-              <span class="btn-icon-symbol">⚡</span> Run Analysis
+              Run Analysis
             </button>
           </div>
         </div>
@@ -187,7 +198,6 @@
           <div class="raw-img-frame">
             <img id="raw-mri-img" class="raw-img" src="" alt="Raw Input MRI Slice" style="display:none;">
             <div class="raw-empty-text" id="raw-empty-placeholder">
-              <span class="raw-placeholder-icon">🧠</span>
               <span class="raw-placeholder-title">No Scan Loaded</span>
               <span class="raw-placeholder-desc">Select a preloaded research subject or upload a NIfTI file (.nii, .nii.gz) on the left panel to inspect the unstripped anatomical baseline.</span>
             </div>
@@ -227,7 +237,7 @@
         <!-- Viewport Toolbar (Industry-Standard Grayscale) -->
         <div class="stage-toolbar">
           <div class="toolbar-group">
-            <span class="stage-title">Tri-Planar Orthogonal Viewports</span>
+            <span class="stage-title" id="stage-viewport-title">Axial Volumetric Viewport</span>
             <span class="resolution-pill" id="resolution-pill">224 × 224 Full HD</span>
             <span class="standard-grayscale-tag">Radiological Grayscale</span>
           </div>
@@ -242,8 +252,8 @@
           </div>
         </div>
 
-        <!-- 3-Plane Viewport Grid -->
-        <div class="viewports-grid">
+        <!-- Viewports Grid (axial-only-mode by default) -->
+        <div class="viewports-grid axial-only-mode" id="viewports-grid">
           
           <!-- Viewport 1: Axial Plane (Z) -->
           <div class="viewport-box" id="viewport-axial">
@@ -264,7 +274,6 @@
               <canvas id="canvas-axial-att" width="224" height="224" class="attention-layer hidden"></canvas>
               <div class="crosshair-indicator"></div>
               <div class="empty-state-notice" id="empty-state-axial">
-                <span class="empty-icon">🔬</span>
                 <span>Awaiting Scan Ingestion</span>
               </div>
             </div>
@@ -295,7 +304,6 @@
               <canvas id="canvas-coronal-att" width="224" height="224" class="attention-layer hidden"></canvas>
               <div class="crosshair-indicator"></div>
               <div class="empty-state-notice" id="empty-state-coronal">
-                <span class="empty-icon">🔬</span>
                 <span>Awaiting Scan Ingestion</span>
               </div>
             </div>
@@ -326,7 +334,6 @@
               <canvas id="canvas-sagittal-att" width="224" height="224" class="attention-layer hidden"></canvas>
               <div class="crosshair-indicator"></div>
               <div class="empty-state-notice" id="empty-state-sagittal">
-                <span class="empty-icon">🔬</span>
                 <span>Awaiting Scan Ingestion</span>
               </div>
             </div>
@@ -342,8 +349,7 @@
 
         <!-- Attention Disclaimer Callout -->
         <div class="attention-callout hidden" id="attention-callout-note">
-          <span class="callout-icon">💡</span>
-          <span class="callout-text"><strong>CBAM Spatial Attention Active:</strong> Amber/coral heatmaps visualize the 3D spatial attention generated by the model during inference.</span>
+          <span class="callout-text"><strong>CBAM Spatial Attention:</strong> Heatmaps visualize 3D spatial attention generated by the model during inference.</span>
         </div>
       </div>
     </section>
@@ -435,7 +441,7 @@
 
         <div class="action-buttons-group">
           <button class="btn btn-primary full-width" id="btn-export-report" disabled>
-            <span>📄 Generate Medical Report</span>
+            <span>Generate Medical Report</span>
           </button>
         </div>
       </div>
@@ -449,15 +455,15 @@
     <div class="modal-window report-window">
       <div class="modal-header report-modal-header no-print">
         <div class="report-header-title">
-          <span class="report-logo">🏥</span>
+          <img src="favicon.svg" alt="NeuroFramework Logo" class="report-logo-icon">
           <div>
             <h3 class="modal-title">Clinical AI Neuroimaging Report</h3>
             <span class="modal-subtitle">Structural MRI Volumetric Deep Learning Analysis</span>
           </div>
         </div>
         <div class="report-header-actions">
-          <button class="btn btn-secondary btn-sm" id="btn-download-md-report">📥 Markdown</button>
-          <button class="btn btn-primary btn-sm" id="btn-print-report">🖨️ Print / Save as PDF</button>
+          <button class="btn btn-secondary btn-sm" id="btn-download-md-report">Export Markdown</button>
+          <button class="btn btn-primary btn-sm" id="btn-print-report">Print / Save as PDF</button>
           <button class="btn-modal-close" id="btn-close-report">✕</button>
         </div>
       </div>

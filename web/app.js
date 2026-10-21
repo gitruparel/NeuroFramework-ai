@@ -37,6 +37,10 @@ document.addEventListener('DOMContentLoaded', () => {
     btnClearFile: document.getElementById('btn-clear-file'),
     demoSelect: document.getElementById('demo-scan-select'),
     btnRunAnalysis: document.getElementById('btn-run-analysis'),
+    modelSelect: document.getElementById('model-architecture-select'),
+    modelDescText: document.getElementById('model-mode-desc-text'),
+    stageViewportTitle: document.getElementById('stage-viewport-title'),
+    viewportsGrid: document.getElementById('viewports-grid'),
 
     // Raw MRI Preview Frame
     rawImg: document.getElementById('raw-mri-img'),
@@ -161,6 +165,33 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) {
       console.warn('Could not load demo scans:', e);
     }
+
+    // Set initial model mode (default to Dedicated Axial 3D)
+    applyModelViewMode(el.modelSelect ? el.modelSelect.value : 'axial_dedicated');
+  }
+
+  // Model Selection Mode Change
+  if (el.modelSelect) {
+    el.modelSelect.addEventListener('change', () => {
+      applyModelViewMode(el.modelSelect.value);
+    });
+  }
+
+  function applyModelViewMode(mode) {
+    const isAxialOnly = (mode === 'axial_dedicated');
+    if (el.viewportsGrid) {
+      el.viewportsGrid.classList.toggle('axial-only-mode', isAxialOnly);
+    }
+    if (el.stageViewportTitle) {
+      el.stageViewportTitle.textContent = isAxialOnly 
+        ? 'Axial Volumetric Viewport' 
+        : 'Tri-Planar Orthogonal Viewports';
+    }
+    if (el.modelDescText) {
+      el.modelDescText.innerHTML = isAxialOnly
+        ? 'Axial volumetric stream active. Coronal and sagittal views hidden.'
+        : 'Multi-planar evaluation active across Axial, Coronal, and Sagittal planes.';
+    }
   }
 
   // --------------------------------------------------------------------------
@@ -239,7 +270,6 @@ document.addEventListener('DOMContentLoaded', () => {
     el.rawImg.style.display = 'none';
     el.rawEmptyPlaceholder.style.display = 'flex';
     el.rawEmptyPlaceholder.innerHTML = `
-      <span class="raw-placeholder-icon">🧠</span>
       <span class="raw-placeholder-title">No Scan Loaded</span>
       <span class="raw-placeholder-desc">Select a preloaded research subject or upload a NIfTI file (.nii, .nii.gz) on the left panel to inspect the unstripped anatomical baseline.</span>
     `;
@@ -305,9 +335,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       let response;
+      const selectedModelMode = el.modelSelect ? el.modelSelect.value : 'axial_dedicated';
       if (state.activeFile) {
         const formData = new FormData();
         formData.append('file', state.activeFile);
+        formData.append('model_mode', selectedModelMode);
         if (el.inputAge.value) formData.append('age', el.inputAge.value);
         if (el.inputSex.value) formData.append('sex', el.inputSex.value);
         if (el.inputSite.value) formData.append('site', el.inputSite.value);
@@ -317,7 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
           body: formData
         });
       } else if (state.activeDemoId) {
-        response = await fetch(`/api/demo/${state.activeDemoId}`, {
+        response = await fetch(`/api/demo/${state.activeDemoId}?model_mode=${selectedModelMode}`, {
           method: 'POST'
         });
       }
@@ -382,6 +414,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // 4. Loading Analysis Results & Preloading Canvases
   // --------------------------------------------------------------------------
   function loadAnalysisResults(data) {
+    // 0. Synchronize model view mode with returned result
+    const activeMode = data.model_mode || (data.is_axial_only ? 'axial_dedicated' : 'multi_planar');
+    if (el.modelSelect) el.modelSelect.value = activeMode;
+    applyModelViewMode(activeMode);
+
     // 1. Update Raw MRI Preview image if returned from upload
     if (data.raw_mri_preview) {
       el.rawImg.src = data.raw_mri_preview;
@@ -398,14 +435,18 @@ document.addEventListener('DOMContentLoaded', () => {
     state.totalSlices = data.num_slices || 50;
 
     // 3. Preload Image objects for rapid 60fps canvas blitting
-    preloadPlaneImages('axial', data.slices.axial, data.attention.axial);
-    preloadPlaneImages('coronal', data.slices.coronal, data.attention.coronal);
-    preloadPlaneImages('sagittal', data.slices.sagittal, data.attention.sagittal);
+    preloadPlaneImages('axial', data.slices ? data.slices.axial : null, data.attention ? data.attention.axial : null);
+    if (!data.is_axial_only) {
+      preloadPlaneImages('coronal', data.slices ? data.slices.coronal : null, data.attention ? data.attention.coronal : null);
+      preloadPlaneImages('sagittal', data.slices ? data.slices.sagittal : null, data.attention ? data.attention.sagittal : null);
+    }
 
     // 4. Remove Empty State Placeholders
     el.emptyAxial.classList.add('hidden');
-    el.emptyCoronal.classList.add('hidden');
-    el.emptySagittal.classList.add('hidden');
+    if (!data.is_axial_only) {
+      el.emptyCoronal.classList.add('hidden');
+      el.emptySagittal.classList.add('hidden');
+    }
 
     // 5. Enable Sliders & Toggles
     [el.sliderAxial, el.sliderCoronal, el.sliderSagittal].forEach(sl => {
@@ -420,8 +461,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 6. Render Center Viewports
     renderSlice('axial', state.currentSlices.axial);
-    renderSlice('coronal', state.currentSlices.coronal);
-    renderSlice('sagittal', state.currentSlices.sagittal);
+    if (!data.is_axial_only) {
+      renderSlice('coronal', state.currentSlices.coronal);
+      renderSlice('sagittal', state.currentSlices.sagittal);
+    }
 
     // 7. Update Analytics Panel
     updateAnalyticsDisplay(data);
@@ -433,6 +476,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function preloadPlaneImages(plane, sliceUrls, attentionUrls) {
     imageCache[plane] = [];
     imageCache[plane + 'Att'] = [];
+    if (!sliceUrls || !Array.isArray(sliceUrls)) return;
 
     for (let i = 0; i < sliceUrls.length; i++) {
       const img = new Image();
@@ -451,33 +495,35 @@ document.addEventListener('DOMContentLoaded', () => {
   // 5. Canvas Rendering Engine (Dual-Layer: MRI Anatomy + CBAM Attention)
   // --------------------------------------------------------------------------
   function renderSlice(plane, sliceIndex) {
+    if (!imageCache[plane] || imageCache[plane].length === 0) return;
     const idx = Math.max(0, Math.min(sliceIndex - 1, state.totalSlices - 1));
     const canvas = plane === 'axial' ? el.canvasAxial :
                    plane === 'coronal' ? el.canvasCoronal : el.canvasSagittal;
+    if (!canvas) return;
     const ctx = canvas.getContext('2d');
 
     const attCanvas = plane === 'axial' ? el.canvasAxialAtt :
                       plane === 'coronal' ? el.canvasCoronalAtt : el.canvasSagittalAtt;
-    const attCtx = attCanvas.getContext('2d');
+    const attCtx = attCanvas ? attCanvas.getContext('2d') : null;
 
     // Update Counter Label
-    if (plane === 'axial') el.numAxial.textContent = sliceIndex;
-    if (plane === 'coronal') el.numCoronal.textContent = sliceIndex;
-    if (plane === 'sagittal') el.numSagittal.textContent = sliceIndex;
+    if (plane === 'axial' && el.numAxial) el.numAxial.textContent = sliceIndex;
+    if (plane === 'coronal' && el.numCoronal) el.numCoronal.textContent = sliceIndex;
+    if (plane === 'sagittal' && el.numSagittal) el.numSagittal.textContent = sliceIndex;
 
     // Draw Anatomy Slice (Industry-Standard Radiological Grayscale)
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     const cachedImg = imageCache[plane] ? imageCache[plane][idx] : null;
     if (cachedImg && cachedImg.complete && cachedImg.naturalWidth > 0) {
       ctx.drawImage(cachedImg, 0, 0, ctx.canvas.width, ctx.canvas.height);
-    } else if (state.sliceData[plane] && state.sliceData[plane][idx]) {
+    } else if (state.sliceData && state.sliceData[plane] && state.sliceData[plane][idx]) {
       const img = new Image();
       img.onload = () => ctx.drawImage(img, 0, 0, ctx.canvas.width, ctx.canvas.height);
       img.src = state.sliceData[plane][idx];
     }
 
     // Draw Attention Slice
-    if (state.showAttention) {
+    if (state.showAttention && attCanvas && attCtx) {
       attCanvas.classList.remove('hidden');
       attCtx.clearRect(0, 0, attCanvas.width, attCanvas.height);
       const cachedAtt = imageCache[plane + 'Att'] ? imageCache[plane + 'Att'][idx] : null;
@@ -497,20 +543,33 @@ document.addEventListener('DOMContentLoaded', () => {
   // 6. Interactive Controls (Sliders, Steps, Keyboard, Attention)
   // --------------------------------------------------------------------------
   
-  // Slider Scrubbing
+  // High-performance requestAnimationFrame scheduler for fluid 60fps/120fps scrubbing
+  const renderFrameRequests = { axial: null, coronal: null, sagittal: null };
+
+  function scheduleRender(plane, sliceIndex) {
+    if (renderFrameRequests[plane]) {
+      cancelAnimationFrame(renderFrameRequests[plane]);
+    }
+    renderFrameRequests[plane] = requestAnimationFrame(() => {
+      renderSlice(plane, sliceIndex);
+      renderFrameRequests[plane] = null;
+    });
+  }
+
+  // Slider Scrubbing with hardware-accelerated RAF
   el.sliderAxial.addEventListener('input', (e) => {
     state.currentSlices.axial = parseInt(e.target.value, 10);
-    renderSlice('axial', state.currentSlices.axial);
+    scheduleRender('axial', state.currentSlices.axial);
   });
 
   el.sliderCoronal.addEventListener('input', (e) => {
     state.currentSlices.coronal = parseInt(e.target.value, 10);
-    renderSlice('coronal', state.currentSlices.coronal);
+    scheduleRender('coronal', state.currentSlices.coronal);
   });
 
   el.sliderSagittal.addEventListener('input', (e) => {
     state.currentSlices.sagittal = parseInt(e.target.value, 10);
-    renderSlice('sagittal', state.currentSlices.sagittal);
+    scheduleRender('sagittal', state.currentSlices.sagittal);
   });
 
   // Step Buttons (◀ / ▶)
@@ -525,7 +584,7 @@ document.addEventListener('DOMContentLoaded', () => {
       nextVal = Math.max(1, Math.min(nextVal, state.totalSlices));
       state.currentSlices[plane] = nextVal;
       slider.value = nextVal;
-      renderSlice(plane, nextVal);
+      scheduleRender(plane, nextVal);
     });
   });
 

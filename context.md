@@ -167,11 +167,30 @@ Documented in [`report/3D_MultiPlanar_ASD_Research_Report.md`](file:///d:/Coding
 
 ---
 
-## 6. Live Research Workstation (`app.py` & `web/`)
+## 6. Dedicated Axial 3D Model & Free-Tier Cloud Training (Milestone Update)
+
+Following clinical input emphasizing the diagnostic predominance of the **Axial brain plane** (ventriculomegaly, bilateral cortical symmetry, frontal-temporal thickness):
+1. **Dedicated Axial 3D Model (`models/abide_3d_axial_cnn_pytorch.py`):**
+   - 5-stage residual Conv3D architecture with 512-channel deep bottleneck.
+   - Dual-attention 3D CBAM embedded across all stages.
+   - Extracts 3D spatial attention volume for transparent overlay exclusively on axial slices.
+2. **Axial-Anchored Asymmetric Multi-View Network (`models/abide_3d_axial_anchored_multiview.py`):**
+   - High-capacity 512-dim Axial backbone with 128-dim contextual Coronal & Sagittal branches.
+   - Gated Cross-Attention Fusion for highest diagnostic accuracy.
+3. **Lightning AI Studio Free-Tier Script (`training/train_axial_lightning.py`):**
+   - 5-Fold Stratified Cross-Validation on $N=395$ ABIDE-I cohort (`NYU`, `UM_1`, `USM`).
+   - Mixed-precision (`torch.cuda.amp`) execution optimized for free NVIDIA T4/L4 cloud instances.
+4. **Interactive Workstation Updates (`app.py`, `web/index.html`, `web/style.css`, `web/app.js`):**
+   - **Deep Learning Architecture Selector:** Allows toggling between *"Dedicated Axial 3D Model (Clinical Axial Focus - 512ch)"* and *"3-Stream Multi-Planar Network"*.
+   - **Axial-Only Viewport Mode:** When the dedicated axial model is active, Coronal and Sagittal viewports are dynamically hidden, and the Axial viewport expands to center stage with a clinical badge confirming axial-only processing.
+
+---
+
+## 7. Live Research Workstation (`app.py` & `web/`)
 
 The application is deployed as a high-performance clinical research workstation running on `http://127.0.0.1:8000`:
 - **Scan Ingestion:** Drag-and-drop `.nii` / `.nii.gz` / `.npy` or select 1-click curated research samples (`nyu_asd`, `um1_control`).
 - **Pipeline Stepper:** Real-time visual tracking of all 6 processing stages.
-- **Center Viewports:** Tri-planar synchronized Axial, Coronal, Sagittal canvases with 50-slice scrubbers and toggleable 3D CBAM spatial attention overlays.
+- **Center Viewports:** Dynamic Axial-Only or Tri-planar synchronized canvases with 50-slice scrubbers and toggleable 3D CBAM spatial attention overlays.
 - **Research Analytics:** ASD Classification Probability gauge, Model Output pill, Multi-View feature representation norms, Preprocessing QC checklist, and one-click Markdown report export.
 - **Persistent Disclaimer:** *"Research use only — not for clinical diagnostic use."*

@@ -99,9 +99,22 @@ body {
   gap: 12px;
 }
 
-.logo-icon {
-  font-size: 26px;
-  line-height: 1;
+.app-logo-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);
+  display: block;
+  flex-shrink: 0;
+}
+
+.report-logo-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
+  display: block;
+  flex-shrink: 0;
 }
 
 .brand-title {
@@ -906,11 +919,64 @@ body {
   color: var(--text-secondary);
 }
 
+/* Model Selection Prominent Card */
+.model-selection-card {
+  margin-top: 14px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: var(--radius-sm);
+  padding: 12px;
+}
+
+.model-select-prominent {
+  font-weight: 600;
+  color: #166534;
+  background-color: #ffffff;
+  border-color: #86efac;
+}
+
+.model-meta-badge {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 11px;
+  color: #15803d;
+  line-height: 1.4;
+}
+
+.model-meta-badge .badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #22c55e;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
 /* 3-Plane Viewports Grid */
 .viewports-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 14px;
+  transition: all 0.3s ease;
+}
+
+/* Axial-Only Mode Viewports Layout */
+.viewports-grid.axial-only-mode {
+  grid-template-columns: 1fr;
+  max-width: 580px;
+  margin: 0 auto;
+}
+
+.viewports-grid.axial-only-mode #viewport-coronal,
+.viewports-grid.axial-only-mode #viewport-sagittal {
+  display: none !important;
+}
+
+.viewports-grid.axial-only-mode #viewport-axial {
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.12);
+  border: 1.5px solid #93c5fd;
 }
 
 .viewport-box {
@@ -1915,14 +1981,248 @@ body {
   display: none !important;
 }
 
-/* Responsive adjustments */
-@media (max-width: 1280px) {
+/* ==============================================================================
+   Modern Responsive & Mobile Breakpoints System
+   ============================================================================== */
+
+/* Hardware & Paint Optimization */
+.viewport-box,
+.canvas-wrapper,
+.panel-card,
+.raw-mri-card {
+  contain: layout style;
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Touch & Mobile Friendly Controls */
+.slider-slice {
+  touch-action: pan-y;
+  cursor: pointer;
+}
+
+.slider-slice::-webkit-slider-thumb {
+  cursor: grab;
+  transition: transform 0.1s ease;
+}
+
+.slider-slice::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.2);
+}
+
+/* 1. Large Laptops & Compact Desktops (<= 1400px) */
+@media (max-width: 1400px) {
   .workstation-container {
-    grid-template-columns: 30% 70%;
+    grid-template-columns: 28% 44% 28%;
+    gap: 16px;
+    padding: 16px;
+  }
+  .app-header {
+    padding: 0 18px;
+  }
+}
+
+/* 2. Small Laptops / Split Screen View (<= 1200px) */
+@media (max-width: 1200px) {
+  .workstation-container {
+    grid-template-columns: 320px 1fr;
+    gap: 16px;
+    padding: 16px;
+  }
+  .panel-left {
+    grid-column: 1;
+  }
+  .panel-center {
+    grid-column: 2;
   }
   .panel-right {
-    grid-column: span 2;
+    grid-column: 1 / -1;
     display: grid;
     grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .viewports-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+}
+
+/* 3. Tablets & Compact Viewports (<= 960px) */
+@media (max-width: 960px) {
+  .app-header {
+    height: auto;
+    padding: 10px 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .header-center {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 6px;
+  }
+  .workstation-container {
+    grid-template-columns: 1fr;
+    padding: 14px;
+    gap: 16px;
+  }
+  .panel-left,
+  .panel-center,
+  .panel-right {
+    grid-column: 1;
+  }
+  .panel-right {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .viewports-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .viewports-grid.axial-only-mode {
+    max-width: 520px;
+  }
+  .modal-content {
+    width: 92vw;
+    max-height: 88vh;
+    padding: 20px;
+  }
+}
+
+/* 4. Mobile Phones (<= 640px) */
+@media (max-width: 640px) {
+  .app-header {
+    padding: 8px 12px;
+  }
+  .app-logo {
+    gap: 8px;
+  }
+  .logo-icon {
+    width: 28px;
+    height: 28px;
+  }
+  .app-title {
+    font-size: 15px;
+  }
+  .app-subtitle {
+    display: none;
+  }
+  .system-status-pill {
+    font-size: 11px;
+    padding: 4px 8px;
+    margin-right: 0;
+  }
+  .workstation-container {
+    padding: 10px;
+    gap: 12px;
+  }
+  .panel-card {
+    padding: 14px;
+    border-radius: var(--radius-md);
+  }
+  .raw-mri-card {
+    padding: 12px;
+  }
+  .raw-preview-container {
+    max-width: 100%;
+  }
+  .raw-card-details-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .dropzone {
+    padding: 20px 12px;
+  }
+  .dropzone-main-text {
+    font-size: 13px;
+  }
+  .viewports-grid {
+    grid-template-columns: 1fr;
+  }
+  .viewports-grid.axial-only-mode {
+    max-width: 100%;
+  }
+  .slider-control-bar {
+    gap: 6px;
+  }
+  .btn-step {
+    width: 34px;
+    height: 34px;
+    font-size: 13px;
+  }
+  .slider-slice {
+    height: 32px;
+  }
+  .slider-slice::-webkit-slider-thumb {
+    width: 24px;
+    height: 24px;
+  }
+  .slider-slice::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+  }
+  .viewport-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .toggle-label {
+    width: 100%;
+  }
+  .metrics-grid-2col {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .modal-content {
+    width: 96vw;
+    max-height: 92vh;
+    padding: 16px 14px;
+    border-radius: var(--radius-md);
+  }
+  .modal-header {
+    padding-bottom: 10px;
+  }
+  .modal-title {
+    font-size: 16px;
+  }
+  .report-header-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .report-action-buttons {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .report-action-buttons .btn {
+    flex: 1;
+    min-width: 120px;
+  }
+  .report-triplanar-snapshots {
+    grid-template-columns: 1fr;
+  }
+  .btn {
+    min-height: 42px;
+  }
+}
+
+/* 5. Micro-Screens & Small Mobile (<= 400px) */
+@media (max-width: 400px) {
+  .app-title {
+    font-size: 13px;
+  }
+  .badge-soft {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+  .raw-card-details-grid {
+    grid-template-columns: 1fr;
+  }
+  .prob-percent-large {
+    font-size: 32px;
   }
 }
